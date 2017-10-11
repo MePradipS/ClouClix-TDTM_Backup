@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Account" extensions="AccountSummaryViewController" id="AccountSummaryViewRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

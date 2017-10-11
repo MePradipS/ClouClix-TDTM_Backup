@@ -1,0 +1,281 @@
+<apex:page standardController="Opportunity" extensions="OppControllerExtension2" tabStyle="Gift__c" action="{!RedirectByTheme}">
+
+    <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>    
+    <style>
+      .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #FF6D66; text-decoration: none; }
+      .followup-tasks { padding:5px;background-color: #E3F3FF;border: 1px solid #CDE8FC;color:#222;font-weight:bold; border-radius:5px; }
+    </style>
+    <script type="text/javascript">
+    var j$ = jQuery.noConflict();        
+    j$(document).ready(function() { j$("#tabs").tabs(); });
+    function addPayment() { addPaymentRecord(); }
+    function tabs() { 
+        j$("#tabs").tabs();
+    }
+    
+    function applyAppealDefaults(elem) {
+        var a = elem.id;
+        var appealId = document.getElementById(elem.id + '_lkid').value;
+        //alert(appealId);
+        //gAppealId = appealId;
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.OppControllerExtension2.GetAppealDefaults}', appealId, 
+            function(result, event){
+                if (event.status) {
+                    
+                    if (result.FundId) {
+                       var fundControlId = elem.id.replace(':alcAppeal',':alcFund');
+                       //alert(fundControlId);
+                       document.getElementById(fundControlId).value = result.FundName;
+                    }
+                    
+                    //alert(result.FundName); 
+                } else if (event.type === 'exception') {
+                    alert('Error: ' +event.message);
+                } else {
+                    alert('Error: ' +event.message);
+                }
+            }, 
+            {escape: true}
+        );
+   }      
+    function openLookupForAllc(){
+        var getlookupId = j$(".out_class a");
+        j$(getlookupId).each(function( key, value ){
+           var spanelement = j$(value).parents(".lookupInput"); 
+           var inputtagdata = j$(spanelement).find("input");
+           var inputelementid = j$(inputtagdata).attr("id");
+           var valueinputelementname = j$(inputtagdata).attr("name");
+           var aid = j$(value).attr("id");
+           var inputelementid_lkwgt = inputelementid+"_lkwgt";
+               //changing name of lookupinput class input tag name
+               var inputelementnamereplace = valueinputelementname.replace(valueinputelementname, inputelementid);
+               var lookupInputelement = j$(inputtagdata).attr("name", inputelementnamereplace);
+               var hrefvalue = j$(value).attr("href");
+               //changing href of anchor tag
+               var decodehref = decodeURIComponent(hrefvalue);
+               decodehref = decodeURIComponent(decodehref);
+               var index1 = decodehref.indexOf("escapeUTF(getElementByIdCS")+28;
+               var index2 = decodehref.indexOf("\').value", 300);
+               var inputsubtring = decodehref.substring(index1, index2);
+               decodehref = decodehref.replace(inputsubtring, inputelementid);
+               decodehref = decodehref.replace(inputsubtring, inputelementid);
+               decodehref = decodehref.replace(inputsubtring, inputelementid);
+               decodehref = encodeURIComponent(decodehref);
+               index1 = decodehref.indexOf("javascript")+10;
+               index2 = decodehref.indexOf("%20open");
+               inputsubtring = decodehref.substring(index1, index2);
+               decodehref = decodehref.replace(inputsubtring, ":");
+               var hrf = j$(value).attr("href", decodehref);
+               //changing id of anchor tag
+               var atagid = j$(value).attr("id");
+               atagid = atagid.replace(valueinputelementname, inputelementid);
+               var changetagid = j$(value).attr("id", atagid);
+               //changing id of all input tag
+               var requiredinputclass = j$(value).parents(".requiredInput");
+               j$(requiredinputclass).find("input").each(function(index, element){
+                   var inputtagid = j$(element).attr("id");
+                   var inputtagname = j$(element).attr("name");
+                   inputtagid = inputtagid.replace(valueinputelementname, inputelementid);
+                   inputtagname = inputtagname.replace(valueinputelementname, inputelementid);
+                   var changeinputtagid = j$(element).attr("id", inputtagid);
+                   var changeinputtagname = j$(element).attr("name", inputtagname);
+               });
+        });
+    }
+    </script>
+    <apex:sectionHeader title="Convert {!$ObjectType.Opportunity.Label} to Grant" subtitle="{!SelectedOpp.Name}"/>
+    <apex:form id="MainForm">
+        <apex:pageMessages ></apex:pageMessages> 
+        <apex:commandlink rendered="{!isConverted}" value="Go To Transaction" action="{!goToTrans}" />
+        <br/>
+        <br/>
+        <apex:pageBlock id="OppDetails" >
+            <apex:pageblockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType.Opportunity.fields.AccountId.Label}"/>
+                    <apex:outputLabel value="{!theAcc.Name}"/>         
+                </apex:pageBlockSectionItem>               
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType.Opportunity.fields.Name.Label}"/>
+                    <apex:outputLabel value="{!selectedOpp.Name}"/>         
+                </apex:pageBlockSectionItem>            
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Amount"/>
+                    <c:CurrencyOutputField value="{!selectedOpp.Amount}"/>         
+                </apex:pageBlockSectionItem>     
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Close Date"/>
+                    <apex:outputText value="{0,date,d/MM/yyyy}">   
+                        <apex:param value="{!selectedOpp.CloseDate}" />
+                    </apex:outputText>                          
+                </apex:pageBlockSectionItem>                                     
+            </apex:pageblockSection>            
+        </apex:pageBlock>
+
+        <apex:pageBlock rendered="{!!isConverted}" > 
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!Submit}" value="Submit"/>
+                <apex:commandButton action="{!Cancel}" value="Cancel"/>
+            </apex:pageBlockButtons>               
+            
+            <apex:outputPanel id="content">      
+            
+                <apex:outputPanel style="text-align:right;">
+                    <apex:actionFunction action="{!removePayment}" oncomplete="tabs();" name="removePayment" immediate="true" reRender="wrapperBlock">
+                        <apex:param name="wrapperIndex" value=""/>
+                        <apex:param name="second" value=""/>
+                    </apex:actionFunction>
+                    <apex:actionFunction action="{!addPayment}" oncomplete="tabs();" name="addPaymentRecord" immediate="true" rerender="wrapperBlock"/>
+                </apex:outputPanel>
+                
+                  
+                <apex:outputPanel id="wrapperBlock">
+                    <apex:variable var="tabIndex" value="{!0}"/>
+                    <apex:variable var="wrapperIndex" value="{!0}"/>
+                    <div id="tabs">
+                        <ul>
+                            <apex:repeat value="{!theWrappers}" var="pw"> 
+                                <li><a href="#tabs-{!pw.Id}">Payment {!TEXT(tabIndex+1)}</a></li>  
+                                <apex:variable var="tabIndex" value="{!tabIndex+1}"/>                                                              
+                            </apex:repeat>
+                            <li><a href="#" onclick="addPayment();" style="cursor:pointer;border:1px solid #aaa; border-bottom:0px;font-weight:bold;font-size:14px;padding-bottom:0.3em;">+</a></li>
+                         </ul> 
+                                           
+                    <apex:repeat value="{!theWrappers}" var="pw">
+                        <div id="tabs-{!pw.Id}">
+                            <apex:outputPanel layout="block" style="padding: 10px;border:1px solid rgb(234, 234, 234);" >
+                                <apex:pageBlockSection collapsible="false" />  
+                                <apex:outputPanel style="padding: 5px;background-color: #FF6D66;color:#fff;font-weight:bold;" layout="block" >
+                                    &nbsp;&nbsp;Payment
+                                </apex:outputPanel>              
+                                <apex:variable var="wrapperIndex" value="{!wrapperIndex+1}"/>
+                    
+                                <apex:outputPanel style="text-align:right;" layout="block" rendered="{!wrapperIndex>0}">
+                                    &nbsp;&nbsp;<input type="button" class="btn" value="Remove" onclick="if (window.confirm('Are you sure?')) removePayment('{!JSENCODE(Text(wrapperIndex))}','0');"/> 
+                                </apex:outputPanel>
+                    
+                                <apex:pageBlockSection id="thePaymentBlockSection">
+                                    <apex:inputField value="{!pw.thePayment.Amount__c}" required="true" />
+                                    <apex:inputField value="{!pw.thePayment.Date__c}" required="true" />
+                                    <apex:inputField value="{!pw.thePayment.Status__c}" required="true" />
+                                                            
+                                    <!--<apex:inputField value="{!pw.thePayment.Payment_Type__c}" required="true" />-->
+                                   <apex:pageblockSectionItem >
+                                    <apex:outputLabel Value="Payment Type   " style="padding-left:120px;font-weight: bold;color: #4a4a56;">
+                                        <apex:selectList id="custompicklist" value="{!pw.thePayment.Payment_Type__c}" size="1"  required="true">
+                                          <apex:selectOptions value="{!pw.Custompicklist}"></apex:selectOptions>
+                                        </apex:selectList>
+                                   </apex:outputLabel>
+                                   </apex:pageblockSectionItem>
+                                    
+                                    
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Reminder" for="remind"/>
+                                        <apex:outputPanel layout="none">
+                                            <apex:actionRegion >
+                                                <apex:actionFunction name="updateRemind" action="{!nilMethod}" immediate="true" />
+                                                <apex:inputCheckbox id="remind" value="{!pw.isRemind}" />                                                
+                                            </apex:actionRegion>
+                                        </apex:outputPanel>                                                                                                        
+                                    </apex:pageblockSectionItem> 
+                                    <apex:pageblockSectionItem id="textRemind" >
+                                        <apex:outputLabel value="# of Days before Payment Date:" for="txtRemind"/>
+                                        <apex:outputPanel layout="block" id="txtR">
+                                            <apex:inputText style="width:40px" id="txtRemind" value="{!pw.daysBefore}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageblockSectionItem>                                                     
+                                    <apex:inputField value="{!pw.thePayment.Description__c}" />                                                                          
+                                </apex:pageBlockSection>
+                                
+                                <apex:outputPanel layout="block" style="padding: 35px 35px 35px 35px;" id="something2">      
+                                    <apex:pageBlockSection collapsible="false"/>
+                                    <apex:outputPanel style="padding: 5px;background-color:#FF6D66;background-image: url('/img/alohaSkin/opacity75.png');color:#222;font-weight:bold;" layout="block" >
+                                        &nbsp;&nbsp;Allocations by Fund, Appeal or Campaign
+                                    </apex:outputPanel>       
+                                    <apex:actionFunction action="{!removeAllocation}" name="removeAllocation" immediate="true" reRender="gdBlock">
+                                        <apex:param name="wrapperIndex" value=""/>
+                                        <apex:param name="gdIndex" value=""/>
+                                        <apex:param name="third" value=""/>                                
+                                    </apex:actionFunction>
+                                    
+                                    <apex:actionFunction action="{!addAllocation}" name="addAllocation" immediate="true" reRender="gdBlock">
+                                        <apex:param name="gdIndex" value=""/>
+                                        <apex:param name="second" value=""/>
+                                    </apex:actionFunction>                            
+        
+                                    <apex:outputPanel id="gdBlock" styleClass="out_class">
+                                        <apex:variable var="gdIndex" value="{!0}"/>
+                                        
+                                        <apex:outputPanel layout="block">
+                                            <input type="button" class="btn" value=" + Add Allocation " onclick="addAllocation('{!JSENCODE(Text(wrapperIndex))}','0');"/>
+                                        </apex:outputPanel>   
+                                        <!-- Added by Nitin -->
+                                        <apex:repeat value="{!pw.theGiftDetails}" var="gd" >                          
+                                        <!-- <apex:repeat value="{!giftdetaillist}" var="gd" > -->
+                                            <apex:variable var="gdIndex" value="{!gdIndex+1}"/>
+        
+                                            <apex:outputPanel style="text-align:right;" layout="block" rendered="{!gdIndex>0}">
+                                                {!TEXT(gdIndex)} - <input type="button" class="btn" value="Remove" onclick="if (window.confirm('Are you sure?')) removeAllocation('{!JSENCODE(Text(wrapperIndex))}','{!JSENCODE(Text(gdIndex))}', '0');"/>                                          
+                                            </apex:outputPanel>
+                                            
+        
+                                            <apex:pageBlockSection >
+                                                <apex:inputField value="{!gd.Amount__c}" required="true" />
+                                                <apex:inputField id="alcFund" value="{!gd.Fund__c}" required="true" />                                                      
+                                                <apex:inputField id="alcAppeal" value="{!gd.New_Campaign__c}" required="true" onchange="applyAppealDefaults(this);"/>                                                                                    
+                                            </apex:pageBlockSection>
+                                        </apex:repeat>
+                                        <script>
+                                            openLookupForAllc();
+                                        </script>
+                                    </apex:outputPanel>  
+                                </apex:outputPanel>  
+                            </apex:outputPanel>  
+                        </div>           
+                    </apex:repeat>   
+                    </div>         
+                </apex:outputPanel>
+                <br/>
+
+            </apex:outputPanel>                                                             
+             </apex:pageBlock>
+
+        <br/><br/>
+        <apex:pageBlock rendered="{!!isConverted}" > 
+            <apex:outputPanel id="something3" >      
+                <apex:pageBlockSection />                
+                    <apex:outputPanel layout="block" styleClass="followup-tasks" >
+                        &nbsp;&nbsp;Follow-up Tasks
+                    </apex:outputPanel>     
+            
+                <apex:actionFunction action="{!removeTask}" name="removeTask" immediate="true" reRender="something3">
+                    <apex:param name="Index3" value=""/>
+                    <apex:param name="second" value=""/>
+                </apex:actionFunction>
+            
+                <apex:outputPanel id="repeatBlock3">
+                    <apex:variable var="rowIndex3" value="{!0}"/>
+                    <apex:repeat value="{!theTasks}" var="item">
+                        <apex:variable var="rowIndex3" value="{!rowIndex3+1}"/>
+            
+                        <apex:outputPanel layout="block" rendered="{!rowIndex3>0}">
+                        {!TEXT(rowIndex3)} - <input type="button" class="btn" value="Remove" onclick="if (window.confirm('Are you sure?')) removeTask('{!JSENCODE(Text(rowIndex3))}','0');"/> 
+                        </apex:outputPanel>
+            
+                        <apex:pageBlockSection >
+                            <apex:inputField value="{!item.Subject}" required="true" />                           
+                            <apex:inputField value="{!item.ActivityDate}" required="true" />                                                   
+                            <apex:inputField value="{!item.Description}" required="true" />                                                        
+                            <apex:inputField value="{!item.OwnerId}" required="true" />                            
+                        </apex:pageBlockSection>
+                    </apex:repeat>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block">
+                    <apex:commandButton value="+ Add Task" action="{!addTask}" immediate="true" reRender="something3" />
+                </apex:outputPanel>
+            </apex:outputPanel>         
+        </apex:pageBlock>                 
+    </apex:form>
+</apex:page>

@@ -1,0 +1,227 @@
+<apex:page controller="HouseholdTabController" action="{!RedirectByTheme}">
+	<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+	<script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+	<script src="{!URLFOR($Resource.aljsTest3)}"></script>
+	<apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+ 	<head>
+    	<apex:slds />
+	</head>
+	
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    	<!-- 
+Styling that takes an enhanced list, as-is, 
+and applies very similar styling as that of SLDS data table 
+
+To be used with an enhanced list, such as the referenced markup below
+-->
+
+<!-- example enhanced list -->
+<apex:outputPanel id="surveysBlock" styleClass="slds-m-bottom--small slds-p-around--small slds-show">
+	<apex:enhancedList type="Account" customizable="true" height="800" rowsPerPage="50" id="SurveyList" />
+</apex:outputPanel>
+
+<style>
+/*  -- overrides for enhanced list for SLDS --  */
+	.listViewport * 
+	/* anything living within this class gets this styling */
+	{
+		font:99%/1.5 "Salesforce Sans",Arial,sans-serif!important;
+	}
+	.homeTab .listViewport .subNav .linkBar,
+	.homeTab .mComponent .cHeader, 
+	.homeTab .genericTable, 
+	.homeTab .bSubBlock, 
+	.homeTab .bPageBlock 
+	/* getting rid of the pageBlock styling from the list view */
+	{
+		border:0;
+		background-color: #fff;
+	}
+	.listViewport .topNav .filterLinks 
+	/* edit / delete / create new view links */
+	{
+		padding: 5px 0;
+		margin-left: 20px;
+	}
+	.listViewportWrapper .listViewport .topNav .pageTitleIcon 
+	/* removing the negative top margin from the icon next to the filter drop down */
+	{
+		margin-top: 2px;
+	}
+	.listViewport .x-grid3-header, .errorConsole .x-grid3-header {
+		background: #fff;
+	}
+	.subNav .linkBar .listButtons input.btn 
+	/* the refresh button  - same styling as slds-button */
+	{
+	    position: relative;
+	    display: inline-block;
+	    padding: 0;
+	    background: transparent;
+	    background-clip: padding-box;
+	    border: none;
+	    border-radius: 0.25rem;
+	    color: #0070d2;
+	    font-size: inherit;
+	    line-height: 2.125rem;
+	    text-decoration: none;
+	    -webkit-appearance: none;
+	    white-space: normal;
+	    -webkit-user-select: none;
+	    -moz-user-select: none;
+	    -ms-user-select: none;
+	    user-select: none;
+	    -webkit-transition: color 0.05s linear,background-color 0.05s linear;
+	    transition: color 0.05s linear,background-color 0.05s linear;
+
+	    /* same styling as slds-button--neutral, without padding */
+	    text-align: center;
+	    vertical-align: middle;
+	    border: 1px solid #d8dde6;
+	    background-color: #fff;
+
+	    /* icon stuff for the button */
+	    background: url("{!URLFOR($Resource.SLDS0122, '/assets/icons/utility/refresh_60.png')}");
+	    background-size: 15px!important;
+        background-position: center;
+	    background-repeat: no-repeat;
+	    padding: 10px!important;
+	    width: 25px;
+	    height: 25px;
+	}
+	.subNav .linkBar .listButtons input.btn:hover 
+	/* giving the refresh button some SLDS button hover */
+	{
+		background-color:#f4f6f9!important;
+	}
+	select.title /* SLDS'n the filter drop down list */
+	{
+		background-color: white;
+	    color: #16325c;
+	    border: 1px solid #d8dde6;
+	    border-radius: 4px;
+	    width: 100%;
+	    -webkit-transition: border 0.1s linear, background-color 0.1s linear;
+	    transition: border 0.1s linear, background-color 0.1s linear;
+	    height: 34px;
+	    max-width: 250px;
+	}
+	.listViewportWrapper .listViewport .x-grid3-hd-row>td 
+	/* giving the header row some padding */
+	{
+		padding: 10px 0;
+		border: 0!important;
+		border-right: 0;
+		/* recreating the slds-text-heading--label styling */
+		font-size: 0.75rem;
+	    line-height: 1.25;
+	    text-transform: uppercase;
+	    letter-spacing: .0625em;
+	    color: #54698d;
+	}
+	.listViewport .x-grid3-row td, 
+	.listViewport .x-grid3-summary-row td, 
+	.listViewport .x-grid3-cell-text, 
+	.listViewport .x-grid3-hd-text, 
+	.listViewport .x-grid3-hd, 
+	.listViewport .x-grid3-row
+	/* adding some padding above and below the rows */
+	{
+		padding: 3px 0;
+	}
+	.x-grid3-row 
+	/* get rid of the left border on each row */
+	{
+		border-left: 0;
+	}
+	.listViewportWrapper .listViewport .listBody,
+	.listViewport .listBody 
+	/* get rid of the border and set the background to white */
+	{
+		background-color: #fff;
+		border: 0;
+	}
+	.listViewport 
+	/* the entire list view doesn't need a border */
+	{
+		border:0;
+	}
+	.x-grid3-hd-row td 
+	/* make sure the rows are clear of color */
+	{
+		background-color: transparent;
+	}
+/* specific column adjustments */
+
+	td.x-grid3-hd.x-grid3-cell.x-grid3-td-ACTION_COLUMN 
+	/* action - header */,
+	.x-grid3-td-ACTION_COLUMN 
+	{
+	    width: 60px!important;
+	}
+
+	td.x-grid3-hd.x-grid3-cell.x-grid3-td-NAME 
+	/* Qualtrics Survey - header */,
+	.x-grid3-td-NAME 
+	/* Qualtrics Survey - cells */
+	{
+	    width: 125px!important;
+	}
+	td.x-grid3-col.x-grid3-cell.x-grid3-td-00N61000003A3BM 
+	/* Survey Title - header */,
+	.x-grid3-td-00N61000003A3BM 
+	/* Survey Title - cells */
+	{
+	    width: 150px!important;
+	}
+	td.x-grid3-hd.x-grid3-cell.x-grid3-td-00N61000003A3BJ 
+	/* # in List column - header */,
+	.x-grid3-td-00N61000003A3BJ 
+	/* # in List column - cells */
+	{
+	    width: 60px!important;
+	}
+	td.x-grid3-hd.x-grid3-cell.x-grid3-td-00N61000003A3BK
+	/* Status - header */,
+	.x-grid3-td-00N61000003A3BK
+	/* Status - cells */
+	{
+	    width: 90px!important;
+	}
+
+	/* some SLDS spinner styles */
+	 .waitingHolder {
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        right: 0; 
+        bottom: 0; 
+        z-index: 1000; 
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+    .waitingImage {
+        display: none;
+    }
+    .waitingDescription:after {
+        content: '';
+        display: block;
+        width: 70px;
+        height: 70px;
+        background-image: url({!URLFOR($Resource.SLDS0122, '/assets/images/spinners/slds_spinner_brand.gif')});
+        background-size: contain;
+    }
+    .waitingDescription {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        margin: 23% 37%;
+        text-indent: -99999px;
+    }
+</style>
+
+    	
+    </html>
+</apex:page>

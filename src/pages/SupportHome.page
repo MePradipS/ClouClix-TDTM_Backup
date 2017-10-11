@@ -1,0 +1,19 @@
+<apex:page id="SupportHomePage" title="Support Home" showHeader="false" cache="false" standardStylesheets="false" sidebar="true" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0" >
+    <head>
+        <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+        <apex:slds />
+        <style>
+        </style>
+    </head>
+    <body class="slds-scope" style="width: inherit;">
+        <div class="slds-text-longform">
+            <ul>
+                <li><a href="https://support.causeview.com/hc/en-us/categories/202688637-Knowledge-Base-">Knowledge Base</a></li>
+                <li><a href="https://support.causeview.com/hc/en-us/categories/202688627-Videos">Videos</a></li>
+                <li><a href="https://support.causeview.com/hc/en-us/categories/203269087-Release-Notes">Release Notes</a></li>
+                <li><a href="https://support.causeview.com/hc/en-us/requests/new">Submit a Ticket</a></li>
+                <li><a href="https://support.causeview.com/hc/en-us/articles/219028497-New-User-Cheat-Sheet-">Causeview New User Cheat Sheet</a></li>
+            </ul>
+        </div>
+    </body>
+</apex:page>

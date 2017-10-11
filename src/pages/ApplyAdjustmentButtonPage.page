@@ -1,0 +1,15 @@
+<apex:page standardController="Gift_Detail__c" extensions="ApplyAdjustmentButtonPageController" tabStyle="Gift_Detail__c" action="{!RedirectByTheme}">
+    <apex:form >
+        <apex:pageBlock >
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Fund" for="fundField"/>
+                    <apex:inputField value="{!giftDetail.Fund__c}" id="fundField"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Submit" action="{!submit}" />
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

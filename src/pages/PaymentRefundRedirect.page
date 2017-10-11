@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Payment__c" extensions="PaymentRefundController" id="PaymentRefundRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

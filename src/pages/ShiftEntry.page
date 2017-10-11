@@ -1,0 +1,177 @@
+<apex:page standardController="Volunteer_Shift__c" extensions="CShiftEntry" action="{!RedirectByTheme}">
+    <apex:sectionHeader title="New Volunteer Position Shift" subtitle="New Shift"/>
+    <apex:pageMessages ></apex:pageMessages>
+    <apex:form id="frmMain" >
+        <apex:pageBlock rendered="{!wizardState == 1}" >
+            
+            <apex:actionFunction action="{!removeShift}" name="removeShift" immediate="true" reRender="shiftList">
+                <apex:param name="Index" value=""/>
+            </apex:actionFunction>
+            <apex:actionFunction action="{!editShift}" name="editShift" immediate="true" reRender="frmMain">
+                <apex:param name="Index" value=""/>
+            </apex:actionFunction>            
+            
+            <apex:pageBlockSection >      
+                <apex:outputField value="{!selected.theShift.Volunteer_Role__c}"/> 
+                <br/>
+
+                <apex:outputField value="{!thePos.Start_Date__c}"/>
+                <apex:outputField value="{!thePos.End_Date__c}"/>         
+                <br/>                           
+            </apex:pageBlockSection>    
+            <br/>  
+            <apex:pageBLockSection >
+            <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType.Volunteer_Shift__c.fields.Frequency__c.label}"></apex:outputLabel>
+                    <apex:outputPanel layout="none">
+                        <apex:actionRegion >
+                            <apex:selectList title="PickList1" size="1" value="{!selected.theShift.Frequency__c}" styleClass="form-select">
+                                <apex:selectOptions value="{!PickLstValue}"/>
+                                <apex:actionSupport event="onchange" reRender="freq"/>
+                            </apex:selectList>
+                        </apex:actionRegion>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>                                            
+            <apex:pageBlockSection id="freq" columns="1" >  
+                <apex:outputLabel rendered="{!selected.theShift.Frequency__c != ''}" value="Location Details"/>
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location__c}"/>
+                <!--<apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_Street__c}"/>      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_City__c}"/>      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_State__c}"/>      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_Zip_Code__c}"/>  -->
+                <br/>
+                <apex:outputLabel rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" value="Shift Time Details"/>                                                      
+                <!--<apex:inputField rendered="{!selected.theShift.Frequency__c == 'One-Time' || selected.theShift.Frequency__c == 'Monthly'}" value="{!selected.theShift.Shift_Date__c}"/>
+                <apex:inputField rendered="{!selected.theShift.Frequency__c == 'Weekly' || selected.theShift.Frequency__c == 'Bi-Weekly'}" value="{!selected.theShift.Shift_Date__c}" label="Date of First Shift"/>-->
+                <apex:inputText required="true" rendered="{!selected.theShift.Frequency__c == 'Weekly'}" label="# of Weeks" value="{!NumOfWeeks}"/>
+                <apex:inputText required="true" rendered="{!selected.theShift.Frequency__c == 'Bi-Weekly'}" label="# of Bi-Weekly Pairs" value="{!NumOfWeeks}"/>                
+                <apex:inputText required="true" rendered="{!selected.theShift.Frequency__c == 'Monthly'}" label="# of Months" value="{!NumOfWeeks}"/>                                
+                <!--<apex:inputField rendered="{!selected.theShift.Frequency__c == 'Weekly'}" value="{!selected.theShift.Day_of_the_Week__c}"/>                -->
+                <apex:inputField required="true" rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" label="Start Date" value="{!selected.theShift.Start_Day__c}"/> 
+                <apex:pageBlockSectionItem rendered="{!selected.theShift.Frequency__c == 'One-Time' || selected.theShift.Frequency__c == 'Monthly' || selected.theShift.Frequency__c == 'Weekly' || selected.theShift.Frequency__c == 'Bi-Weekly'}" >
+                    <apex:outputLabel value="Start Time" />
+                    <apex:outputPanel >
+                        <apex:selectList size="1" value="{!selected.startHours}">
+                            <apex:selectOptions value="{!hours}" />
+                        </apex:selectList>
+                        <apex:selectList size="1" value="{!selected.startMins}">
+                            <apex:selectOptions value="{!mins}" />
+                        </apex:selectList>                    
+                        <apex:selectList size="1" value="{!selected.startMeridiemOffset}">
+                            <apex:selectOptions value="{!meridiemoffset}" />
+                        </apex:selectList>         
+                    </apex:outputPanel>        
+                </apex:pageBlockSectionItem>     
+                <apex:inputField required="true" rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" label="End Date" value="{!selected.theShift.End_Day__c}"/>                                                                                                                                  
+                <apex:pageBlockSectionItem rendered="{!selected.theShift.Frequency__c == 'One-Time' || selected.theShift.Frequency__c == 'Monthly' || selected.theShift.Frequency__c == 'Weekly' || selected.theShift.Frequency__c == 'Bi-Weekly'}">
+                    <apex:outputLabel value="End Time" />                    
+                    <apex:outputPanel >                            
+                        <apex:selectList size="1" value="{!selected.endHours}">
+                            <apex:selectOptions value="{!hours}" />
+                        </apex:selectList>
+                        <apex:selectList size="1" value="{!selected.endMins}">
+                            <apex:selectOptions value="{!mins}" />
+                        </apex:selectList>                    
+                        <apex:selectList size="1" value="{!selected.endMeridiemOffset}">
+                            <apex:selectOptions value="{!meridiemoffset}" />
+                        </apex:selectList>   
+                    </apex:outputPanel>           
+                </apex:pageBlockSectionItem>                                                                            
+            </apex:pageBlockSection>           
+            <apex:pageblockButtons location="bottom" >
+                <apex:commandButton value="Add Shift(s)" action="{!addShift}"/>                
+                <apex:commandButton rendered="{!theShifts.size > 0}" value="Remove All Shift(s)" action="{!clear}"/>
+                <apex:commandButton value="Back to Role" action="{!back}" immediate="true"/>                
+            </apex:pageblockButtons>            
+        </apex:pageBlock>         
+        <apex:pageBlock rendered="{!wizardState == 2}" >                                               
+            <apex:pageBlockSection id="freq" columns="1" >  
+                <apex:outputLabel rendered="{!selected.theShift.Frequency__c != ''}" value="Location Details"/>
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location__c}"/>                
+                <!--<apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_Street__c}"/>      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_City__c}"/>      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_State__c}"/>      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != ''}" value="{!selected.theShift.Location_Zip_Code__c}"/>  -->
+                <br/>
+                <apex:outputLabel rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" value="Shift Time Details"/>                                                      
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" value="{!selected.theShift.Shift_Date__c}"/>          
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" label="Start Date" value="{!selected.theShift.Start_Day__c}"/> 
+                <apex:pageBlockSectionItem rendered="{!selected.theShift.Frequency__c == 'One-Time' || selected.theShift.Frequency__c == 'Monthly' || selected.theShift.Frequency__c == 'Weekly' || selected.theShift.Frequency__c == 'Bi-Weekly'}" >
+                    <apex:outputLabel value="Start Time" />
+                    <apex:outputPanel >
+                        <apex:selectList size="1" value="{!selected.startHours}">
+                            <apex:selectOptions value="{!hours}" />
+                        </apex:selectList>
+                        <apex:selectList size="1" value="{!selected.startMins}">
+                            <apex:selectOptions value="{!mins}" />
+                        </apex:selectList>                    
+                        <apex:selectList size="1" value="{!selected.startMeridiemOffset}">
+                            <apex:selectOptions value="{!meridiemoffset}" />
+                        </apex:selectList>         
+                    </apex:outputPanel>        
+                </apex:pageBlockSectionItem>        
+                <apex:inputField rendered="{!selected.theShift.Frequency__c != '' && selected.theShift.Frequency__c != 'Flexible'}" label="End Date" value="{!selected.theShift.End_Day__c}"/>                                                                
+                <apex:pageBlockSectionItem rendered="{!selected.theShift.Frequency__c == 'One-Time' || selected.theShift.Frequency__c == 'Monthly' || selected.theShift.Frequency__c == 'Weekly' || selected.theShift.Frequency__c == 'Bi-Weekly'}">
+                    <apex:outputLabel value="End Time" />                    
+                    <apex:outputPanel >                            
+                        <apex:selectList size="1" value="{!selected.endHours}">
+                            <apex:selectOptions value="{!hours}" />
+                        </apex:selectList>
+                        <apex:selectList size="1" value="{!selected.endMins}">
+                            <apex:selectOptions value="{!mins}" />
+                        </apex:selectList>                    
+                        <apex:selectList size="1" value="{!selected.endMeridiemOffset}">
+                            <apex:selectOptions value="{!meridiemoffset}" />
+                        </apex:selectList>   
+                    </apex:outputPanel>           
+                </apex:pageBlockSectionItem>                                                                            
+            </apex:pageBlockSection>           
+            <apex:pageblockButtons location="bottom" >
+                <apex:commandButton value="Update Shift" action="{!updateShift}"/>
+                <apex:commandButton value="Cancel" action="{!cancelUpdate}"/>                
+            </apex:pageblockButtons>            
+        </apex:pageBlock>                 
+        <apex:pageBlock rendered="{!wizardState == 1}" id="shiftList">
+        <apex:variable var="rowIndex" value="{!0}"/>
+            <apex:pageBlockTable var="sw" value="{!theShifts}">                
+                <apex:column >
+                    <apex:variable var="rowIndex" value="{!rowIndex+1}"/>
+                    <apex:outputPanel rendered="{!sw.theShift.Logged_Hours__c == 0}"><a href="#" onclick="editShift('{!rowIndex}');">Edit</a></apex:outputPanel>
+                    |
+                    <apex:outputPanel rendered="{!sw.theShift.Logged_Hours__c == 0}"><a href="#" onclick="if (window.confirm('Are you sure?')) removeShift('{!rowIndex}');">Remove</a></apex:outputPanel>
+                </apex:column>
+                <apex:column value="{!sw.theShift.Frequency__c}">   
+                    <apex:facet name="header">   
+                        Frequency
+                    </apex:facet>         
+                </apex:column>
+                <apex:column value="{!sw.theShift.Duration_Hours__c}">
+                    <apex:facet name="header">   
+                        Duration
+                    </apex:facet>         
+                </apex:column>
+                <apex:column value="{!sw.theShift.Start_Time__c}"> 
+                    <apex:facet name="header">   
+                        Start Time
+                    </apex:facet>         
+                </apex:column>
+                <apex:column value="{!sw.theShift.End_Time__c}">                                                               
+                    <apex:facet name="header">   
+                        End Time
+                    </apex:facet>         
+                </apex:column>
+                <apex:column value="{!sw.theShift.Day_of_the_Week__c}">                 
+                    <apex:facet name="header">   
+                        Day of the Week
+                    </apex:facet>         
+                </apex:column>
+                <apex:column value="{!sw.theShift.Location_Address__c}">                 
+                    <apex:facet name="header">   
+                        Address
+                    </apex:facet>         
+                </apex:column>                
+            </apex:pageBlockTable>
+        </apex:pageBlock>        
+    </apex:form>   
+</apex:page>

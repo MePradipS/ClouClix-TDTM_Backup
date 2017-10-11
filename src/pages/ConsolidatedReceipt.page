@@ -1,0 +1,168 @@
+<apex:page standardController="Receipt__c" extensions="consolidatedReceiptController" action="{!RedirectByTheme}">
+    <apex:pageMessages ></apex:pageMessages>
+
+    <style>
+        .payment-filter {
+            padding-bottom: 10px !important;
+            margin-left: 80% !important;
+        }
+
+        .payment-filter-label {
+            margin-right: 10px !important;
+        }
+
+        .attachments tr td:first-child {
+            text-align: right;
+        }
+
+        .attachments tr td {
+            padding: 5px;
+            width: 20%;
+        }
+
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+
+        .popupBackground {
+            background-color: black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+    </style>
+
+    <script type="text/javascript">
+
+        function checkAll(cb) {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("check-payment")!=-1)
+                inputElem[i].checked = cb.checked;
+            }
+        };
+
+        function unCheck() {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("check-all")!=-1)
+                inputElem[i].checked = false;
+            }
+        };
+    </script>
+
+    <apex:sectionHeader title="New Consolidated Receipt" subtitle="Consolidated Receipt"/>
+    <apex:form >
+
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Generate Receipt" title="Generate Receipt" action="{!generateReceipt}" rendered="{!containsPayment}"/>
+                <apex:commandButton value="Cancel" title="Cancel" action="{!cancel}"/>
+            </apex:pageBlockButtons>
+
+            <apex:actionstatus id="selectStatus" onstart="javascript:document.getElementById('contentLoading').style.display='inline';" onstop="javascript:document.getElementById('contentLoading').style.display='none';"/>
+            <apex:actionFunction name="refreshPaymentList" action="{!applyPaymentFilter}" reRender="unreceiptedPayments" status="selectStatus" oncomplete="unCheck()"/>
+
+            <div id="contentLoading" style="display: none;">
+                <apex:outputPanel styleClass="popupBackground" layout="block"/>
+                <div style="text-align: center;" class="custPopup">
+                    <img src="/img/loading.gif" alt="Loading graphic" />
+                    <b>Processing....</b>
+                </div>
+            </div>
+
+            <div class="payment-filter">
+                <apex:outputLabel styleClass="payment-filter-label"><b>Payment Filter : </b></apex:outputLabel>
+                <apex:selectList id="payment-filter" value="{!selectedPaymentFilter}" size="1" onchange="refreshPaymentList()">
+                    <apex:selectOptions value="{!paymentFilters}"/>
+                </apex:selectList>
+            </div>
+
+            <div class="unreceiptedPayments">
+                <apex:outputPanel id="unreceiptedPayments">
+                    <apex:outputText rendered="{!payments.size <= 0}"><b>No Records To Display . . . </b></apex:outputText>
+                    <apex:pageBlockTable value="{!payments}" var="PW" rendered="{!payments.size > 0}">
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:inputCheckbox id="check-all">
+                                    <apex:actionSupport event="onclick" onsubmit="checkAll(this)" reRender="unreceiptedPayments, attachments" status="selectStatus"/>
+                                </apex:inputCheckbox>
+                            </apex:facet>
+                            <apex:inputCheckbox value="{!PW.selected}" id="check-payment">
+                                <apex:actionSupport event="onclick" reRender="attachments" status="selectStatus"/>
+                            </apex:inputCheckbox>
+                        </apex:column>
+                        <apex:column headerValue="Payment Number">
+                            <apex:outputLink value="/{!PW.payment.Id}">{!PW.payment.Name}</apex:outputLink>
+                        </apex:column>
+                        <apex:column value="{!PW.payment.Date__c}"/>
+                        <apex:column value="{!PW.payment.Amount__c}" headerValue="Payment Amount"/>
+                        <apex:column value="{!PW.payment.Payment_Type__c}"/>
+                        <apex:column value="{!PW.payment.Status__c}" headerValue="Payment Status"/>
+                        <apex:column headerValue="Transaction Number">
+                            <apex:outputLink value="/{!PW.payment.Donation__r.Id}">{!PW.payment.Donation__r.Name}</apex:outputLink>
+                        </apex:column>
+                        <apex:column value="{!PW.payment.Donation__r.Gift_Type__c}" headerValue="Transaction Type"/>
+                        <apex:column value="{!PW.payment.Donation__r.Gift_Date__c}"/>
+                        <apex:column value="{!PW.payment.Donation__r.Receipt_Type__c}"/>
+                    </apex:pageBlockTable>
+                    <br />
+    
+                    <apex:outputPanel id="attachments" rendered="{!payments.size > 0}">
+                        <center>
+                            <table class="attachments">
+                                <tr>
+                                    <td><apex:outputLabel for="transactionToAttach"><b>Attach Receipt to Transaction </b></apex:outputLabel></td>
+                                    <td>
+                                        <apex:selectList size="1" value="{!receipt.Gift__c}" id="transactionToAttach">
+                                            <apex:selectOptions value="{!transactionsToAttach}"/>
+                                        </apex:selectList>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><apex:outputLabel for="autoEmail"><b>Auto Email Receipt </b></apex:outputLabel></td>
+                                    <td><apex:inputCheckbox id="autoEmail" value="{!receipt.Auto_Email_Receipt__c}">
+                                        <apex:actionSupport event="onclick" reRender="attachments" status="selectStatus"/>
+                                    </apex:inputCheckbox></td>
+                                </tr>
+                                <tr>
+                                    <td><apex:outputLabel for="attachEmail"><b>Email Address </b></apex:outputLabel></td>
+                                    <td><apex:outputField id="attachEmail" value="{!receipt.Receipt_Email_Address__c}" rendered="{!receipt.Auto_Email_Receipt__c}"/></td>
+                                </tr>
+                            </table>
+                        </center>
+                        <script>
+                            var inputElem = document.getElementsByTagName("select");
+                            for(var i=0; i<inputElem.length; i++) {
+                                if(inputElem[i].id.indexOf("transactionToAttach")!=-1) {
+                                    for(var j=0; j<inputElem[i].children.length; j++) {
+                                        if(inputElem[i].children[j].selected == true) {
+                                            if(j != 0) {
+                                                inputElem[i].children[j].selected = false;
+                                                inputElem[i].children[0].selected = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        </script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </div>
+
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

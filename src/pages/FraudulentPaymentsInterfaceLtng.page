@@ -1,0 +1,263 @@
+<apex:page controller="FraudulentPaymentsInterfaceController" id="mainPage" action="{!RedirectByTheme}">
+<head>
+   <apex:slds />
+</head>
+    
+<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlinkhouse" lang="en">
+ <!-- ********************* HEDER SECTIION *********************** -->
+      <div class="slds slds-page-header">
+         <div class="slds slds-grid">
+            <div class="slds slds-col slds-has-flexi-truncate">
+               <div class="slds slds-media slds-no-space slds-grow">
+                  <div class="slds slds-media__figure">
+                     <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#lead"></use>
+                     </svg>
+                  </div>
+                  <div class="slds slds-media__body">
+                     <p class="slds slds-text-title--caps slds-line-height--reset"></p>
+                     <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="this should match the Record Title">iATS Potentially Fraudulent Payment</h1>
+                  </div>
+               </div>
+            </div>
+            <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+            </div>
+         </div>
+      </div>
+      <!-- ******************** END OF HEDER SECTION ***************** -->
+    <style>
+        .popupBackground {
+            background-color: rgba(0,0,0,0.2);
+//            opacity: 0.20;
+//            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+    </style>
+    <script type="text/javascript">
+    function checkAll(cb) {
+        var inputElem = document.getElementsByTagName("input");
+        for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("checkBox")!=-1)
+                if(inputElem[i].disabled != true){
+                    inputElem[i].checked = cb.checked;
+                }
+        }
+    };
+    function unCheckAll(cb) {
+        var inputElem = document.getElementsByTagName("input");
+        for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("checkBox")!=-1)
+                if(!inputElem[i].checked){
+                    if(inputElem[i].disabled != true){
+                        document.getElementById("mainPage:theForm:ThePage:pbSection:pTable:checkAll").checked = false;
+                        return;
+                    }
+                }
+        }
+        document.getElementById("mainPage:theForm:ThePage:pbSection:pTable:checkAll").checked = true;
+    };
+    function loading(val, divId) {
+            if (val) {
+                if(divId === 'DelContentLoading'){
+                    document.getElementById('DelContentLoading').style.display = 'block';
+                }else
+                if(divId === 'retContentLoading'){
+                    document.getElementById('retContentLoading').style.display = 'block';    
+                }
+            }
+            else {
+                if(divId === 'DelContentLoading'){
+                    document.getElementById('DelContentLoading').style.display = 'none';
+                }else
+                if(divId === 'retContentLoading'){
+                    document.getElementById('retContentLoading').style.display = 'none';    
+                }  
+            }           
+        }
+    
+    </script>
+    <apex:form id="theForm" > 
+       <!-- ******************** SLDS SPINNER SECTIION ************* -->
+         <div role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand" id="statusIndicatorDivId" style="display:none;z-index: 1000;">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+         </div>
+         <!-- ******************** SLDS SPINNER SECTIION ENDS ******** -->     
+      <!--  <apex:pageBlock id="ThePage">   -->   
+          <apex:outputPanel id="ThePage">    
+           <!-- <apex:outputText value="iATS Potentially Fraudulent Payment" style="font-size:20px;"/> --><br></br><br></br>
+            <apex:outputLabel rendered="{!lstSetController.size==0}">No records to display</apex:outputLabel>
+            <apex:pageMessages />
+
+            <!--<apex:actionStatus id="delConLoading" onstart="loading(true, 'DelContentLoading')" onstop="loading(false, 'DelContentLoading')" />
+            <apex:actionStatus id="retConLoading" onstart="loading(true, 'retContentLoading')" onstop="loading(false, 'retContentLoading')" /> -->
+
+            <apex:actionStatus id="delConLoading" onstart="showStatus()" onstop="hideStatus()" />
+            <apex:actionStatus id="retConLoading" onstart="showStatus()" onstop="hideStatus()" />
+
+            <apex:actionFunction name="deleteSelected" action="{!deleteSelected}" reRender="ThePage" status="delConLoading"/>
+
+            <!--<apex:pageBlockSection columns="1" id="pbSection" rendered="{!lstSetController.size>0}"> -->
+            <fieldset class="slds-box slds-theme--default slds-container">
+             <legend class="slds-text-heading--medium slds-p-vertical--medium"></legend>
+            <apex:outputPanel id="searchPanel">
+                <center>
+                    <!--for future release-->
+                    <!--<apex:commandButton value="Delete Selected" onclick="if(confirm('Are you sure?')){deleteSelected()};"  reRender="ThePage" style="float: left;padding: 8px" />-->
+                    <apex:commandButton styleClass="slds-button slds-button--neutral" value="<< First Page"  action="{!fistPage}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                    <apex:commandButton styleClass="slds-button slds-button--neutral"  value="< Previous" action="{!previous}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                    Page No : {!pageNumber} of {!totalPages}
+                    <apex:commandButton styleClass="slds-button slds-button--neutral" value="Next >" action="{!next}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+                    <apex:commandButton styleClass="slds-button slds-button--neutral" value="Last Page >>" action="{!lastPage}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+                </center>
+            </apex:outputPanel><br/>
+
+
+            <div class="slds-table--edit_container slds-is-relative">
+               <table class="slds-table slds-table--bordered slds-table--cell-buffer">
+                      <thead>
+                        <tr class="slds-text-title--caps">
+                          <th scope="col">
+                            <div class="slds-truncate" title="Name"> Name</div>
+                          </th>
+                          <th scope="col">
+                            <div class="slds-truncate" title="Amount">Amount</div>
+                          </th>
+                          <th scope="col">
+                            <div class="slds-truncate" title="Close Date">Payment Type</div>
+                          </th>
+                          <th scope="col">
+                            <div class="slds-truncate" title="Stage">Status</div>
+                          </th>
+                          <th scope="col">
+                            <div class="slds-truncate" title="Confidence">Date</div>
+                          </th>
+                        
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <apex:repeat value="{!lstSetController }" var="obj">
+                        <tr>
+                      
+                         <th scope="row" data-label="Name" style="background-color:{!IF(!obj.canDelete, 'yellow','')} ">
+                            <div class="slds-truncate" title="Name">
+                                <a href="javascript:void(0);">
+                                    <apex:outputLink value="/{!obj.pay.Id}"><apex:outputField value="{!obj.pay.Name}"/></apex:outputLink> 
+                                </a>
+                            </div>
+                          </th>
+                      
+                          <td class="dataCell" style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                            <div class="slds-truncate" >
+                                <apex:outputField value="{!obj.pay.Amount__c}"  style="background: yellow;"/>                   
+                            </div>
+                          </td>
+                          <td class="dataCell" style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                          <div class="slds-truncate" > 
+                             <apex:outputField value="{!obj.pay.Payment_Type__c}" /> 
+                          </div>
+                          </td>
+                          <td class="dataCell" style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                            <div class="slds-truncate" > 
+                            <apex:outputField value="{!obj.pay.Status__c}" /> 
+                            </div>
+                          </td>
+                          <td class="dataCell" style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                            <div class="slds-truncate">    
+                            <apex:outputField value="{!obj.pay.Date__c}" /></div>
+                          </td>
+                         
+                         
+                        </tr>
+                       </apex:repeat>
+                      </tbody>
+               </table>
+            </div>
+               
+               <!-- <apex:pageBlockTable value="{!lstSetController }" var="obj"  id="pTable" >
+                    <!--for future release-->
+                    <!--<apex:column style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                        <apex:facet name="header" >
+                            <apex:inputCheckbox value="{!obj.isSelected}" id="checkAll" onclick="checkAll(this);"></apex:inputCheckbox> 
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!obj.isSelected}" id="checkBox" onclick="unCheckAll(this);" disabled="{!IF(!obj.canDelete, true,false)}" />
+                    </apex:column>-->
+                 <!--   <apex:column headerValue="Name" style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                        <apex:outputLink value="/{!obj.pay.Id}"><apex:outputField value="{!obj.pay.Name}"/></apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Amount" style="background:{!IF(!obj.canDelete, 'yellow','')} " >                         
+                        <apex:outputField value="{!obj.pay.Amount__c}"  style="background: yellow;"/>                         
+                    </apex:column>
+                    <apex:column headerValue="Payment Type" style="background:{!IF(!obj.canDelete, 'yellow','')} ">                        
+                        <apex:outputField value="{!obj.pay.Payment_Type__c}" /> 
+                    </apex:column>
+                    <apex:column headerValue="Status" style="background:{!IF(!obj.canDelete, 'yellow','')} ">                        
+                        <apex:outputField value="{!obj.pay.Status__c}" /> 
+                    </apex:column>
+                    <apex:column headerValue="Date" style="background:{!IF(!obj.canDelete, 'yellow','')} ">                        
+                        <apex:outputField value="{!obj.pay.Date__c}" /> 
+                    </apex:column>
+                </apex:pageBlockTable>-->
+       <!-- </apex:pageBlockSection> -->
+       <br/>
+        <apex:outputPanel id="searchPanel1">
+            <center>
+                <!--for future release-->
+                <!--<apex:commandButton value="Delete Selected" onclick="if(confirm('Are you sure?')){deleteSelected()};"  reRender="ThePage" style="float: left;padding: 8px" />-->
+                <apex:commandButton styleClass="slds-button slds-button--neutral" value="<< First Page" action="{!fistPage}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                <apex:commandButton styleClass="slds-button slds-button--neutral" value="< Previous" action="{!previous}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                Page No : {!pageNumber} of {!totalPages}
+                <apex:commandButton styleClass="slds-button slds-button--neutral" value="Next >" action="{!next}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+                <apex:commandButton styleClass="slds-button slds-button--neutral" value="Last Page >>" action="{!lastPage}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+            </center>
+        </apex:outputPanel>  
+        </fieldset>                
+   <!-- </apex:pageBlock> -->
+   </apex:outputPanel> 
+    <div id="DelContentLoading" style="display: none;">
+        <apex:outputPanel styleClass="popupBackground" layout="block" />
+        <div style="text-align: center;" class="custPopup">
+            <img src="/img/loading.gif" alt="Loading graphic" /> <b>Deleting Fraudulent Payments....</b>
+        </div>
+    </div>
+    <div id="retContentLoading" style="display: none;">
+        <apex:outputPanel styleClass="popupBackground" layout="block" />
+        <div style="text-align: center;" class="custPopup">
+            <img src="/img/loading.gif" alt="Loading graphic" /> <b>Retrieving Records....</b>
+        </div>
+    </div>
+    </apex:form>
+</html >
+
+<script>
+ function showStatus(){
+                   j$('#statusIndicatorDivId').show();
+                   j$('#statusIndicatorDivId').position({
+                       of: j$(window)
+                   });
+               }
+               function hideStatus(){
+                   j$('#statusIndicatorDivId').hide();
+               }
+          
+      </script> 
+</apex:page>

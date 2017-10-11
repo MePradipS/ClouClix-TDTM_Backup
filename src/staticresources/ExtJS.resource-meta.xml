@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StaticResource xmlns="http://soap.sforce.com/2006/04/metadata">
+    <cacheControl>Public</cacheControl>
+    <contentType>application/zip</contentType>
+    <description>ExtJS 4.2.1.883 + Underscore_1.6.0.js + BatchProcessingInterfaceUtil.js</description>
+</StaticResource>

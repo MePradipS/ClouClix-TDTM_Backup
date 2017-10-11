@@ -1,0 +1,143 @@
+<apex:page controller="FraudulentPaymentsInterfaceController" id="mainPage" action="{!RedirectByTheme}">
+    
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+    <style>
+    	.popupBackground {
+            background-color: rgba(0,0,0,0.2);
+//            opacity: 0.20;
+//            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+    </style>
+    <script type="text/javascript">
+    function checkAll(cb) {
+        var inputElem = document.getElementsByTagName("input");
+        for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("checkBox")!=-1)
+                if(inputElem[i].disabled != true){
+                	inputElem[i].checked = cb.checked;
+                }
+        }
+    };
+    function unCheckAll(cb) {
+        var inputElem = document.getElementsByTagName("input");
+        for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("checkBox")!=-1)
+                if(!inputElem[i].checked){
+                    if(inputElem[i].disabled != true){
+                		document.getElementById("mainPage:theForm:ThePage:pbSection:pTable:checkAll").checked = false;
+                        return;
+                    }
+                }
+        }
+        document.getElementById("mainPage:theForm:ThePage:pbSection:pTable:checkAll").checked = true;
+    };
+    function loading(val, divId) {
+            if (val) {
+                if(divId === 'DelContentLoading'){
+                    document.getElementById('DelContentLoading').style.display = 'block';
+                }else
+                if(divId === 'retContentLoading'){
+                    document.getElementById('retContentLoading').style.display = 'block';    
+                }
+            }
+            else {
+                if(divId === 'DelContentLoading'){
+                    document.getElementById('DelContentLoading').style.display = 'none';
+                }else
+                if(divId === 'retContentLoading'){
+                    document.getElementById('retContentLoading').style.display = 'none';    
+                }  
+            }           
+        }
+    
+    </script>
+    <apex:form id="theForm" >      
+        <apex:pageBlock id="ThePage">           
+            <apex:outputText value="iATS Potentially Fraudulent Payment" style="font-size:20px;"/><br></br><br></br>
+    		<apex:outputLabel rendered="{!lstSetController.size==0}">No records to display</apex:outputLabel>
+    		<apex:pageMessages />
+    		<apex:actionStatus id="delConLoading" onstart="loading(true, 'DelContentLoading')" onstop="loading(false, 'DelContentLoading')" />
+    		<apex:actionStatus id="retConLoading" onstart="loading(true, 'retContentLoading')" onstop="loading(false, 'retContentLoading')" />
+    		<apex:actionFunction name="deleteSelected" action="{!deleteSelected}" reRender="ThePage" status="delConLoading"/>
+    		<apex:pageBlockSection columns="1" id="pbSection" rendered="{!lstSetController.size>0}">
+            <apex:outputPanel id="searchPanel">
+                <center>
+                    <!--for future release-->
+                    <!--<apex:commandButton value="Delete Selected" onclick="if(confirm('Are you sure?')){deleteSelected()};"  reRender="ThePage" style="float: left;padding: 8px" />-->
+                    <apex:commandButton value="<< First Page"  action="{!fistPage}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                    <apex:commandButton value="< Previous" action="{!previous}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                    Page No : {!pageNumber} of {!totalPages}
+                    <apex:commandButton value="Next >" action="{!next}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+                    <apex:commandButton value="Last Page >>" action="{!lastPage}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+                </center>
+            </apex:outputPanel>
+                <apex:pageBlockTable value="{!lstSetController }" var="obj"  id="pTable" >
+                    <!--for future release-->
+                    <!--<apex:column style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+                        <apex:facet name="header" >
+                            <apex:inputCheckbox value="{!obj.isSelected}" id="checkAll" onclick="checkAll(this);"></apex:inputCheckbox> 
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!obj.isSelected}" id="checkBox" onclick="unCheckAll(this);" disabled="{!IF(!obj.canDelete, true,false)}" />
+                    </apex:column>-->
+                    <apex:column headerValue="Name" style="background:{!IF(!obj.canDelete, 'yellow','')} ">
+						<apex:outputLink value="/{!obj.pay.Id}"><apex:outputField value="{!obj.pay.Name}"/></apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Amount" style="background:{!IF(!obj.canDelete, 'yellow','')} " >                         
+                        <apex:outputField value="{!obj.pay.Amount__c}"  style="background: yellow;"/>                         
+                    </apex:column>
+                    <apex:column headerValue="Payment Type" style="background:{!IF(!obj.canDelete, 'yellow','')} ">                        
+                        <apex:outputField value="{!obj.pay.Payment_Type__c}" /> 
+                    </apex:column>
+                    <apex:column headerValue="Status" style="background:{!IF(!obj.canDelete, 'yellow','')} ">                        
+                        <apex:outputField value="{!obj.pay.Status__c}" /> 
+                    </apex:column>
+                    <apex:column headerValue="Date" style="background:{!IF(!obj.canDelete, 'yellow','')} ">                        
+                        <apex:outputField value="{!obj.pay.Date__c}" /> 
+                    </apex:column>
+                </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        <apex:outputPanel id="searchPanel">
+            <center>
+                <!--for future release-->
+                <!--<apex:commandButton value="Delete Selected" onclick="if(confirm('Are you sure?')){deleteSelected()};"  reRender="ThePage" style="float: left;padding: 8px" />-->
+                <apex:commandButton value="<< First Page" action="{!fistPage}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                <apex:commandButton value="< Previous" action="{!previous}" disabled="{!!hasPrevious}" reRender="ThePage" status="retConLoading"/>
+                Page No : {!pageNumber} of {!totalPages}
+                <apex:commandButton value="Next >" action="{!next}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+                <apex:commandButton value="Last Page >>" action="{!lastPage}" disabled="{!!hasNext}" reRender="ThePage" status="retConLoading"/>
+            </center>
+        </apex:outputPanel>                  
+	</apex:pageBlock>
+    <div id="DelContentLoading" style="display: none;">
+        <apex:outputPanel styleClass="popupBackground" layout="block" />
+        <div style="text-align: center;" class="custPopup">
+            <img src="/img/loading.gif" alt="Loading graphic" /> <b>Deleting Fraudulent Payments....</b>
+        </div>
+    </div>
+	<div id="retContentLoading" style="display: none;">
+        <apex:outputPanel styleClass="popupBackground" layout="block" />
+        <div style="text-align: center;" class="custPopup">
+            <img src="/img/loading.gif" alt="Loading graphic" /> <b>Retrieving Records....</b>
+        </div>
+    </div>
+    </apex:form>
+
+</apex:page>

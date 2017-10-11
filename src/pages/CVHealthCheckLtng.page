@@ -1,0 +1,726 @@
+<apex:page sidebar="false" controller="CVHealthCheckController" action="{!RedirectByTheme}">
+     <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+     <script>
+         var j$ = jQuery.noConflict();
+         function collapseCS(type){
+             var passValue = 0;
+             var waiveTrue = 0;
+             var targetvalue;
+             var waiveValue;
+             var records;
+             var waiveRecords;
+             if(type == "Organization"){
+                 targetvalue = j$(".companyprofileclass");
+                 waiveValue = j$(".waivecompanyprofileclass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+    
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='companyprofileId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+             if(type == "Custom Setting"){
+                 targetvalue = j$(".customsettingclass");
+                 waiveValue = j$(".waivecustomsettingclass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+    
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='CustomSettingsTestId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+             if(type == "Workflow Setting"){
+                 targetvalue = j$(".WorkflowSettingsClass");
+                 waiveValue = j$(".WaiveWorkflowSettingsClass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='WorkflowSettingsTestId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+             if(type == "apexJobs"){
+                 targetvalue = j$(".apexJobsclass");
+                 waiveValue = j$(".waiveapexJobsclass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='scheduleJobSectionId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+         }
+         //for collapse and expand
+                      j$('.slds-section__content').hide();
+            j$('.slds-section__title').find('button').find('svg').css('transition', '0.3s');
+            j$('.slds-section__title').click(function(){
+                if(j$(this).parent().parent().hasClass('Minerva18SectionGroupSingle')){
+                    if(j$(this).parent().hasClass('slds-is-open')){
+                        j$(this).parent().removeClass('slds-is-open');
+                        j$(this).parent().find('.slds-section__content').hide();
+                    }
+                    else{
+                        j$(this).parent().parent().find('.slds-section').removeClass('slds-is-open');
+                        j$(this).parent().parent().find('.slds-section__content').hide();
+                        j$(this).parent().toggleClass('slds-is-open');
+                        j$(this).parent().find('.slds-section__content').show();
+                    }    
+                }
+                else{
+                    j$(this).parent().toggleClass('slds-is-open');
+                    if(j$(this).parent().hasClass('slds-is-open')){
+                        j$(this).parent().find('.slds-section__content').show();
+                    }else{
+                        j$(this).parent().find('.slds-section__content').hide();
+                    }
+                }
+            });
+         
+         
+         
+     </script>
+     <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+
+     
+     <head>
+      <apex:slds />
+    </head>
+     
+    <apex:form styleclass="slds-scope">
+        <apex:actionFunction name="companyprofileUpdate" action="{!updateOrgSetting}" reRender="companyprofilePanelId1"/>
+        <apex:actionFunction name="customSettingUpdate" action="{!updateWaiveSetting}" reRender="CustomSettingsTestId"/>
+        <apex:actionFunction name="workflowSettingUpdate" action="{!updateWorkflowWaiveSetting}" reRender="WorkflowSettingsTestId"/>
+        <apex:actionFunction name="apexJobsUpdate" action="{!updateRollupWaiveSetting}" reRender="scheduleJobSectionId"/>
+        
+        
+        <apex:outputpanel styleClass="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate"> Causeview Health Check Panel - Beta Release </apex:outputpanel>
+        <br></br>
+           
+           <fieldset class="slds-box slds-theme--default slds-container">
+            <div class="SectionGroupSingle" >
+            <!--SLDS Section Start-->
+                <div class="slds-section">
+                  <h3 class="slds-section__title">
+                  
+                    <div class="slds-button slds-section__title-action">
+                      <svg aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#switch"></use>
+                      </svg>
+                       <apex:outputpanel id="companyprofilePanelId1" styleclass="slds-text-heading--small"> Company Profile Test - Pass ({!pass_Org_Setting}/{!total_Org_Setting}) Waived - {!waive_org_Setting}</apex:outputpanel>
+
+                      </div>
+                  </h3>
+                  <div class="slds-section__content">
+                    <!-- <p>Section 1 Content</p> -->
+                    <fieldset class="slds-form--compound">
+                    <apex:outputPanel >
+                              <article class="slds-card slds-card--narrow" style="background:#fff">
+                                  <header class="slds-media slds-media--center slds-has-flexi-truncate" >
+                                    <div class="slds-media__figure">
+                                          <!-- <button class="slds-button slds-section__title-action">
+                                          <svg aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                                            <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#insights"></use>
+                                          </svg>
+                                          </button>-->
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2>
+                                            <!-- <span class="slds-text-heading--small"> Company Profile Test - Pass ({!pass_Org_Setting}/{!total_Org_Setting}) Waived - {!waive_org_Setting}</span>-->
+                                            <!--<apex:outputpanel id="companyprofilePanelId1" styleclass="slds-text-heading--small"> Company Profile Test - Pass ({!pass_Org_Setting}/{!total_Org_Setting}) Waived - {!waive_org_Setting}</apex:outputpanel>-->
+                                        </h2>
+                                    </div>
+                              </header>
+                                   
+                             
+                              <div class="slds-card__body" >
+                                <table>
+                                    <tr>
+                                        <td style="width: 5%;"></td>
+                                        <td></td> 
+                                        <td></td>
+                                        <td style = "font-weight: bold;">Waive</td>
+                                     </tr>
+                                     <tr>
+                                        <td style="padding-left:1.5%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!org_Name_check}" disabled="true" styleClass="companyprofileclass slds-checkbox"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>   
+                                        <td style="width:18%">
+                                            <apex:outputLabel styleClass="slds-form-element__label" value="Name" style="{!IF(waiveSetting.Organisation_Name__c = true, 'color:grey' , IF(org_Name_check = false,'color:red','color:green') )}"/>
+                                        </td> 
+                                        <td>
+                                            <apex:outputLabel value="{!org.Name}" styleClass="slds-form-element__label"/>
+                                        </td> 
+                                        <td style="width:50%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!waiveSetting.Organisation_Name__c}" disabled="true" styleClass="waivecompanyprofileclass slds-checkbox" onchange="companyprofileUpdate();"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                     </tr>
+                                     <tr>
+                                        <td style="padding-left:1.5%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!org_Address_check}" disabled="true" styleClass="companyprofileclass slds-checkbox"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                        <td style="width:18%">
+                                            <apex:outputLabel value="Address" style="{!IF(waiveSetting.Organization_Address__c=true , 'color:grey', IF(org_Address_check = false,'color:red','color:green'))}" styleClass="slds-form-element__label"/>
+                                        </td> 
+                                        <td>
+                                            <apex:outputLabel value="{!org.Street}" styleClass="slds-form-element__label"/>
+                                        <br/>
+                                        <apex:outputLabel value="{!org.City}, " styleClass="slds-form-element__label"/>
+                                        <apex:outputLabel value="{!org.State}" styleClass="slds-form-element__label"/> &nbsp;
+                                        <apex:outputLabel value="{!org.PostalCode}" styleClass="slds-form-element__label"/> &nbsp;
+                                        <apex:outputLabel value="{!org.Country}" styleClass="slds-form-element__label"/> </td> 
+                                        <td style="width:50%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!waiveSetting.Organization_Address__c}" styleClass="waivecompanyprofileclass slds-checkbox" onchange="companyprofileUpdate();"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                     </tr>
+                                     <tr>
+                                        <td style="padding-left:1.5%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!org_Phone_check}" disabled="true" styleClass="companyprofileclass slds-checkbox"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                        <td style="width:18%">
+                                            <apex:outputLabel value="Phone" style="{!IF(waiveSetting.Organization_Phone__c= true, 'color:grey', IF(org_Phone_check = false,'color:red','color:green')) }" styleClass="slds-form-element__label"/>
+                                        </td> 
+                                        <td>
+                                            <apex:outputLabel value="{!org.Phone}" styleClass="slds-form-element__label"/>
+                                        </td> 
+                                        <td style="width:50%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!waiveSetting.Organization_Phone__c}" styleClass="waivecompanyprofileclass slds-checkbox" onchange="companyprofileUpdate();"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                     </tr>
+                                     <tr>
+                                        <td style="padding-left:1.5%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!org_wide_Address}" disabled="true" styleClass="companyprofileclass slds-checkbox"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                        <td style="width:18%">
+                                            <apex:outputLabel value="Org-Wide Email Address" style="{!IF(waiveSetting.Org_Wide_Email_Address__c=true, 'color:grey' , IF(org_wide_Address = false,'color:red','color:green'))}" styleClass="slds-form-element__label"/>
+                                        </td> 
+                                        <td>
+                                            <apex:repeat value="{!org_Email}" var="orgEmail">
+                                                <apex:outputLabel value="{!orgEmail.Address}" styleClass="slds-form-element__label"/>
+                                            </apex:repeat>
+                                        </td> 
+                                        <td style="width:50%">
+                                            <apex:outputLabel styleclass="slds-checkbox">
+                                                <apex:inputcheckbox value="{!waiveSetting.Org_Wide_Email_Address__c}" disabled="true" styleClass="waivecompanyprofileclass slds-checkbox" onchange="companyprofileUpdate();"/>
+                                                <span class="slds-checkbox--faux"></span>
+                                            </apex:outputLabel> 
+                                        </td>
+                                     </tr>
+                                </table>
+                                </div>
+                                </article>  
+                                </apex:outputPanel>
+                                </fieldset>       
+                              </div>
+                            </div>
+                            </div>
+                       </fieldset>
+ 
+                      <br></br>
+           
+           
+            <fieldset class="slds-box slds-theme--default slds-container">
+            <div class="SectionGroupSingle" >
+            <!--SLDS Section Start-->
+                <div class="slds-section">
+                  <h3 class="slds-section__title">
+                  
+                    <div class="slds-button slds-section__title-action">
+                      <svg aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#switch"></use>
+                      </svg>
+                          <apex:outputpanel id="CustomSettingsTestId" Styleclass="slds-text-heading--small"> Custom Settings Test - Pass ({!pass_Custom_Setting}/{!total_Custom_Setting}) Waived - {!waive_Custom_Setting}</apex:outputpanel>
+                      </div>
+                  </h3>
+                  <div class="slds-section__content">
+                    <!-- <p>Section 1 Content</p> -->
+                    <fieldset class="slds-form--compound">
+                                <apex:outputPanel >
+                                 <article class="slds-card" style="background:#fff">
+                                              <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                                                <div class="slds-media__figure">
+                                                    <!--<span class="slds-icon_container slds-icon-standard-contact" title="Collpase/Expand">
+                                                        <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                                                            <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#insights"></use>
+                                                        </svg>
+                                                    </span>-->
+                                                </div>
+                                                <div class="slds-media__body">
+                                                    <h2>
+                                                        <!--<apex:outputpanel id="CustomSettingsTestId" Styleclass="slds-text-heading--small"> Custom Settings Test - Pass ({!pass_Custom_Setting}/{!total_Custom_Setting}) Waived - {!waive_Custom_Setting}</apex:outputpanel>-->
+                                                    </h2>
+                                                </div>
+                                          </header>
+                                          <div class="slds-card__body">
+                                            <table>
+                                                <tr>
+                                                    <td style="width: 5%;"></td>
+                                                    <td></td> 
+                                                    <td style = "font-weight: bold;">Waive</td>
+                                                 </tr>
+                                                 <tr>
+                                                    <td style="padding-left:1.5%">
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!appSetting.Enable_Enhanced_Batch_Interface__c}" disabled="true" styleClass="customsettingclass slds-checkbox"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                    <td style="width:45%">
+                                                        <apex:outputLabel value="Enable Enhanced Batch Interface" for="EnableEnhancedBatchInterfaceId" id="EnableEnhancedBatchInterfaceLabelId" style="{!IF(waiveSetting.Enable_Enhanced_Batch_Interface_Waive__c = true  , 'color:grey' , IF(appSetting.Enable_Enhanced_Batch_Interface__c = false,'color:red','color:green') ) }" styleClass="slds-form-element__label"/>
+                                                    </td> 
+                                                    <td>
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!waiveSetting.Enable_Enhanced_Batch_Interface_Waive__c}" styleClass="waivecustomsettingclass slds-checkbox" onchange="customSettingUpdate();"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                 </tr>
+                                                 <tr>
+                                                    <td style="padding-left:1.5%">
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!appSetting.Enable_Enhanced_Fund_Accounting__c}" disabled="true" styleClass="customsettingclass slds-checkbox"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                    <td style="width:45%">
+                                                        <apex:outputLabel value="Enable Enhanced Fund Accounting" for="enableEnhancedFundAccountingstatusId" id="enableEnhancedFundAccountingLabelId" style="{!IF(waiveSetting.Enable_Enhanced_Fund_Accounting_Waive__c = true  , 'color:grey' , IF(appSetting.Enable_Enhanced_Fund_Accounting__c = false,'color:red','color:green') )}" styleClass="slds-form-element__label"/>
+                                                    </td> 
+                                                    <td>
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!waiveSetting.Enable_Enhanced_Fund_Accounting_Waive__c}" styleClass="waivecustomsettingclass slds-checkbox" onchange="customSettingUpdate();"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                 </tr>
+                                                 <tr>
+                                                    <td style="padding-left:1.5%">
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!appSetting.Enable_Pledge_Installment_Model__c}" disabled="true" styleClass="customsettingclass slds-checkbox"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                    <td style="width:45%">
+                                                        <apex:outputLabel value="Enable Pledge Installment Model" for="enablePledgeInstallmentModelstatusId" id="enablePledgeInstallmentModelLabelId" style="{!IF(waiveSetting.Enable_Pledge_Installment_Model_Waive__c = true  , 'color:grey' , IF(appSetting.Enable_Pledge_Installment_Model__c = false,'color:red','color:green') ) }" styleClass="slds-form-element__label"/>
+                                                    </td> 
+                                                    <td>
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!waiveSetting.Enable_Pledge_Installment_Model_Waive__c}" styleClass="waivecustomsettingclass slds-checkbox" onchange="customSettingUpdate();"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                 </tr>
+                                                 <tr>
+                                                    <td style="padding-left:1.5%">
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!appSetting.Use_Workflows_for_Sending_Receipts__c}" disabled="true" styleClass="customsettingclass slds-checkbox"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputLabel value="Use Workflows for Sending Receipts" for="useWorkflowsforSendingReceiptsstatusId" id="useWorkflowsforSendingReceiptLabelId" style="{!IF(waiveSetting.Disable_Workflows_for_Sending_Receipts__c = true  , 'color:grey' , IF(appSetting.Use_Workflows_for_Sending_Receipts__c = false,'color:red','color:green'))}" styleClass="slds-form-element__label"/>
+                                                    </td> 
+                                                    <td>
+                                                        <apex:outputLabel styleclass="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!waiveSetting.Disable_Workflows_for_Sending_Receipts__c}" styleClass="waivecustomsettingclass slds-checkbox" onchange="customSettingUpdate();"/>
+                                                            <span class="slds-checkbox--faux"></span>
+                                                        </apex:outputLabel>
+                                                    </td>
+                                                 </tr>
+                                            </table>
+                                            </div>
+                              
+                               </article>  
+                            </apex:outputPanel>
+                                </fieldset>       
+                              </div>
+                            </div>
+                            </div>
+                       </fieldset>
+
+                               
+ 
+                      <br></br>
+            
+            
+            
+            
+               <fieldset class="slds-box slds-theme--default slds-container">
+            <div class="SectionGroupSingle" >
+            <!--SLDS Section Start-->
+                <div class="slds-section">
+                  <h3 class="slds-section__title">
+                  
+                    <div class="slds-button slds-section__title-action">
+                      <svg aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#switch"></use>
+                      </svg>
+                            <apex:outputPanel id="WorkflowSettingsTestId" styleclass="slds-text-heading--small"> Workflow Settings Test - Pass ({!pass_Workflow_Setting}/{!total_Workflow_Setting}) Waived - {!waive_Workflow_Setting}</apex:outputPanel>
+                      </div>
+                  </h3>
+                  <div class="slds-section__content">
+                    <!-- <p>Section 1 Content</p> -->
+                    <fieldset class="slds-form--compound">
+                    <apex:outputPanel >
+                    <article class="slds-card" style="background:#fff">
+                                  <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <!--<span class="slds-icon_container slds-icon-standard-contact" title="Collpase/Expand">
+                                            <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                                                <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#insights"></use>
+                                            </svg>
+                                        </span>-->
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2>
+                                            <!--<apex:outputPanel id="WorkflowSettingsTestId" styleclass="slds-text-heading--small"> Workflow Settings Test - Pass ({!pass_Workflow_Setting}/{!total_Workflow_Setting}) Waived - {!waive_Workflow_Setting}</apex:outputPanel>-->
+                                        </h2>
+                                    </div>
+                              </header>
+                              <div class="slds-card__body">
+                                    <table>
+                                        <tr>
+                                            <td style="width: 5%;"></td>
+                                            <td></td> 
+                                            <td style = "font-weight: bold;">Waive</td>
+                                         </tr>
+                                         <tr>
+                                            <td style="padding-left:1.5%">
+                                                <apex:outputLabel styleclass="slds-checkbox">
+                                                    <apex:inputcheckbox value="{!send_Gift_Receipt_status}" disabled="true" styleClass="WorkflowSettingsClass slds-checkbox"/>
+                                                    <span class="slds-checkbox--faux"></span>
+                                                </apex:outputLabel>
+                                            </td>
+                                            <td style="width:45%">
+                                                <apex:outputLabel value="Send Gift Receipt" for="SendGiftReceiptId" id="SendGiftReceiptLabelId" style="{!IF(waiveSetting.Send_Gift_Receipt__c= true , 'color:grey', IF(send_Gift_Receipt_status = false,'color:red','color:green'))}" styleClass="slds-form-element__label"/>
+                                            </td> 
+                                            <td>
+                                                <apex:outputLabel styleclass="slds-checkbox">
+                                                    <apex:inputcheckbox value="{!waiveSetting.Send_Gift_Receipt__c}" styleClass="WaiveWorkflowSettingsClass slds-checkbox" onchange="workflowSettingUpdate();"/>
+                                                    <span class="slds-checkbox--faux"></span>
+                                                </apex:outputLabel>
+                                            </td>
+                                         </tr>
+                                         <tr>
+                                            <td style="padding-left:1.5%">
+                                                <apex:outputLabel styleclass="slds-checkbox">
+                                                    <apex:inputcheckbox value="{!SendEventRegistrationReceipt_status}" disabled="true" styleClass="WorkflowSettingsClass slds-checkbox"/>
+                                                    <span class="slds-checkbox--faux"></span>
+                                                </apex:outputLabel>
+                                            </td>
+                                            <td style="width:45%">
+                                                <apex:outputLabel value="Send Event Registration Receipt" for="SendEventRegistrationReceiptId" id="SendEventRegistrationReceiptLabelId" style="{!IF(waiveSetting.Send_Event_Registration_Receipt__c = true, 'color:grey',IF(SendEventRegistrationReceipt_status = false,'color:red','color:green'))}"  styleClass="slds-form-element__label"/>
+                                            </td> 
+                                            <td>
+                                                <apex:outputLabel styleclass="slds-checkbox">
+                                                    <apex:inputcheckbox value="{!waiveSetting.Send_Event_Registration_Receipt__c}" styleClass="WaiveWorkflowSettingsClass slds-checkbox" onchange="workflowSettingUpdate();"/>
+                                                    <span class="slds-checkbox--faux"></span>
+                                                </apex:outputLabel>
+                                            </td>
+                                         </tr>
+                                         <tr>
+                                            <td style="padding-left:1.5%">
+                                                <apex:outputLabel styleclass="slds-checkbox">
+                                                    <apex:inputcheckbox value="{!UpdatePaymentRT_RefundACH_status}" disabled="true" styleClass="WorkflowSettingsClass slds-checkbox"/>
+                                                    <span class="slds-checkbox--faux"></span>
+                                                </apex:outputLabel>
+                                            </td>
+                                            <td style="width:45%">
+                                                <apex:outputLabel value="UpdatePaymentRT RefundACH Status" for="UpdatePaymentRTRefundACH" id="UpdatePaymentRTRefundACHLabelId" style="{!IF(waiveSetting.UpdatePaymentRT_RefundACH__c = true, 'color:grey',IF(UpdatePaymentRT_RefundACH_status = false,'color:red','color:green'))}"  styleClass="slds-form-element__label"/>
+                                            </td> 
+                                            <td>
+                                                <apex:outputLabel styleclass="slds-checkbox">
+                                                    <apex:inputcheckbox value="{!waiveSetting.UpdatePaymentRT_RefundACH__c}" styleClass="WaiveWorkflowSettingsClass slds-checkbox" onchange="workflowSettingUpdate();"/>
+                                                    <span class="slds-checkbox--faux"></span>
+                                                </apex:outputLabel>
+                                            </td>
+                                         </tr>
+                                     </table>
+                                     
+                                </div>
+                               </article>  
+                            </apex:outputPanel>
+                                </fieldset>       
+                              </div>
+                            </div>
+                            </div>
+                       </fieldset>
+            <br></br>
+            
+                
+               <fieldset class="slds-box slds-theme--default slds-container">
+            <div class="SectionGroupSingle" >
+            <!--SLDS Section Start-->
+                <div class="slds-section">
+                  <h3 class="slds-section__title">
+                  
+                    <div class="slds-button slds-section__title-action">
+                      <svg aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#switch"></use>
+                      </svg>
+                           <apex:outputPanel id="scheduleJobSectionId" styleclass="slds-text-heading--small"> Scheduled Jobs Test - Pass ({!pass_jobs}/{!total_jobs}) Waived - {!waive_jobs}</apex:outputPanel>
+                      </div>
+                  </h3>
+                  <div class="slds-section__content">
+                    <!-- <p>Section 1 Content</p> -->
+                    <fieldset class="slds-form--compound"> 
+                <apex:outputPanel layout="block"   style="width: 100%;">
+                 <article class="slds-card" style="background:#fff">
+                                  <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <!--<span class="slds-icon_container slds-icon-standard-contact" title="Collpase/Expand">
+                                            <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                                                <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#insights"></use>
+                                            </svg>
+                                        </span>-->
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2>
+                                            <!--<apex:outputPanel id="scheduleJobSectionId" styleclass="slds-text-heading--small"> Scheduled Jobs Test - Pass ({!pass_jobs}/{!total_jobs}) Waived - {!waive_jobs}</apex:outputPanel>-->
+                                        </h2>
+                                    </div>
+                              </header>
+                              <div class="slds-card__body">
+                            <table border="0">
+                                <tr>
+                                    <td style="width: 4%;"></td>
+                                    <td style="width: 15%;"></td> 
+                                    <td style = "font-weight: bold;width: 20%;"><apex:outputLabel value="Job Name" styleClass="slds-form-element__label"/></td>
+                                    <td style = "font-weight: bold;width: 14%;"><apex:outputLabel value="Status" styleClass="slds-form-element__label"/></td>
+                                    <td style = "font-weight: bold;width: 20%;"><apex:outputLabel value="Failures" styleClass="slds-form-element__label"/></td>
+                                    <td style = "font-weight: bold;width: 15%;"><apex:outputLabel value="Completion Date" styleClass="slds-form-element__label"/></td>
+                                    <td style = "font-weight: bold;width: 20%;"><apex:outputLabel value="NextRun Date" styleClass="slds-form-element__label"/></td>
+                                    <td style = "font-weight: bold;width: 5%;"><apex:outputLabel value="Waive" styleClass="slds-form-element__label"/></td>
+                                 </tr>
+                                 <tr style="height:25px;">
+                                    <td style="padding-left:1.5%">
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!PackageRollupBatch_check}" disabled="true" styleClass="apexJobsclass slds-checkbox"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>   
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="Package Rollup " style="{!IF(waiveSetting.PackageRollupBatch__c= true, 'color:grey' , IF(PackageRollupBatch_status = 'Completed' && PackageRollupBatch_failure= '0' ,'color:green',  IF(PackageRollupBatch_status = 'Aborted'|| PackageRollupBatch_status = 'Failed' || PackageRollupBatch_failure != '0' ,'color:red' , 'color :amber ') ) )}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!job_name1}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PackageRollupBatch_status}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PackageRollupBatch_failure}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PackageRollupBatch_completeDate}"/></td>
+                                     <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PackageRollupBatch_NextRunDate}"/></td>
+                                    <td>
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!waiveSetting.PackageRollupBatch__c}" styleClass="waiveapexJobsclass slds-checkbox" onchange="apexJobsUpdate();"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                 </tr>
+                                 <tr style="height:25px;">
+                                    <td style="padding-left:1.5%">
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!AppealUtilRollBatch_check}" disabled="true" styleClass="apexJobsclass slds-checkbox"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="AppealUtil Rollup" style="{!IF(waiveSetting.AppealUtilRollBatch__c = true, 'color:grey',  IF(AppealUtilRollBatch_status = 'Completed' && AppealUtilRollBatch_failure ='0' ,'color:green', IF(AppealUtilRollBatch_status = 'Aborted'|| AppealUtilRollBatch_status = 'Failed' || AppealUtilRollBatch_failure != '0' ,'color:red' , 'color :amber ') )) }"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!job_name2}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AppealUtilRollBatch_status}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AppealUtilRollBatch_failure}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AppealUtilRollBatch_completeDate}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AppealUtilRollBatch_NextRunDate}"/></td>  
+                                    <td>
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!waiveSetting.AppealUtilRollBatch__c}" styleClass="waiveapexJobsclass slds-checkbox" onchange="apexJobsUpdate();"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                 </tr>
+                                 <tr style="height:25px;">
+                                    <td style="padding-left:1.5%">
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!CampaignRollupBatch_check}" disabled="true" styleClass="apexJobsclass slds-checkbox"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="Campaign Rollup" style="{!IF(waiveSetting.CampaignRollupBatch__c = true , 'Color:grey' , IF(CampaignRollupBatch_status = 'Completed' && CampaignRollupBatch_failure ='0' ,'color:green', IF(CampaignRollupBatch_status = 'Aborted'|| CampaignRollupBatch_status = 'Failed' || CampaignRollupBatch_failure != '0' ,'color:red' , 'color :amber ') )) }"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!job_name3}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!CampaignRollupBatch_status}"/></td>  
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!CampaignRollupBatch_failure}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!CampaignRollupBatch_completeDate}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!CampaignRollupBatch_NextRunDate}"/></td> 
+                                    <td>
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!waiveSetting.CampaignRollupBatch__c}" styleClass="waiveapexJobsclass slds-checkbox" onchange="apexJobsUpdate();"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                 </tr>
+                                 
+                                 <tr style="height:25px;">
+                                    <td style="padding-left:1.5%">
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!ContactRollupBatch_check}" disabled="true" styleClass="apexJobsclass slds-checkbox"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="Contact Rollup" style="{!IF(waiveSetting.Contact_RollUp_Batch__c = true , 'color:grey' , IF(ContactRollupBatch_status = 'Completed' && ContactRollupBatch_failure = '0','color:green',IF(ContactRollupBatch_status = 'Aborted'|| ContactRollupBatch_status = 'Failed'|| ContactRollupBatch_failure != '0'  ,'color:red' , 'color :amber ')))}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!job_name4}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!ContactRollupBatch_status}"/></td>  
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!ContactRollupBatch_failure}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!ContactRollupBatch_completeDate}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!ContactRollupBatch_NextRunDate}"/></td> 
+                                    <td>
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!waiveSetting.Contact_RollUp_Batch__c}" styleClass="waiveapexJobsclass slds-checkbox" onchange="apexJobsUpdate();"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                 </tr>
+                                 
+                                 <tr style="height:25px;">
+                                    <td style="padding-left:1.5%">
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!AccountRollupBatch_check}" disabled="true" styleClass="apexJobsclass slds-checkbox"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="Account Rollup" style="{!IF(waiveSetting.Account_Rollup_Batch__c= true, 'color:grey' , IF(AccountRollupBatch_status = 'Completed' && AccountRollupBatch_failure = '0','color:green',IF(AccountRollupBatch_status = 'Aborted'|| AccountRollupBatch_status = 'Failed'|| AccountRollupBatch_failure != '0'  ,'color:red' , 'color :amber ')))}"/></td>  
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!job_name5}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AccountRollupBatch_status}"/></td>  
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AccountRollupBatch_failure}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AccountRollupBatch_completeDate}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!AccountRollupBatch_NextRunDate}"/></td>  
+                                    <td>
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!waiveSetting.Account_Rollup_Batch__c}" styleClass="waiveapexJobsclass slds-checkbox" onchange="apexJobsUpdate();"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                 </tr>
+                                 
+                                 
+                                 <tr style="height:25px;">
+                                    <td style="padding-left:1.5%">
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!PaymentRollupBatch_check}" disabled="true" styleClass="apexJobsclass slds-checkbox"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="Payment Rollup" style="{!IF(waiveSetting.Payment_Rollup_Batch__c = true, 'color:grey' , IF(PaymentRollupBatch_status = 'Completed' && PaymentRollupBatch_failure = '0','color:green',IF(PaymentRollupBatch_status = 'Aborted'|| PaymentRollupBatch_status = 'Failed'|| PaymentRollupBatch_failure != '0'  ,'color:red' , 'color :amber ')))}"/></td>  
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!job_name6}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PaymentRollupBatch_status}"/></td>  
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PaymentRollupBatch_failure}"/></td> 
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PaymentRollupBatch_completeDate}"/></td>
+                                    <td><apex:outputLabel styleClass="slds-form-element__label" value="{!PaymentRollupBatch_NextRunDate}"/></td>  
+                                    <td>
+                                        <apex:outputLabel styleclass="slds-checkbox">
+                                            <apex:inputcheckbox value="{!waiveSetting.Payment_Rollup_Batch__c}" styleClass="waiveapexJobsclass slds-checkbox" onchange="apexJobsUpdate();"/>
+                                            <span class="slds-checkbox--faux"></span>
+                                        </apex:outputLabel>
+                                    </td>
+                                 </tr>                                 
+                            </table>
+                </div>
+              </article>  
+            </apex:outputPanel>
+                                </fieldset>       
+                              </div>
+                            </div>
+                            </div>
+                       </fieldset>
+    </apex:form>
+    
+    <style>
+        .pbSubheader{
+            background-color: #8e9dbe !important;
+        }
+        .bPageBlock {
+            border-top: 3px solid #8e9dbe !important;
+        }
+    </style>
+    
+    <script>
+/*SLDS Sections*/
+j$('.slds-section__content').hide();
+j$('.slds-section__title').find('button').find('svg').css('transition', '0.3s');
+j$('.slds-section__title').click(function(){
+    if(j$(this).parent().parent().hasClass('SectionGroupSingle')){
+        if(j$(this).parent().hasClass('slds-is-open')){
+            j$(this).parent().removeClass('slds-is-open');
+            j$(this).parent().find('.slds-section__content').hide();
+        }
+        else{
+            j$(this).parent().parent().find('.slds-section').removeClass('slds-is-open');
+            j$(this).parent().parent().find('.slds-section__content').hide();
+            j$(this).parent().toggleClass('slds-is-open');
+            j$(this).parent().find('.slds-section__content').show();
+        }    
+    }
+    else{
+        j$(this).parent().toggleClass('slds-is-open');
+        if(j$(this).parent().hasClass('slds-is-open')){
+            j$(this).parent().find('.slds-section__content').show();
+        }else{
+            j$(this).parent().find('.slds-section__content').hide();
+        }
+    }
+});
+/*SLDS Sections*/
+</script>
+    
+     </html>
+</apex:page>

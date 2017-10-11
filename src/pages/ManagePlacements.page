@@ -1,0 +1,28 @@
+<apex:page sidebar="false" controller="CPlaceApplicant" action="{!RedirectByTheme}">
+    <apex:form >
+        <apex:pageBlock title="Place Applicant">
+            <b>Availability:</b> <br/>
+            <apex:outputField value="{!volunteer.Volunteer_Availability__c}"/>
+        </apex:pageBlock>
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Update" action="{!place}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection >
+                <apex:pageBlockTable value="{!shift_wrappers}" var="shift">
+                    <apex:column headerValue="Placed">
+                        <apex:inputCheckbox value="{!shift.placed}"/>
+                    </apex:column>
+                    <apex:column value="{!shift.shift.Name}"/>
+                    <apex:column value="{!shift.shift.Start_Time__c}"/>
+                    <apex:column value="{!shift.shift.End_Time__c}"/>
+                    <apex:column value="{!shift.shift.Day_of_the_Week__c}"/>
+                    <apex:column value="{!shift.shift.Duration_Hours__c}"/>
+                    <apex:column value="{!shift.shift.Frequency__c}"/> 
+                    <apex:column value="{!shift.shift.Location_Address__c}"/>                     
+                    
+                </apex:pageBlockTable>                    
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

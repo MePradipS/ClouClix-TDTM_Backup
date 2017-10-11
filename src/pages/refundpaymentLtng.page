@@ -1,0 +1,237 @@
+<apex:page controller="refundPaymentController" tabStyle="Payment__c" action="{!RedirectByTheme}">
+   <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+      <apex:includeScript value="{!$Resource.jQuery172}"/>      
+      <apex:stylesheet value="{!URLFOR($Resource.SLDS0122, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+      <head>
+         <apex:slds />
+      </head>
+      <!-- END OF SLDS SCRIPT MESSAGE -->
+      <!-- <apex:sectionHeader title="Payment" subtitle="{!payment.Name}"/> -->
+      <apex:actionStatus id="status2">
+         <div role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand" id="statusIndicatorDivId" style="display:none;z-index: 1000;">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+         </div>
+      </apex:actionStatus>
+      <apex:form id="mainForm">
+         <!-- ********** HEDER SECTION ************* -->
+         <div class="slds slds-page-header">
+            <div class="slds slds-grid">
+               <div class="slds slds-col slds-has-flexi-truncate">
+                  <div class="slds slds-media slds-no-space slds-grow">
+                     <div class="slds slds-media__figure">
+                        <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                           <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#orders"></use>
+                        </svg>
+                     </div>
+                     <div class="slds slds-media__body">
+                        <p class="slds slds-text-title--caps slds-line-height--reset">Payment</p>
+                        <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="adjustment">{!payment.Name}</h1>
+                     </div>
+                  </div>
+               </div>
+               <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+               </div>
+            </div>
+         </div>
+         <!-- HEDER SECTION ENDS HERE -->
+          <apex:outputPanel id="compblock">
+         <apex:pageMessages />
+         <!--<apex:pageBlock title="" mode="edit" rendered="{!wizardStep==1}"> -->
+         <apex:outputPanel rendered="{!wizardStep==1}">
+         <fieldset class="slds-box slds-theme--default slds-container slds-m-top--small">
+         <article  style="background: #FFFFFF;">
+            <div class="slds-card__header slds-grid">
+               <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                  <p class="slds slds-text-title--caps slds-line-height--reset"></p>
+               </header>
+               <div class="slds-no-flex">
+                  <div class="slds-button-group" role="group">
+                  </div>
+               </div>
+            </div>
+            <div class="slds-card__body">
+               <div style="padding-left: 3%;">
+                  <div style="width: 75%;">
+                     <apex:outputPanel id="companel" rendered="{!wizardStep==1}">
+                        <div class="slds slds-grid">
+                           <!-- Col One -->
+                           <div class="slds slds-col slds-size--1-of-8">
+                              <div class="slds  slds-text-align--left">
+                                 <div class="slds-form-element slds-hint-parent ">
+                                    <span class="slds-form-element__label">
+                                    <abbr class="slds-required" title="required">*</abbr> {!$ObjectType.Payment__c.fields.Amount__c.label}
+                                    </span>
+                                    <div class="slds-form-element__control">
+                                       <span class="slds-form-element__static">
+                                          <!--<apex:inputField value="{!Payment.Amount__c}" html-data-isRequired="true" html-data-requiredFieldName="{!$ObjectType.Payment__c.fields.Amount__c.Name}" styleClass="slds-input"   rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == null}"/>  -->
+                                          <apex:inputField value="{!payment.Amount__c}"  html-data-isRequired="true" html-data-requiredFieldName="{!$ObjectType.Payment__c.fields.Amount__c.Name}" styleClass="slds-input"/>
+                                       </span>
+                                       <div class="requiredFieldCustomErrorMsgCls" style="display:none;" id="requiredFieldCustomErrorMsgId_{!$ObjectType.Payment__c.fields.Amount__c.Name}">Complete this field</div>
+                                    </div>
+                                 </div>
+                                 <div class="slds-form-element slds-hint-parent ">
+                                    <span class="slds-form-element__label">
+                                    {!$ObjectType.Payment__c.fields.Refund_Reason__c.label}
+                                    </span>
+                                    <div class="slds-form-element__control">
+                                       <span class="slds-form-element__static">
+                                          <!--<apex:inputField id="dropdown" value="{!payment.Refund_Reason__c}" styleClass="slds-input">
+                                             <apex:actionSupport event="onchange"   action="{!refresh}"   rerender="companel"/>
+                                             </apex:inputField> -->
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 50%;margin-top:2px;">
+                                                <div class="slds-form-element" onclick="processPicklist(this);">
+                                                   <label class="slds-form-element__label" for="text-input-02"></label>
+                                                   <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" >
+                                                      <apex:inputText style="cursor: pointer;"  value="{!payment.Refund_Reason__c}" id="text-input-02" styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox"  html-aria-expanded="false" />
+                                                      <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                      <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                      </span>
+                                                   </div>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown--left" role="listbox">
+                                                   <ul id="option-list-02" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                      <apex:repeat value="{!ResionForRefund}" var="item">
+                                                         <li role="presentation" onclick="processPickValue(this); " data-pickValue="{!item}" data-toProcessOnServer="true">
+                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item}">
+                                                            <span style="width: 10%;">
+                                                            <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item == '','block','none')};opacity: 1;" ></img>
+                                                            </span>
+                                                            <span class="slds-truncate">{!item}</span>
+                                                            </span>
+                                                         </li>
+                                                      </apex:repeat>
+                                                   </ul>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <!-- <apex:outputPanel rendered="{!showComments==true}"> -->
+                                   <apex:outputPanel id="refunddescription" style="display: none">
+                                    <div class="slds-form-element slds-hint-parent ">
+                                       <span class="slds-form-element__label">
+                                       {!$ObjectType.Payment__c.fields.Refund_Comments__c.label}
+                                       </span>
+                                       <div class="slds-form-element__control">
+                                          <span class="slds-form-element__static">
+                                             <apex:inputField value="{!payment.Refund_Comments__c}"  styleClass="slds-textarea"/>
+                                          </span>
+                                       </div>
+                                    </div>
+                                 </apex:outputPanel>
+                              </div>
+                           </div>
+                        </div>
+                        <!-- <apex:outputLink id="paydonationlink" value="/{!payment.Donation__c}" rendered="{!wizardStep==2}">Go back to the associated Transaction record</apex:outputLink> -->
+                     </apex:outputPanel>
+                  </div>
+               </div>
+            </div>
+         </article>
+         </fieldset>
+         </apex:outputPanel>
+         <apex:outputPanel id="paydonationlink" rendered="{!wizardStep==2}">
+            <apex:outputLink value="/{!payment.Donation__c}">Go back to the associated Transaction record</apex:outputLink>
+         </apex:outputPanel>
+         <apex:outputPanel rendered="{!wizardStep==1}">
+            <div class="slds-card__footer slds-text-align--center">
+               <apex:commandButton styleClass="slds-button slds-button--neutral" value="Submit" reRender="mainForm,compblock,paydonationlink" action="{!submit}" disabled="{!NOT(isValid)}" status="status2" oncomplete="overridePageMessages();" />
+               <apex:commandButton styleClass="slds-button slds-button--neutral" value="Cancel" action="{!cancel}" />
+            </div>
+         </apex:outputPanel>
+         </apex:outputPanel>
+      </apex:form>
+      <style>
+         .msgIcon {
+         display: none!important
+         }
+         .customMessage * {
+         color: #fff!important
+         }
+         .customMessage 
+         margin: 5px 0!important;
+         max-width: 134580px;
+         opacity: 1!important;
+         width: 100%;
+         font-size: 12px;
+         border: 0px;
+         padding-left: 10px;
+         }
+         .message {
+         opacity: .1
+         }
+         .selectCls{
+         background-color: rgb(255, 255, 255);
+         color: rgb(22, 50, 92);
+         border: 1px solid rgb(216, 221, 230);
+         border-radius: .25rem;
+         width: 100%;
+         -webkit-transition: border .1s linear,background-color .1s linear;
+         transition: border .1s linear,background-color .1s linear;
+         }
+      </style>
+      
+      <script>
+         var j$ = jQuery.noConflict();
+         var currentpicklistObj;
+         
+         function processPicklist(obj) {
+             currentpicklistObj = obj;
+             j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+         }
+         
+         function processPickValue(obj) {
+             pickedElement = obj;
+             var currentpicklistObj = j$(pickedElement).closest('.pickListFieldCustomCls');
+             var pickvalue = j$(pickedElement).attr("data-pickValue");
+             var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+             j$(pickedElement).parent().find("img").hide();
+             j$(pickedElement).find("img").show();
+             j$(currentpicklistObj).toggleClass("slds-is-open");
+             j$(currentpicklistObj).find("input").val(pickvalue);
+             if(pickvalue == 'Other'){
+             j$("[id$='refunddescription']").show();
+
+             }else{
+             j$("[id$='refunddescription']").hide();
+             }
+         }
+         
+         function showStatus() {
+             j$('#statusIndicatorDivId').show();
+             j$('#statusIndicatorDivId').position({
+                 of: j$(window)
+             });
+         }
+         
+         function hideStatus() {
+             j$('#statusIndicatorDivId').hide();
+         }
+      </script>
+      <script>
+         var j$ = jQuery.noConflict();
+         j$(document).ready(function() {
+             overridePageMessages();
+         });
+         
+         function overridePageMessages() {
+             var textureEffect = '';
+         
+             j$('.warningM3').addClass('slds-notify slds-notify--toast slds-theme--warning customMessage ' + textureEffect);
+             j$('.confirmM3').addClass('slds-notify slds-notify--alert slds-theme--success  customMessage ' + textureEffect);
+             j$('.errorM3').addClass('slds-notify slds-notify--alert slds-theme--error customMessage ' + textureEffect);
+             j$('.infoM3').addClass('slds-notify slds-notify--toast customMessage ' + textureEffect);
+         
+             j$('.errorM3').removeClass('errorM3');
+             j$('.confirmM3').removeClass('confirmM3');
+             j$('.infoM3').removeClass('infoM3');
+             j$('.warningM3').removeClass('warningM3');
+         }
+      </script>
+   </html>
+   <!-- SLDS MESSAGES -->
+</apex:page>

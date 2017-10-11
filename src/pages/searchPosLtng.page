@@ -1,0 +1,424 @@
+<apex:page controller="CSearchPos" action="{!RedirectByTheme}">
+<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+    <head>
+        <apex:slds />
+    </head>
+    <style>
+    .selectCls{
+         background-color: rgb(255, 255, 255);
+         color: rgb(22, 50, 92);
+         border: 1px solid rgb(216, 221, 230);
+         border-radius: .25rem;
+         width: 100%;
+         -webkit-transition: border .1s linear,background-color .1s linear;
+         transition: border .1s linear,background-color .1s linear;
+         }
+    
+    </style>
+    <script>
+      function setMultiPicklistVal(selectObj){
+             j$(selectObj).parent().prev().children().first().val( j$(selectObj).val() );
+         }
+    
+    
+    </script>
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <!-- <apex:sectionHeader title="Search" subtitle="Find Me a Volunteer"/>-->
+    <div class="slds-page-header">
+        <div class="slds-grid">
+            <div class="slds-col slds-has-flexi-truncate">
+                <div class="slds-media slds-no-space slds-grow">
+                            <div class="slds-media__figure">
+                                <svg class="slds-icon slds-icon-standard-user" aria-hidden="true">
+                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#user"></use>
+                                </svg>
+                            </div>
+                            <div class="slds-media__body">
+                                <p class="slds-text-title--caps slds-line-height--reset"></p>
+                                <h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="Find Me a Volunteer">Find Me a Volunteer</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+    <apex:pageMessages ></apex:pageMessages>  
+    
+    <apex:form rendered="{!wizardStep == 2}">
+    
+        <!-- <apex:pageBlock title="Add to Campaign -- Selected Contacts" >            
+            <apex:outputField value="{!campaign.volunteer_Position__c}"/>              
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockTable var="theVol" value="{!selectedContacts}"> 
+                    <apex:column value="{!theVol.FirstName}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.FirstName.label}
+                        </apex:facet>         
+                    </apex:column> 
+                    <apex:column value="{!theVol.LastName}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.LastName.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.Email}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.Email.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.Phone}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.Phone.label}
+                        </apex:facet>         
+                    </apex:column>                                                                                                                     
+                </apex:pageBlockTable>      
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom" >
+                <apex:commandButton value="Add" action="{!addConfirm}"/>  
+                <apex:commandButton value="Back" action="{!back}"/>             
+            </apex:pageBlockButtons>
+        </apex:pageBlock> -->
+        <article class="slds-card">
+          <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media--center slds-has-flexi-truncate">
+              <div class="slds-media__figure">
+                <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                  <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                    <use xlink:href="/assets/icons/standard-sprite/svg/symbols.svg#contact"></use>
+                  </svg>
+                </span>
+              </div>
+              <div class="slds-media__body">
+                <h2>
+                  <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                    <span class="slds-text-heading--small">Add to Campaign -- Selected Contacts</span>
+                  </a>
+                </h2>
+              </div>
+            </header>
+            <div class="slds-no-flex">
+              <!--<button class="slds-button slds-button--neutral">New</button> -->
+               <!-- <apex:commandButton styleclass="slds-button slds-button--neutral" value="Add to Email Campaign"  action="{!addToCampaign}"/>-->
+                <apex:commandButton styleclass="slds-button slds-button--neutral" value="Add" action="{!addConfirm}"/>  
+                <apex:commandButton styleclass="slds-button slds-button--neutral" value="Back" action="{!back}"/>  
+            </div>
+          </div>
+          <div class="slds-card__body">
+            <table class="slds-table slds-table--bordered slds-no-row-hover slds-table--cell-buffer">
+              <thead>
+                <tr class="slds-text-title--caps">
+                  <th scope="col">
+                    <div class="slds-truncate" title="Name">
+                    {!$ObjectType.Contact.fields.FirstName.label}
+                    </div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Company">
+                    {!$ObjectType.Contact.fields.LastName.label}
+
+                    </div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Title">{!$ObjectType.Contact.fields.Email.label}</div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Email"> {!$ObjectType.Contact.fields.Phone.label}</div>
+                  </th>
+                  </tr>
+              </thead>
+              <tbody>
+              <apex:repeat var="theVol" value="{!selectedContacts}"> 
+                <tr class="slds-hint-parent">
+                 
+                   <td>
+                    <div class="slds-truncate" title="Director of Operations">{!theVol.FirstName}</div>
+                  </td>
+                   <td>
+                    <div class="slds-truncate" title="Director of Operations">{!theVol.LastName}</div>
+                  </td>
+                 
+                  <td>
+                    <div class="slds-truncate" title="Director of Operations">{!theVol.Email}</div>
+                  </td>
+                  <td>
+                    <div class="slds-truncate" title="adam@company.com">{!theVol.Phone}</div>
+                  </td>
+                 
+                </tr>
+                </apex:repeat>
+              </tbody>
+            </table>
+          </div></article>
+         
+        
+    </apex:form>  
+    <apex:form rendered="{!wizardStep == 1}">
+        <!--<apex:pageBlock >
+            <apex:pageBlockSection >
+                <apex:outputField value="{!thePosition.Name}"/>
+                <br/>
+                                            
+            </apex:pageBlockSection>
+        </apex:pageBlock>   --> 
+         <fieldset class="slds-box slds-theme--default slds-container">
+            <legend class="slds-text-heading--medium slds-p-vertical--medium">Volunteer</legend>
+            <div class="slds-form-element">
+              <label class="slds-form-element__label" for="text-input-01">Volunteer Role Name</label>
+              <div class="slds-form-element__control">
+                <apex:outputField value="{!thePosition.Name}"/ >
+                <br/>
+              </div>
+            </div>
+            
+         </fieldset>            
+        
+        <!--<apex:pageBlock title="Filter Options" > -->
+         <fieldset class="slds-box slds-theme--default slds-container">
+            <legend class="slds-text-heading--medium slds-p-vertical--medium">Filter Options</legend>
+
+            <!--<apex:pageBlockSection >                
+                <apex:inputField value="{!con.Preferred_Locales__c}"/>  
+            </apex:pageBlockSection>   -->
+            <div class="slds-form-element">
+              <label class="slds-form-element__label" for="text-input-01">Preferred Locale(s)</label>
+              <div class="slds-form-element__control">
+                  <!-- <apex:inputField value="{!con.Preferred_Locales__c}"/>   -->
+                  <div class="slds-form-element__row">
+                                   <div class="slds-form-element">
+                                                                        <div id="multiPicklist1Hidden" style="display:none">
+                                                                           <apex:inputField value="{!con.Preferred_Locales__c}"/>
+                                                                        </div>
+                                                                        <div>
+                                                                           <select class="select selectCls" size="8" multiple="multiple" style="width: 50%;margin-top:2px" id="multiPicklist2" onchange="setMultiPicklistVal(this)">
+                                                                              <apex:repeat value="{!PreferredLocales}" var="item">
+                                                                                 <apex:outputpanel rendered="{!ISBLANK(con.Preferred_Locales__c)}">
+                                                                                    <option label="{!item}" value="{!item}">{!item}</option>
+                                                                                 </apex:outputpanel>
+                                                                                 <apex:outputpanel rendered="{!NOT(ISBLANK(con.Preferred_Locales__c))}">
+                                                                                    <apex:outputpanel rendered="{!contains(con.Preferred_Locales__c,item)}">
+                                                                                       <option label="{!item}" value="{!item}" selected="selected">{!item}</option>
+                                                                                    </apex:outputpanel>
+                                                                                    <apex:outputpanel rendered="{!NOT(contains(con.Preferred_Locales__c,item))}">
+                                                                                       <option label="{!item}" value="{!item}">{!item}</option>
+                                                                                    </apex:outputpanel>
+                                                                                 </apex:outputpanel>
+                                                                              </apex:repeat>
+                                                                           </select>
+                                                                        </div>
+                                                                     </div>
+                                                                  </div>
+                  
+                <br/>
+              </div>
+            </div>          
+            <br/>
+            
+            <!--<apex:pageBlockSection title="Skills To Filter By:" >  -->
+            <fieldset class="slds-box slds-theme--default slds-container">
+            <legend class="slds-text-heading--medium slds-p-vertical--medium">Skills To Filter By:</legend>
+                 <!-- ******************* THE NEW SECTION ADDED HERE **************** -->
+              
+               
+                    <div class="SectionGroupSingle" >
+                       <div class="slds-section slds-is-open">
+                          <div class="slds-section__title">
+                             <div class="slds-button slds-section__title-action">
+                               
+                             </div>
+                          </div>
+                          <div class="slds-section__content">
+                             <apex:outputpanel layout="block" style="padding: 0 1% 0 1%;">
+                                <apex:repeat value="{!filterOptionsOfList}" var="fieldListTemp">
+                                   <div class="slds-form--compound">
+                                      <div class="slds-form-element__group">
+                                         <div class="slds-form-element__row">
+                                            <apex:repeat value="{!fieldListTemp}" var="skill">
+                                             <div class="slds-form-element__row">
+                                                <div class="slds-form-element">
+                                                    <label class="slds-checkbox" style="width: 500px">
+                                                       
+                                                       <apex:inputCheckbox value="{!skill.value}"  styleClass="chkBoxCls slds-checkbox"/>
+                                                     <span class="slds-checkbox--faux"></span>
+                                                     <span class="slds-form-element__label">{!skill.key}</span>
+                                                </label>
+                                                </div>
+                                            </div>
+                                            </apex:repeat>
+                                         </div>
+                                      </div>
+                                   </div>
+                                </apex:repeat>
+                             </apex:outputpanel>
+                          </div>
+                       </div>
+                    </div>
+             
+          
+                 <!-- ******************* THE ADDED NEW SECTION ENDS HERE *********** -->
+                 
+            </fieldset>
+            <!--</apex:pageBlockSection> -->
+            
+            <!--<apex:pageBlockSection title="Languages:" >-->
+            <fieldset class="slds-box slds-theme--default slds-container">
+            <legend class="slds-text-heading--medium slds-p-vertical--medium">Languages:</legend>
+                <apex:repeat var="lang" value="{!filterOptionsLang}">
+                    <div class="slds-form-element__row">
+                        <div class="slds-form-element">
+                            <label class="slds-checkbox">
+                               
+                               <apex:inputCheckbox value="{!lang.value}"  styleClass="chkBoxCls slds-checkbox"/>
+                             <span class="slds-checkbox--faux"></span>
+                             <span class="slds-form-element__label">{!lang.key}</span>
+                        </label>
+                        </div>
+                    </div>
+                 
+                </apex:repeat>
+            
+            <!--</apex:pageBlockSection>-->
+            
+            <!--<apex:pageBlockSection >
+                <apex:inputField value="{!con.Volunteer_Availability__c}"/>
+            </apex:pageBlockSection>-->
+            <div class="slds-form-element">
+              <label class="slds-form-element__label" for="text-input-01">Volunteer Availability</label>
+              <div class="slds-form-element__control">
+                  <!--<apex:inputField value="{!con.Volunteer_Availability__c}"/> -->
+                  <div class="slds-form-element__row">
+                                   <div class="slds-form-element">
+                                                                        <div id="multiPicklist1Hidden" style="display:none">
+                                                                           <apex:inputField value="{!con.Volunteer_Availability__c}"/>
+                                                                        </div>
+                                                                        <div>
+                                                                           <select class="select selectCls" size="8" multiple="multiple" style="width: 50%;margin-top:2px" id="multiPicklist2" onchange="setMultiPicklistVal(this)">
+                                                                              <apex:repeat value="{!VolunteerAvailability}" var="item">
+                                                                                 <apex:outputpanel rendered="{!ISBLANK(con.Volunteer_Availability__c)}">
+                                                                                    <option label="{!item}" value="{!item}">{!item}</option>
+                                                                                 </apex:outputpanel>
+                                                                                 <apex:outputpanel rendered="{!NOT(ISBLANK(con.Volunteer_Availability__c))}">
+                                                                                    <apex:outputpanel rendered="{!contains(con.Volunteer_Availability__c,item)}">
+                                                                                       <option label="{!item}" value="{!item}" selected="selected">{!item}</option>
+                                                                                    </apex:outputpanel>
+                                                                                    <apex:outputpanel rendered="{!NOT(contains(con.Volunteer_Availability__c,item))}">
+                                                                                       <option label="{!item}" value="{!item}">{!item}</option>
+                                                                                    </apex:outputpanel>
+                                                                                 </apex:outputpanel>
+                                                                              </apex:repeat>
+                                                                           </select>
+                                                                        </div>
+                                                                     </div>
+                                                                  </div>
+                  
+                <br/>
+              </div>
+            </div>
+            
+            
+            </fieldset>
+            <br/>
+            <!--<apex:pageBlockButtons location="bottom" >-->
+                <apex:commandButton styleclass="slds-button slds-button--neutral"  value="Filter" action="{!refreshList}"/>
+            <!--</apex:pageBlockButtons>-->
+        <!--</apex:pageBlock>-->
+        </fieldset>
+        <article class="slds-card">
+          <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media--center slds-has-flexi-truncate">
+              <div class="slds-media__figure">
+                <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                  <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                    <use xlink:href="/assets/icons/standard-sprite/svg/symbols.svg#contact"></use>
+                  </svg>
+                </span>
+              </div>
+              <div class="slds-media__body">
+                <h2>
+                  <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                    <span class="slds-text-heading--small">Matching Volunteers</span>
+                  </a>
+                </h2>
+              </div>
+            </header>
+            <div class="slds-no-flex">
+              <!--<button class="slds-button slds-button--neutral">New</button> -->
+                <apex:commandButton styleclass="slds-button slds-button--neutral" value="Add to Email Campaign"  action="{!addToCampaign}"/>
+            </div>
+          </div>
+          <div class="slds-card__body">
+            <table class="slds-table slds-table--bordered slds-no-row-hover slds-table--cell-buffer">
+              <thead>
+                <tr class="slds-text-title--caps">
+                  <th scope="col">
+                    <div class="slds-truncate" title="Name"></div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Company"></div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Title">{!$ObjectType.Contact.fields.FirstName.label}</div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Email"> {!$ObjectType.Contact.fields.LastName.label}</div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Email">{!$ObjectType.Contact.fields.Email.label}</div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Email">Primary Phone</div>
+                  </th>
+                  <th scope="col">
+                    <div class="slds-truncate" title="Email">Meets Availability</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+              <apex:repeat var="theVol" value="{!theVolunteers}"> 
+                <tr class="slds-hint-parent">
+                  <td>
+                    <div class="slds-truncate" title="Company One">
+                    <div style="float: left;" class="slds-form-element__row">
+                      <div class="slds-form-element">
+                        <label class="slds-checkbox">
+                           <apex:inputCheckbox styleclass="slds-checkbox" value="{!theVol.isChecked}" />    
+                           <span class="slds-checkbox--faux"></span>
+                        </label>
+                      </div>
+                    </div>                     
+                    </div>
+                  </td>
+                  <th scope="row">
+                    <div class="slds-truncate" title="Adam Choi">
+                    <a href="#" onclick="window.open('/_ui/core/email/author/EmailAuthor?p2_lkid={!theVol.theVolunteer.Id}&p3_lkid={!thePosition.Id}&rtype=003', '_blank');">Email Details</a> 
+                    </div>
+                  </th>
+                   <td>
+                    <div class="slds-truncate" title="Director of Operations">{!theVol.theVolunteer.FirstName}</div>
+                  </td>
+                   <td>
+                    <div class="slds-truncate" title="Director of Operations">{!theVol.theVolunteer.LastName}</div>
+                  </td>
+                 
+                  <td>
+                    <div class="slds-truncate" title="Director of Operations">{!theVol.theVolunteer.Email}</div>
+                  </td>
+                  <td>
+                    <div class="slds-truncate" title="adam@company.com">{!theVol.theVolunteer.Phone}</div>
+                  </td>
+                  
+                  <td>
+                    <div class="slds-truncate" title="adam@company.com"> {!theVol.theVolunteer.Sys_No_Availability__c}</div>
+                  </td>
+                 
+                  
+                 
+                </tr>
+                </apex:repeat>
+              </tbody>
+            </table>
+          </div>
+         
+        </article>
+        
+    </apex:form>
+    </html>
+</apex:page>
