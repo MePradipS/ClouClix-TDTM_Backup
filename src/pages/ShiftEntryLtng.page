@@ -1,0 +1,1076 @@
+<apex:page standardController="Volunteer_Shift__c" extensions="CShiftEntry,RemoteQueryBuilder" sidebar="false" action="{!RedirectByTheme}">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+
+    <head>
+        <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}" />
+        <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+        <script src="{!URLFOR($Resource.aljsTest3)}"></script>
+        <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}" />
+        <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+        <apex:slds />
+    </head>
+
+    <div class="slds slds-page-header">
+        <div class="slds slds-grid">
+            <div class="slds slds-col slds-has-flexi-truncate">
+                <div class="slds slds-media slds-no-space slds-grow">
+                    <div class="slds slds-media__figure">
+                        <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                            <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#reward"></use>
+                        </svg>
+                    </div>
+                    <div class="slds slds-media__body">
+                        <p class="slds slds-text-title--caps slds-line-height--reset">New Shift</p>
+                        <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="New Volunteer Position Shift">New Volunteer Position Shift</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="slds slds-col slds-no-flex slds-grid slds-align-top"></div>
+        </div>
+    </div>
+    
+    <apex:pageMessages ></apex:pageMessages>
+    
+    <apex:form id="frmMain" styleClass="slds" style="margin: 30px;">
+        <div role="status" class="slds-spinner slds-spinner--medium" id="statusIndicatorDivId" style="display:none;z-index: 1000;">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+
+        <apex:actionFunction name="rerenderTheTransSection" rerender="DatetimeLocationPanelId,Weeeklylayout,locationPanelId" action="{!processPaymentType}" >
+          <apex:param name="paymentType" assignTo="{!selected.theShift.Frequency__c}" value="" />
+        </apex:actionFunction>
+
+        <apex:actionFunction name="rerenderTheTransSection1" rerender="Weeeklylayout" action="{!processPaymentType}" >
+          <apex:param name="paymentType" assignTo="{!selected.theShift.Frequency__c}" value="" />
+        </apex:actionFunction>
+
+        <apex:actionStatus id="statusId" onstart="showStatus()" onstop="hideStatus()" />
+        
+        <apex:outputpanel rendered="{!wizardState == 1}">
+            <apex:actionFunction action="{!removeShift}" name="removeShift" immediate="true" reRender="shiftList">
+                <apex:param name="Index" value="" />
+            </apex:actionFunction>
+            <apex:actionFunction action="{!editShift}" name="editShift" immediate="true" reRender="frmMain" status="statusId">
+                <apex:param name="Index" value=""/>
+            </apex:actionFunction>
+
+            <article class="slds-card slds-m-top--small" style="background: #FFFFFF;">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                </header>
+                <div class="slds-no-flex">
+                   <div class="slds-button-group" role="group">
+                     <apex:commandButton value="Add Shift(s)" action="{!addShift}" styleClass="slds-button slds-button--neutral" />
+                     <apex:commandButton rendered="{!theShifts.size > 0}" value="Remove All Shift(s)" action="{!clear}" styleClass="slds-button slds-button--neutral" />
+                     <apex:commandButton value="Back to Role" action="{!back}" immediate="true" styleClass="slds-button slds-button--neutral"/>
+
+                   </div>
+                </div>
+            </div>
+            <div class="slds-card__body">
+                <div style="padding-left: 3%;">
+                    <div style="width: 75%;">
+                        <apex:outputpanel id="theTransSection">
+
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+                                        <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <apex:outputLabel value="{!$ObjectType.Volunteer_Shift__c.fields.Volunteer_Role__c.label}" styleclass="slds-form-element__label"/>
+                                         <div class="slds-form-element__control slds-has-divider--bottom">
+                                                <span class="slds-form-element__static">
+                                                    <apex:outputField value="{!selected.theShift.Volunteer_Role__c}" />
+                                                </span>
+                                          </div>
+                                          </div>
+
+                                          <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+
+                                          </div>
+
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                               <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                        <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <apex:outputLabel value="{!$ObjectType.Volunteer_Role__c.fields.Start_Date__c.label}" styleclass="slds-form-element__label"/>
+                                         <div class="slds-form-element__control slds-has-divider--bottom">
+                                                <span class="slds-form-element__static">
+                                                  <!--  <apex:outputField value="{!thePos.Start_Date__c}" />   -->
+                                                  <c:LocaleFormattedDate date_time_value="{!thePos.Start_Date__c}"> </c:LocaleFormattedDate>
+
+                                                </span>
+                                          </div>
+                                          </div>
+
+                                          <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <apex:outputLabel value="{!$ObjectType.Volunteer_Role__c.fields.End_Date__c.label}" styleclass="slds-form-element__label"/>
+                                         <div class="slds-form-element__control slds-has-divider--bottom">
+                                                <span class="slds-form-element__static">
+                                                    <apex:outputField value="{!thePos.End_Date__c}" />
+                                                </span>
+                                          </div>
+                                          </div>
+
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                 <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                        <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <apex:outputLabel value="{!$ObjectType.Volunteer_Shift__c.fields.Frequency__c.label}" styleclass="slds-form-element__label"/>
+                                              <div>
+                                                <apex:actionRegion >
+                                                <apex:outputPanel layout="block">
+                                                    <apex:outputPanel layout="block"/>
+
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 100%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.theShift.Frequency__c}" id="text-input-01" html-data-isRequired="true" html-data-requiredFieldName="{!$ObjectType.Volunteer_Shift__c.fields.Frequency__c.Name}" styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-01" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!PTypes}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this);updatePaymentSectionInNewGiftBatch(this)" data-pickValue="{!item.value}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+                                                                                <!-- <svg class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true">
+                                                                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#check" style="display:none;"></use>
+                                                                                </svg> -->
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </apex:outputPanel>
+                                                </apex:actionRegion>
+                                            </div>
+                                            </div>
+
+                                            <div class="slds-form-element slds-size_2-of-2 slds-medium-size_3-of-6 slds-large-size_6-of-12 slds-p-right_x-large slds-p-left_medium" style="height:70px">
+                                                <apex:outputpanel id="Weeeklylayout">
+                                                    <apex:outputLabel styleclass="slds-form-element__label" rendered="{!selected.theShift.Frequency__c == 'Weekly'}">
+                                                        # Of Weeks
+                                                        <div>
+                                                            <div>
+                                                                <apex:inputText value="{!NumOfWeeks}" styleClass="slds-input" />
+                                                            </div>
+                                                        </div>
+                                                    </apex:outputLabel>
+                                                    <apex:outputLabel styleclass="slds-form-element__label" rendered="{!selected.theShift.Frequency__c == 'Bi-Weekly'}">
+                                                        # of Bi-Weekly Pairs
+                                                        <div>
+                                                            <div>
+                                                                <apex:inputText value="{!NumOfWeeks}" styleClass="slds-input" />
+                                                            </div>
+                                                        </div>
+                                                    </apex:outputLabel>
+                                                    <apex:outputLabel styleclass="slds-form-element__label" rendered="{!selected.theShift.Frequency__c == 'Monthly'}">
+                                                        # of Months
+                                                        <div>
+                                                            <div>
+                                                                <apex:inputText value="{!NumOfWeeks}" styleClass="slds-input" />
+                                                            </div>
+                                                        </div>
+                                                    </apex:outputLabel>
+                                                </apex:outputpanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+
+                                   <apex:outputpanel id="DatetimeLocationPanelId">
+                                   <fieldset class="slds-form--compound">
+                                   <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                        <div class="slds-form-element">
+
+                                        <apex:outputpanel id="locationPanelId">
+
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block" id="locationPanelId2" style="display:none" >
+                                                    <label class="slds-form-element__label" for="text-input-01"> Location</label>
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput2" data-isRequired="true" data-requiredFieldName="{!$ObjectType.Volunteer_Shift__c.fields.Location__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'Account','{!$ObjectType.Volunteer_Shift__c.fields.Location__c.label}','2')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn2" />
+                                                        </div>
+                                                        </div>
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn2" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText2"></span>
+                                                        </div>
+                                                     <!--Search Results UL-->
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL2" style="max-height: 240px;">
+                                                     </ul>
+
+                                                    </div>
+                                                </div>
+                                            </apex:outputpanel>
+                                                                </div>
+                                                            </div>
+                                                        </apex:outputpanel>
+                                                    </div>
+                                                </div>
+
+                                                <div class="slds-form-element slds-size_2-of-2 slds-medium-size_3-of-6 slds-large-size_6-of-12 slds-p-right_x-large slds-p-left_medium" style="height:70px"></div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="slds-form--compound">
+                            <div id="Frequency-NotFlexible" class="slds-form-element__group" style="display:none;">
+                                   <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                      <apex:outputpanel layout="block" >
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                            <div class="slds-form-element">
+
+                                                <label class="slds-form-element__label" for="date">
+                                                <abbr class="slds-required" title="required">*</abbr>
+                                                Start Date</label>
+                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width:87%">
+                                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                                    </svg>
+                                                   <!-- <input id="datePickerInputId1" class="slds-input" type="text" placeholder="Pick a Date1" label="Date Picker Label" /> -->
+                                                     <apex:inputText id="datePickerInputId1" styleclass="slds-input datePickerInputCls"  value="{!selected.theShift.Start_Day__c}"/>
+                                                </div>
+
+                                            </div>
+                                       </div>
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <div class="slds-form-element">
+                                                <label class="slds-form-element__label" for="date">Start Time</label>
+                                                <div style="display: table;">
+
+
+                                                    <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startHours}" id="text-input-08" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="1" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startMins}" id="text-input-09" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="00" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-011" class="slds-dropdown__list  -dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!Mins}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+                                                                                <!-- <svg class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true">
+                                                                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#check" style="display:none;"></use>
+                                                                                </svg> -->
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startMeridiemOffset}" id="text-input-10" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="AM" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                </div>
+
+                                            </div>
+
+                                       </div>
+
+                                       </apex:outputpanel>
+                                    </div>
+                                </div>
+                             </div>
+                            </fieldset>
+
+
+
+
+                         <fieldset class="slds-form--compound">
+                         <div id="Frequency-NotFlexible1" class="slds-form-element__group" style="display:none;">
+                                   <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+
+
+                                    <apex:outputpanel layout="block" >
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                            <div class="slds-form-element">
+                                                <label class="slds-form-element__label" for="date">
+                                                <abbr class="slds-required" title="required">*</abbr>
+                                                End Date</label>
+                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width:87%">
+                                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                                    </svg>
+                                                   <!-- <input id="datePickerInputId2" class="slds-input" type="text" placeholder="Pick a Date2" label="Date Picker Label" />  -->
+                                                     <apex:inputText id="datePickerInputId2" styleclass="slds-input datePickerInputCls"   value="{!selected.theShift.End_Day__c}"/>
+                                                </div>
+                                            </div>
+                                       </div>
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <div class="slds-form-element">
+                                                <label class="slds-form-element__label" for="date">End Time</label>
+                                                <div style="display: table;">
+
+
+                                                    <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.endHours}" id="text-input-18" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="1" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.endMins}" id="text-input-19" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="00" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-013" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!Mins}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+                                                                                <!-- <svg class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true">
+                                                                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#check" style="display:none;"></use>
+                                                                                </svg> -->
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.endMeridiemOffset}" id="text-input-11" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="AM" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+
+
+                                                </div>
+                                            </div>
+                                       </div>
+
+                                       </apex:outputPanel>
+                                    </div>
+                                </div>
+                                </div>
+                            </fieldset>
+
+                            </apex:outputpanel>
+
+
+                             </apex:outputpanel>
+                            </div>
+                           </div>
+                          </div>
+
+        </article>
+
+          <!--  <apex:pageblockButtons location="bottom" >
+                <apex:commandButton value="Add Shift(s)" action="{!addShift}" styleClass="slds-button slds-button--neutral" />
+                <apex:commandButton rendered="{!theShifts.size > 0}" value="Remove All Shift(s)" action="{!clear}" styleClass="slds-button slds-button--neutral" />
+                <apex:commandButton value="Back to Role" action="{!back}" immediate="true" styleClass="slds-button slds-button--neutral"/>
+            </apex:pageblockButtons>  -->
+        <!--</apex:pageBlock>         -->
+        </apex:outputpanel>
+        <apex:pageBlock rendered="{!wizardState == 2}" >
+            <article class="slds-card" style="background: #FFFFFF;">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media--center slds-has-flexi-truncate">
+
+                </header>
+            </div>
+            <div class="slds-card__body">
+                <div style="padding-left: 3%;">
+                    <div style="width: 60%;">
+                        <apex:outputpanel id="theTransSection">
+
+
+                                   <fieldset class="slds-form--compound">
+                                   <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                        <div class="slds-form-element">
+                                        <!--<apex:outputpanel rendered="{!selected.theShift.Frequency__c != ''}" >-->
+                                            <label class="slds-form-element__label" for="text-input-01"> Location</label>
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block">
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput2" data-isRequired="true" data-requiredFieldName="{!$ObjectType.Volunteer_Shift__c.fields.Location__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'Account','{!$ObjectType.Volunteer_Shift__c.fields.Location__c.label}','2')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn2" />
+                                                        </div>
+                                                        </div>
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn2" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText2"></span>
+                                                        </div>
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL2" style="max-height: 240px;">
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                            </apex:outputpanel>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="slds-form-element slds-size_2-of-2 slds-medium-size_3-of-6 slds-large-size_6-of-12 slds-p-right_x-large slds-p-left_medium" style="height:70px"></div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+
+
+                               <fieldset class="slds-form--compound">
+                                   <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                            <div class="slds-form-element">
+                                                <label class="slds-form-element__label" for="date">
+                                                <abbr class="slds-required" title="required">*</abbr>
+                                                Start Date</label>
+                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right">
+                                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                                    </svg>
+                                                   <!-- <input id="datePickerInputId3" class="slds-input" type="text" placeholder="Pick a Date3" label="Date Picker Label" /> -->
+                                                      <apex:inputText id="datePickerInputId3" styleclass="slds-input datePickerInputCls"    />
+                                                </div>
+                                            </div>
+                                       </div>
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <div class="slds-form-element">
+                                                <label class="slds-form-element__label" for="date">Start Time</label>
+                                                <div style="display: table;">
+
+
+                                                    <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startHours}" id="text-input-08" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-011" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-07" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!Hours}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0"
+                                                                                id="listbox-option-{!item.label}">
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startMins}" id="text-input-99" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="1" html-aria-owns="option-list-012" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-012" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!Mins}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0"
+                                                                                id="listbox-option-{!item.label}">
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startMeridiemOffset}" id="text-input-90" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option3" html-aria-owns="option-list-013" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-013" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!MeridiemOffset}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0"
+                                                                                id="listbox-option-{!item.label}">
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+
+
+                         <fieldset class="slds-form--compound">
+                                   <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                            <div class="slds-form-element">
+
+                                                <label class="slds-form-element__label" for="date">
+                                                <abbr class="slds-required" title="required">*</abbr>
+                                                End Date</label>
+                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right">
+                                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                                    </svg>
+                                                     <apex:inputText id="datePickerInputId4" styleclass="slds-input datePickerInputCls"    />
+                                                </div>
+                                            </div>
+                                       </div>
+
+                                       <div class="slds-form-element slds-size--1-of-3" style="height:70px">
+                                             <div class="slds-form-element">
+                                                <label class="slds-form-element__label" for="date">End Time</label>
+                                                <div style="display: table;">
+
+
+                                                    <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startHours}" id="text-input-80" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-07" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!Hours}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0"
+                                                                                id="listbox-option-{!item.label}">
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startMins}" id="text-input-091" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-01" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!Mins}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0"
+                                                                                id="listbox-option-{!item.label}">
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 30%;padding-left: 1%;">
+                                                            <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+        <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+                                                                    <apex:inputText style="cursor: pointer;" value="{!selected.startMeridiemOffset}" id="text-input-101" html-data-isRequired="true"  styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option4" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                    <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                        <!-- <svg class="slds-button__icon slds-button__icon" aria-hidden="true">
+                                                                            <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#down"></use>
+                                                                        </svg> -->
+                                                                        <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+                                                                <ul id="option-list-0111" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                    <apex:repeat value="{!MeridiemOffset}" var="item">
+                                                                        <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0"
+                                                                                id="listbox-option-{!item.label}">
+                                                                                <span style="width: 10%;">
+                                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                                                                                </span>
+                                                                                <span class="slds-truncate">{!item.label}</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </apex:repeat>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                </div>
+                                            </div>
+                                       </div>
+
+
+                                    </div>
+                                </div>
+                            </fieldset>
+
+
+                             </apex:outputpanel>
+                            </div>
+                           </div>
+                          </div>
+        </article>
+
+
+            <apex:pageblockButtons location="bottom" >
+                <apex:commandButton value="Update Shift" action="{!updateShift}" styleClass="slds-button slds-button--neutral"/>
+                <apex:commandButton value="Cancel" action="{!cancelUpdate}" styleClass="slds-button slds-button--neutral"/>
+            </apex:pageblockButtons>
+        </apex:pageBlock>
+
+
+
+
+            <!--<apex:pageBlock rendered="{!wizardState == 1}" id="shiftList">
+            <apex:variable var="rowIndex" value="{!0}"/> -->
+            <apex:outputPanel rendered="{!wizardState == 1}" id="shiftlist">
+            <apex:variable var="rowIndex" value="{!0}"/>
+               <article class="slds-card slds-m-top--small">
+                  <div class="slds-card__header slds-grid">
+                    <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                        <div class="slds-media__figure">
+                            <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                            <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                              <use xlink:href="/assets/icons/standard-sprite/svg/symbols.svg#insights"></use>
+                            </svg>
+                        </span>
+                        </div>
+                        <div class="slds-media__body">
+                            <h2>
+                                <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                                  <span class="slds-text-heading--small">Shifts ({!theShifts.size})</span>
+                                </a>
+                            </h2>
+                        </div>
+                    </header>
+
+                  </div>
+                  <div class="slds-card__body">
+            <table class="slds-table slds-table--bordered slds-table--cell-buffer">
+              <thead>
+                <tr class="slds-text-title--caps">
+                 <th></th>
+                  <th scope="col">
+                        <div class="slds-truncate" title="Frequency">Frequency</div>
+                      </th>
+                  <th scope="col">
+                        <div class="slds-truncate" title="Duration"> Duration </div>
+                      </th>
+                      <th scope="col">
+                        <div class="slds-truncate" title="Start Date">Start Time</div>
+                      </th>
+
+                   <th scope="col">
+                        <div class="slds-truncate" title="End Date">End Time</div>
+                      </th>
+
+                     <th scope="col">
+                        <div class="slds-truncate" title="Day of the Week">Day of the Week</div>
+                      </th>
+
+                   <th scope="col">
+                        <div class="slds-truncate" title="Adreess">Adreess</div>
+                      </th>
+
+                </tr>
+              </thead>
+              <tbody>
+                <apex:repeat value="{!theShifts}" var="sw">
+                    <tr>
+                      <td>
+                            <apex:variable var="rowIndex" value="{!rowIndex+1}"/>
+                            <apex:outputPanel rendered="{!sw.theShift.Logged_Hours__c == 0}"><a href="#" onclick="editShift('{!rowIndex+1}');">Edit</a></apex:outputPanel>
+                            |
+                            <apex:outputPanel rendered="{!sw.theShift.Logged_Hours__c == 0}"><a href="#" onclick="if (window.confirm('Are you sure?')) removeShift('{!rowIndex+1}');">Remove</a></apex:outputPanel>
+                       </td>
+
+                        <td>
+                            <div class="slds-truncate">{!sw.theShift.Frequency__c}</div>
+                        </td>
+
+                        <td>
+                            <div class="slds-truncate">{!sw.theShift.Duration_Hours__c}</div>
+                        </td>
+
+                        <td>
+                           <!-- <div class="slds-truncate"> {!sw.theShift.Start_Time__c}</div>  -->
+                           <div class="slds-truncate">
+                             <apex:outputPanel rendered="{!sw.theShift.Start_Time__c !=null}">
+                               <c:LocaleFormattedDatetime date_time_value="{!sw.theShift.Start_Time__c}"> </c:LocaleFormattedDatetime>
+                               </apex:outputPanel>
+
+                             </div>
+
+                        </td>
+
+                        <td>
+                           <!-- <div class="slds-truncate">{!sw.theShift.End_Time__c}</div> -->
+                             <div class="slds-truncate">
+                              <apex:outputPanel rendered="{!sw.theShift.End_Time__c !=null}">
+                               <c:LocaleFormattedDatetime date_time_value="{!sw.theShift.End_Time__c}"> </c:LocaleFormattedDatetime>
+                               </apex:outputPanel></div>
+                        </td>
+
+                        <td>
+                            <div class="slds-truncate">{!sw.theShift.Day_of_the_Week__c}</div>
+                        </td>
+
+                        <td>
+                            <div class="slds-truncate">{!sw.theShift.Location_Address__c}</div>
+                        </td>
+
+                    </tr>
+                </apex:repeat>
+              </tbody>
+            </table>
+           </div>
+           </article>
+           </apex:outputPanel>
+        <!--</apex:pageBlock>-->
+        <script>
+        var j$ = jQuery.noConflict();
+          j$(document).ready(function()
+          {
+              var assetsLocation = '{!URLFOR($Asset.SLDS)}';
+              j$.aljsInit({
+                    assetsLocation: assetsLocation,
+                    scoped: true
+              });
+
+
+              initDatePicker();
+
+          });
+        function initDatePicker(){
+            j$('.datePickerInputCls').datepicker(
+                    {
+                        format: 'DD/MM/YYYY',
+                    }
+              );
+        }
+
+        function initALJSINIT(){
+            j$.aljsInit({
+                    assetsLocation: assetsLocation,
+                    scoped: true
+              });
+          }
+        sforce.connection.sessionId='{!GETSESSIONID()}';
+        function searchRecords(key,objectName,objectLabel,iVal){
+            if(!timeUp) return;
+            j$('#'+key.attr('aria-activedescendant')).show();
+            searchKey = key.val();
+            if(searchKey == ''){
+                j$('#'+key.attr('aria-activedescendant')).hide();
+            }
+
+            j$('#searchText'+iVal).text('\"'+searchKey+'\" In '+objectLabel);
+
+            var fields = "Id,Name";
+            var clause = "Name LIKE '"+searchKey+"%' LIMIT 10";
+            
+            RemoteQueryBuilder.ListQueryBuilderWhere(
+              objectName, fields, clause,
+              function(result, event){
+                records = result;
+
+                var searchLis ="";
+
+                if(records.length > 0){
+                    for(var i=0; i<records.length; i++){
+                        searchLis += '<li onclick="recordInfo(\''+records[i].Name+'\',\''+records[i].Id+'\',\''+iVal+'\');"  class="slds-lookup__item"><span id="'+records[i].Id+'" style="cursor:pointer">'+records[i].Name+'</span></li>';
+                    }
+                }else{
+                    searchLis += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+                }
+
+                j$('#searchResultsUL'+iVal).html(searchLis);
+            });
+        }
+
+        function recordInfo(recordName,recordId,iVal){
+            j$('#SrchDrpDwn'+iVal).fadeOut();
+            j$('#searchInput'+iVal).val(recordName);
+
+            var idval = 'hiddenId'+iVal;
+            j$("[id$="+idval+"]").val(recordId);
+        }
+
+        var timeUp = false;
+        function onkeyUpInvoke(key,objectName,objectLabel,iVal){
+            timeUp = false;
+            setTimeout(function(){
+                            timeUp = true;
+                            searchRecords(key,objectName,objectLabel,iVal);
+                            hideStatus();
+            },501);
+
+            setTimeout(function(){
+                            showStatus();
+            },500);
+        }
+
+        var currentpicklistObj;
+        function processPicklist(obj){
+            currentpicklistObj = obj;
+            j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+        }
+
+        var pickedElement;
+        function processPickValue(obj){
+            pickedElement = obj;
+            var pickvalue = j$(pickedElement).attr("data-pickValue");
+            var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+            j$(pickedElement).parent().find("img").hide();
+            j$(pickedElement).find("img").show();
+            j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+            j$(currentpicklistObj).find("input").val(pickvalue);
+
+            if(toProcessOnServer == 'true'){
+                rerenderTheTransSection1(pickvalue);
+            }
+            //j$(pickedElement).children().first().children().first().children().first().show();
+        }
+
+        function showStatus(){
+            j$('#statusIndicatorDivId').show();
+        }
+        function hideStatus(){
+            j$('#statusIndicatorDivId').hide();
+        }
+
+        function validateData(){
+            //.slds-has-error to add   Complete this field
+            j$('.requiredFieldCustomErrorMsgCls').hide();
+            j$('[data-isRequired ="true"]').removeClass('slds-has-error');
+            var requiredFieldList = j$('[data-isRequired ="true"]');
+            var isValidationPassed = true;
+            j$(requiredFieldList).each(function(index,item) {
+                if(j$(this).val().length == 0 || j$(this).val() == '-- None --'){
+                    var errorMsgElementId = 'requiredFieldCustomErrorMsgId_'+j$(item).attr("data-requiredFieldName");
+                    j$(item).addClass('slds-has-error');
+                    j$('#'+errorMsgElementId).show();
+                    isValidationPassed = false;
+                }
+            });
+            return isValidationPassed;
+        }
+
+        function updatePaymentSectionInNewGiftBatch(obj){
+        var pickvalue = j$(obj).attr("data-pickValue");
+        j$('[id^=Frequency-]').hide();
+        if(pickvalue == 'Flexible'){
+            j$('#Frequency-NotFlexible').hide();
+            j$('#Frequency-NotFlexible1').hide();
+            j$("[id$='locationPanelId2']").show();
+
+
+        }else{
+           j$('#Frequency-NotFlexible').show();
+           j$('#Frequency-NotFlexible1').show();
+           j$("[id$='locationPanelId2']").show();
+
+
+        }
+        if(pickvalue == ''){
+            j$("[id$='locationPanelId']").hide();
+        }
+
+
+    }
+
+   </script>
+
+    </apex:form>
+    </html>
+</apex:page>

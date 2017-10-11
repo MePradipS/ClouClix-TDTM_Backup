@@ -1,0 +1,242 @@
+<apex:page tabStyle="Payment__c" standardController="Payment__c" extensions="Payment" sidebar="false" showHeader="true"  action="{!RedirectByTheme}">
+<apex:includeScript value="{!$Resource.jQuery}"/>
+ 
+  <script type="text/javascript"> 
+   function hasValue(target) {
+      return (document.getElementById(target) && document.getElementById(target).value);
+   }
+   function setlookupValue(target, id, name) {
+     if (document.getElementById(target)) {
+         document.getElementById(target).value = name;
+         document.getElementById(target+'_lkid').value = id;
+         document.getElementById(target+'_lkold').value = name;
+     }
+   }  
+   function populateAllocationAmount(elem) {
+        var j$=jQuery.noConflict();
+        j$('.alcAmount:first').val(elem.value);
+   }
+    function applyAppealDefaults(elem) {
+        var appealId = document.getElementById(elem.id + '_lkid').value;
+        //gAppealId = appealId;
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.Payment.GetAppealDefaults}', appealId, 
+            function(result, event){
+                if (event.status) {
+                    var letterComponentId = 'thePage:theForm:theTransBlock:theTransSection:letter';
+                    if (result.FundId) {
+                       var fundControlId = elem.id.replace(':alcAppeal', ':alcFund');
+                       if (!hasValue(fundControlId))
+                           setlookupValue(fundControlId, result.FundId, result.FundName);
+                    }
+                    if (result.LetterId && !hasValue(letterComponentId)) {
+                       setlookupValue(letterComponentId, result.LetterId, result.LetterName);
+                    }
+                    //alert(result.FundName); 
+                } else if (event.type === 'exception') {
+                    alert('Error: ' +event.message);
+                } else {
+                    alert('Error: ' +event.message);
+                }
+            }, 
+            {escape: true}
+        );
+   }  
+  function openLookup(baseURL, width, modified, searchParam){
+    var namespacePrefix = "{!PackageNamespace}"
+    var originalbaseURL = baseURL;
+    var originalwidth = width;
+    var originalmodified = modified;
+    var originalsearchParam = searchParam;
+ 
+    var lookupType = baseURL.substr(baseURL.length-3, 3);
+    if (modified == '1') baseURL = baseURL + searchParam;
+ 
+    var isCustomLookup = false;
+    // Following "001" is the lookup type for Account object so change this as per your standard or custom object
+    if(lookupType == "{!JSENCODE(FundKeyPrefix)}"){
+      var urlArr = baseURL.split("&");
+      var txtId = '';
+      if(urlArr.length > 2) {
+        urlArr = urlArr[1].split('=');
+        txtId = urlArr[1];
+      }
+ 
+      // Following is the url of Custom Lookup page. You need to change that accordingly
+      baseURL = "/apex/" + namespacePrefix + "CustomFundLookup?txt=" + txtId;
+ 
+      // Following is the id of apex:form control "myForm". You need to change that accordingly
+      baseURL = baseURL + "&frm=" + escapeUTF("{!$Component.myForm}");
+      if (modified == '1') {
+        baseURL = baseURL + "&lksearch=" + searchParam;
+      }
+ 
+      // Following is the ID of inputField that is the lookup to be customized as custom lookup
+      if(txtId.indexOf('Fund') > -1 ){
+        isCustomLookup = true;
+      }
+    }
+ 
+ 
+    if(isCustomLookup == true){
+      openPopup(baseURL, "lookup", 350, 480, "width="+width+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+    }
+    else {
+      if (modified == '1') originalbaseURL = originalbaseURL + originalsearchParam;
+      openPopup(originalbaseURL, "lookup", 350, 480, "width="+originalwidth+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+    } 
+  }
+  
+  function jShowBusy() { document.body.style.cursor = "wait"; }
+  function jHideBusy() { document.body.style.cursor = "default"; }
+</script>
+    <apex:form id="theForm">       
+        <apex:actionPoller action="{!submitPayment}" enabled="{!shouldSubmit}" interval="5" reRender="theForm" onsubmit="jShowBusy()" oncomplete="jHideBusy()"/>
+        <apex:outputPanel id="progress" rendered="{!shouldSubmit}">
+          <center>
+              <div style="padding:8px; border:1px solid #ccc; border-radius:5px;">
+                <!--<apex:image url="{!URLFOR($Resource.gpAssets,'loader.gif')}"/>-->
+                <div style="font-size:1.6em">Processing the payment...</div>
+              </div>
+          </center>
+        </apex:outputPanel>
+        <apex:outputPanel id="page" rendered="{!not(shouldSubmit)}">
+            <apex:pageBlock title="Payment: "> 
+                <apex:pageblockSection id="theTransSection" columns="1">
+                      <apex:outputField value="{!Payment.Donation__c}" />    
+                      <apex:inputField value="{!Payment.Amount__c}" required="true"
+                          rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == ''}" onchange="populateAllocationAmount(this)"/> 
+                      <apex:inputField value="{!Payment.Date__c}" required="true" rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == ''}"/>   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == ''}">
+                        <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+                        <apex:outputPanel layout="none">
+                            <apex:actionRegion >
+                                <apex:inputField required="true" id="pType" value="{!Payment.Payment_Type__c}" >
+                                    <apex:actionSupport event="onchange" reRender="theTransSection2"/>
+                                </apex:inputField>
+                           </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>     
+                      <apex:outputField value="{!Payment.Amount__c}" rendered="{!Payment.Payment_Type__c == 'Credit Card' && PaymentId != ''}"/> 
+                      <apex:outputField value="{!Payment.Date__c}" rendered="{!Payment.Payment_Type__c == 'Credit Card' && PaymentId != ''}"/>   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && PaymentId != ''}">
+                        <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+                        <apex:outputPanel layout="none">
+                            <apex:actionRegion >
+                                <apex:outputField value="{!Payment.Payment_Type__c}" >
+                                </apex:outputField>
+                           </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>    
+                </apex:pageBlockSection>              
+                
+                <apex:pageblockSection id="theTransSection2" columns="1" >  
+                    <apex:outputField value="{!Payment.Credit_Card_Type__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c == 'Approved'}" />
+                    <apex:outputField value="{!Payment.Credit_Card_Number__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c == 'Approved'}"/>               
+                                   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c == 'Approved'}" >
+                        <apex:outputLabel value="Credit Card Expiry" />
+                        <apex:outputLabel value="{!ccExpM}{!ccExpY}" />
+                    </apex:pageBlockSectionItem>     
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c == 'Approved'}" >
+                        <apex:outputLabel for="ccCVV" value="CVV" />               
+                        <apex:outputText id="ccCVV" value="{!ccCVV}" />                                                        
+                    </apex:pageBlockSectionItem>  
+                    <apex:outputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c == 'Approved'}" />  
+                    
+                    <apex:inputField required="true" value="{!Payment.Credit_Card_Type__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c != 'Approved'}"/>
+                    <apex:inputField required="true" value="{!Payment.Credit_Card_Number__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c != 'Approved'}"/>                      
+                                   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c != 'Approved'}" >
+                        <apex:outputLabel value="Credit Card Expiry" />
+                        <apex:outputPanel >
+                            <apex:selectList required="true" size="1" value="{!ccExpM}">
+                                <apex:selectOptions value="{!months}" />
+                            </apex:selectList>   
+                            <apex:selectList required="true" size="1" value="{!ccExpY}">
+                                <apex:selectOptions value="{!years}" />
+                            </apex:selectList>                      
+                        </apex:outputPanel>        
+                    </apex:pageBlockSectionItem>     
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c != 'Approved'}" >
+                        <apex:outputLabel for="ccCVV" value="CVV" />               
+                        <apex:inputText id="ccCVV" value="{!ccCVV}" />                                                        
+                    </apex:pageBlockSectionItem> 
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && PaymentId == ''}" />
+                    
+                    <apex:inputField value="{!Payment.Credit_Card_Type__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" required="true"/>
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" />
+                    <apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" required="true"/> 
+                    
+                    <apex:inputField value="{!Payment.Cheque_Num__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>
+                    <apex:inputField value="{!Payment.Cheque_Date__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Check'}"/>
+                    <apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/> 
+                    
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Cash'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Cash'}"/>
+                    <apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Cash'}" required="true"/>      
+                    
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Stock'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Stock'}" />
+                    <apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Stock'}" required="true"/>      
+                    
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Other'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Other'}"/>
+                    <apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Other'}" required="true"/>   
+                    
+                    
+                    
+                    <apex:repeat value="{!PaymentFieldList}" var="f">
+                      
+                        <apex:inputField value="{!Payment[f.fieldPath]}" 
+                        required="{!OR(f.required, f.dbrequired)}"/>
+                    </apex:repeat>  
+                </apex:pageblockSection>
+            </apex:pageBlock>
+            <apex:pageBlock title="Allocation List: ">                       
+                <div>
+                    <apex:pageMessages />
+                </div> 
+                    <apex:pageBlockTable id="allocs" value="{!AllocationList}" var="item">                      
+                        <apex:column id="alcAmountCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.Amount__c.label}*">
+                            <apex:inputField id="alcAmount" value="{!item.Amount__c}" styleClass="alcAmount"/>
+                        </apex:column>
+                        <apex:column id="alcDateCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.Allocation_Date__c.label}*">
+                            <apex:inputField id="alcDate" value="{!item.Allocation_Date__c}"/>
+                        </apex:column>
+                        <apex:column id="alcAppealCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.New_Campaign__c.label}*">
+                            <apex:inputField id="alcAppeal" value="{!item.New_Campaign__c}" onchange="applyAppealDefaults(this)"/>
+                        </apex:column>
+                        <apex:column id="alcFundCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.Fund__c.label}*">
+                            <apex:inputField id="alcFund" value="{!item.Fund__c}"/>
+                        </apex:column>
+                        <apex:repeat value="{!AllocationFieldList}" var="f">
+                            <apex:column >
+                                <apex:facet name="header">{!f.label}</apex:facet>
+                                <apex:inputfield value="{!item[f.fieldPath]}"/>
+                            </apex:column>
+                        </apex:repeat> 
+                    </apex:pageBlockTable> 
+              <div style="padding:6px;">
+                <apex:commandLink value="Add New Allocation" action="{!newAllocation}" immediate="true" reRender="page" status="pageStatus"/>
+              </div>                              
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton action="{!saveAll}" value="Submit" reRender="theForm" status="pageStatus"/>
+                    <apex:commandButton action="{!cancelAll}" value="Cancel" reRender="theForm" status="pageStatus" immediate="true"/>
+                </apex:pageBlockButtons> 
+            </apex:pageBlock>
+            
+            <apex:outputText value="{!Msg}"/> 
+            <br/>
+            <apex:actionStatus id="pageStatus">
+                <apex:facet name="start"><h1>Loading...</h1></apex:facet>
+                <apex:facet name="stop">               
+                </apex:facet>
+            </apex:actionStatus>
+                     
+        
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

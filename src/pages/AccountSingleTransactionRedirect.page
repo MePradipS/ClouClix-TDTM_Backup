@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Account" extensions="AccountSingleTransactionController" id="AccountSingleTransactionRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

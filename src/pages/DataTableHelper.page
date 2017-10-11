@@ -1,0 +1,5 @@
+<apex:page contentType="application/x-JavaScript; charset=utf-8" showHeader="false" sidebar="false" standardStylesheets="false"
+    applyHtmlTag="false" controller="DataTableHelper"
+    action="{!processData}">
+    <apex:outputText value="{!dataTableJson}"></apex:outputText>
+</apex:page>

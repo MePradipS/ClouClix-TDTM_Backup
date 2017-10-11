@@ -1,0 +1,31 @@
+<apex:page standardController="Campaign" extensions="CampaignDashboardController" showHeader="false">
+ <table width="100%">
+   <tr>
+    <td>
+       <apex:outputPanel layout="none" rendered="{!hasDonorLevel}">
+       <apex:chart height="240" width="450" data="{!allocByDonorLevel}">
+          <apex:pieSeries dataField="data" labelField="name">
+          </apex:pieSeries>
+          <apex:legend position="right"/>
+       </apex:chart>
+       <div style="width:450px;"><center><h3 style="font-size:16px; font-weight:bold; padding-top:12px;">Gifts by Donor Type</h3></center></div>
+       </apex:outputPanel>
+       <apex:outputPanel layout="none" rendered="{!NOT(hasDonorLevel)}">
+         <h1 style="line-height:200px;font-size:18px;padding-left:100px;color:#888;">No Data Available</h1>
+       </apex:outputPanel>
+    </td>
+    <td>
+        <apex:outputPanel layout="none" rendered="{!hasAllocation}">
+           <apex:chart height="240" width="400" data="{!allocByMonth}">
+              <apex:axis type="Numeric" position="left" fields="data"  title="Allocation Amounts" grid="true"/>
+              <apex:axis type="Category" position="bottom" fields="name"  title="This Year"/>
+              <apex:barSeries orientation="vertical" axis="left"  xField="name" yField="data"/>
+           </apex:chart>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!Not(hasAllocation)}">
+           <h1 style="line-height:200px;font-size:18px;padding-left:100px;color:#888;">No Data Available</h1>
+        </apex:outputPanel>
+    </td>
+   </tr>
+ </table>
+</apex:page>

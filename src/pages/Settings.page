@@ -1,0 +1,1322 @@
+<apex:page controller="CauseviewSettingsController" id="CauseviewSettingsPage" title="Causeview Settings" showHeader="true" standardStylesheets="false" sidebar="true" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+<!-- Lightning Experience Reference -->
+    <!-- Setup > Lightning Experience -->
+    <!-- Setup > Health Check -->
+<!-- TODO: On save of new Active Individual Bucket Account ask to transfer current Bucket Account to hisotrical. -->
+<!-- TODO: Rollup Tab: [Button] Reset Schedule Rollup Jobs -->
+<!-- TODO: Optimize lag on Rollup Tab when updating record types for giving rollup -->
+
+<head>
+    <meta charset="utf-8" />
+    <title>Causeview Settings</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <apex:includescript value="{!$Resource.jQuery224}" />
+    <!-- Lightning Design System -->
+    <apex:stylesheet value="{!URLFOR($Resource.SLDS212, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    <!-- SweetAlert 2 -->
+    <apex:includescript value="{!$Resource.SweetAlert2_430js}" />
+    <apex:stylesheet value="{!$Resource.SweetAlert2_430css}" />
+    <!-- jQuery & ALJS Init -->
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-init.min.js')}"></script>
+    <!-- Page-Specific ALJS Plugins -->
+    <apex:stylesheet value="{!$Resource.moment2112js}" />
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-tabs.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-modal.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-multi-select.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-lookup.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-popover.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-datepicker.min.js')}"></script>
+    <!-- contra -->
+    <script src="{!URLFOR($Resource.SLDS212, 'cv/jquery.cheat-code.min.js')}"></script>
+    <style>
+        /*.swal2-modal button.styled { background: #3085D6 !important; }*/
+        /*.fullwidth { margin: -10px -10px 0px -10px !important; }*/
+        .fullwidth { margin: -5px -10px 0px -0px !important; }
+        .swal2-confirm { background: #0070d2 !important; }
+        .swal2-cancel { background: #c23934 !important; }        
+        .myapp { min-height: 400px; }
+    </style>
+</head>
+
+<body>
+    <!-- REQUIRED SLDS WRAPPER -->
+    <div class="slds">
+        <apex:form id="mainForm" styleclass="slds-form--stacked" html-novalidate="novalidate">
+            <!-- PAGE HEADER -->
+            <div class="slds-page-header fullwidth" role="banner">
+                <!-- PAGE HEADER TOP ROW -->
+                <div class="slds-grid">
+                    <!-- PAGE HEADER / ROW 1 / COLUMN 1 -->
+                    <div class="slds-col slds-has-flexi-truncate ">
+                        <div class="slds-media slds-media--center slds-no-space slds-grow">
+                            <div class="slds-media__figure">
+                                <svg aria-hidden="true" class="slds-icon slds-icon-standard-user slds-icon--large">
+                                    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/standard-sprite/svg/symbols.svg#custom')}"></use>
+                                </svg>
+                            </div>
+                            <div class="slds-media__body">
+                                <p class="slds-text-heading--label">Causeview</p>
+                                <h1 class="slds-page-header__title slds-m-right--medium slds-truncate slds-align-middle" title="Settings">Settings</h1>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- / PAGE HEADER / ROW 1 / COLUMN 1 -->
+
+                    <!-- PAGE HEADER / ROW 1 / COLUMN 2 -->
+                    <!-- / PAGE HEADER / ROW 1 / COLUMN 2 -->                    
+                </div>
+                <!-- / PAGE HEADER TOP ROW -->
+
+                <!-- PAGE HEADER DETAIL ROW -->
+                <!-- / PAGE HEADER DETAIL ROW -->
+            </div>
+            <!-- / PAGE HEADER -->
+
+            <!-- PRIMARY CONTENT WRAPPER -->
+            <div class="myapp">
+                <div class="slds-grid slds-grid--pull-padded-medium">
+                    <div class="slds-col slds-p-horizontal--medium">
+                        <!-- TABS -->
+                        <div class="slds-tabs--default" data-aljs="tabs">
+                            <ul class="slds-tabs--default__nav" role="tablist">
+                                <li class="slds-tabs--default__item slds-text-heading--label" title="General" role="presentation">
+                                    <a class="slds-tabs--default__link" href="#" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-default-1" data-aljs-show="tab-default-1">
+                                        General
+                                    </a>
+                                </li>
+                                <li class="slds-tabs--default__item slds-text-heading--label" title="Rollups" role="presentation">
+                                    <a class="slds-tabs--default__link" href="#" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-2" data-aljs-show="tab-default-2">
+                                        Rollups
+                                    </a>
+                                </li>
+                                    <!-- TODO: remove icons -->
+                                    <!-- TODO: go to tab, go to section -->
+                                    <!-- slds-is-open  -->
+                                    <!-- <li id="rollupTab" class="slds-dropdown-trigger slds-dropdown-trigger--click slds-tabs--default__item slds-tabs__item--overflow slds-text-heading--label" title="Rollups" role="presentation">
+                                        <a id="rollupTabLink" class="slds-tabs--default__link" href="#" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-2" data-aljs-show="tab-default-2">
+                                            Rollups
+                                            <svg aria-hidden="true" class="slds-button__icon slds-button__icon--x-small" onclick="rollupTabDrop(event)">
+                                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                            </svg>
+                                        </a>
+                                        <div class="slds-dropdown slds-dropdown--left">
+                                            <ul class="dropdown__list slds-dropdown--length-with-icon-10" role="menu">
+                                                <li class="slds-dropdown__item" role="presentation">
+                                                    <a href="javascript:void(0);" role="menuitem" tabindex="-1">
+                                                        <span class="slds-truncate">
+                                                    <svg aria-hidden="true" class="slds-icon slds-icon--small slds-icon-standard-account slds-m-right--small">
+                                                      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/standard-sprite/svg/symbols.svg#account')}"></use>
+                                                    </svg>Record Types For Giving Rollups</span>
+                                                    </a>
+                                                </li>
+                                                <li class="slds-dropdown__item" role="presentation">
+                                                    <a href="javascript:void(0);" role="menuitem" tabindex="-1">
+                                                        <span class="slds-truncate">
+                                                    <svg aria-hidden="true" class="slds-icon slds-icon--small slds-icon-standard-approval slds-m-right--small">
+                                                      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/standard-sprite/svg/symbols.svg#approval')}"></use>
+                                                    </svg>Full Contact Rollup</span>
+                                                    </a>
+                                                </li>            
+                                            </ul>
+                                        </div>
+                                    </li> -->
+                                <li class="slds-tabs--default__item slds-text-heading--label" title="Gift Aid" role="presentation">
+                                    <a class="slds-tabs--default__link" href="#" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-3" data-aljs-show="tab-default-3">
+                                        Gift Aid
+                                    </a>
+                                </li>
+                                <li class="slds-tabs--default__item slds-text-heading--label" title="Sandbox" role="presentation">
+                                    <a class="slds-tabs--default__link" href="#" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-4" data-aljs-show="tab-default-4">
+                                        Sandbox
+                                    </a>
+                                </li>
+                            </ul>
+                            <!-- General Tab -->
+                            <div id="tab-default-1" class="slds-tabs--default__content slds-hide" role="tabpanel">
+                                <div class="slds-grid slds-m-top--small">
+                                    <div class="slds-col">
+                                        <div class="slds-text-heading--medium slds-m-horizontal--small slds-m-bottom--small slds-text-align--center">Account Management</div>
+                                        <div class="slds-box slds-text-align--center">
+                                            <ul>
+                                                <!-- <li class="slds-has-divider--bottom-space">List item with bottom divider with space</li>
+                                                <li class="slds-has-divider--bottom-space">List Item with bottom divider with space</li> -->
+                                                <li class="slds-has-divider--bottom-space">
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium">
+                                                        <div class="slds-grid slds-grid--pull-padded-medium">
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--left">
+                                                                <div class="slds-text-heading--small">Active Individual Bucket Account</div>
+                                                                <div class="slds-text-body--regular">Current active Account record that is being used as parent record for Individuals with no parent Account .</div>
+                                                            </div>
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--right slds-align--absolute-center slds-form--inline">
+                                                                <div class="slds-form-element slds-lookup" data-select="single" data-scope="single">
+                                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                        <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#search')}"></use>        
+                                                                        </svg>
+                                                                        <input id="activeButtonAccount" class="slds-lookup__search-input slds-input" type="search" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="" placeholder="Put Current Account" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-form-element">
+                                                                    <div class="slds-form-element__control slds-p-left--x-small">
+                                                                        <button class="slds-button slds-button--icon-border slds-button--icon-x-small" onclick="resetActiveBucketAccount(event)">
+                                                                            <svg aria-hidden="true" class="slds-button__icon slds-button__icon--hint slds-button__icon--large">
+                                                                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#refresh')}"></use>
+                                                                            </svg>
+                                                                            <span class="slds-assistive-text">Reset</span>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-form-element">
+                                                                    <div class="slds-form-element__control slds-p-left--x-small">
+                                                                        <button class="slds-button slds-button--icon-border slds-button--icon-x-small" onclick="saveNewActiveBucketAccount(event)">
+                                                                            <svg aria-hidden="true" class="slds-button__icon slds-button__icon--hint slds-button__icon--large">
+                                                                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#check')}"></use>
+                                                                            </svg>
+                                                                            <span class="slds-assistive-text">Save</span>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </li>
+                                                <li>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium">
+                                                        <div class="slds-grid slds-grid--pull-padded-medium">
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align --left">
+                                                                <div class="slds-text-heading--small">Historical Individual Bucket Accounts</div>
+                                                                <div class="slds-text-body--regular">List of previously used Accounts for storing Individuals with no parent Account.</div>
+                                                            </div>
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--right slds-form--inline">
+                                                                <div class="slds-form-element">
+                                                                    <button class="slds-button slds-button--brand" onclick="preventRefresh(event)" data-aljs="modal" data-aljs-show="modal-1">Add New Historical Account</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium">
+                                                        <table id="historicalBucketAccountTable" class="slds-table slds-table--bordered slds-table--cell-buffer">
+                                                            <thead>
+                                                                <tr class="slds-text-title--caps">
+                                                                    <th scope="col">
+                                                                        <div class="slds-truncate" title="Account Name">Account Name</div>
+                                                                    </th>
+                                                                    <th scope="col">
+                                                                        <div class="slds-truncate" title="Account Id">Account Id</div>
+                                                                    </th>
+                                                                    <th class="slds-cell-shrink" scope="col"></th>  
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td data-label="Account Name">
+                                                                        <div class="slds-truncate" title="Test Account 2">Test Account 2</div>
+                                                                    </td>
+                                                                    <td data-label="Account Id">
+                                                                        <div class="slds-truncate" title="a00j56789012345678">a00j56789012345678</div>
+                                                                    </td>
+                                                                    <td role="gridcell" class="slds-cell-shrink" data-label="Actions">
+                                                                        <!-- TODO: use remoting to delete record -->
+                                                                        <button class="slds-button slds-button--icon-border slds-button--icon-x-small">
+                                                                            <svg aria-hidden="true" class="slds-button__icon slds-button__icon--hint slds-button__icon--small">
+                                                                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#delete')}"></use>
+                                                                            </svg>
+                                                                            <span class="slds-assistive-text">Show More</span>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </section>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <!-- / General -->
+
+                            <!-- Rollups -->
+                            <div id="tab-default-2" class="slds-tabs--default__content slds-hide" role="tabpanel">
+                                <div class="slds-grid slds-m-top--small">
+                                    <div class="slds-col">
+                                        <div class="slds-box slds-text-align--center">
+                                            <ul>
+                                                <!-- <li class="slds-has-divider--bottom-space">List item with bottom divider with space</li>
+                                                <li class="slds-has-divider--bottom-space">List Item with bottom divider with space</li> -->                                                
+                                                <li>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium">
+                                                        <div class="slds-grid slds-grid--pull-padded-medium">
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--left">
+                                                                <div class="slds-text-heading--small">Record Types For Giving Rollups</div>
+                                                                <div class="slds-text-body--regular">
+                                                                    Select the Record Types you would like to include and click Update.
+                                                                </div>
+                                                            </div>
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--right slds-form--inline"></div>
+                                                        </div>
+                                                    </section>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium slds-align--absolute-center">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-picklist--draggable slds-grid" data-aljs="multi-select">
+                                                                <div class="slds-form-element">                                                                
+                                                                    <div class="slds-form-element__label" aria-label="select-1">
+                                                                        <label class="slds-align-middle" for="form-help">Record Types Not In Rollup</label>
+                                                                    </div>
+                                                                    <!-- <div class="slds-form-element__icon" data-aljs="recordTypesNotIn" data-aljs-placement="top" data-aljs-show="recordTypesNotInContent">
+                                                                        <a href="javascript:void(0);">
+                                                                            <svg aria-hidden="true" class="slds-icon slds-icon--x-small slds-icon-text-default">
+                                                                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                                                            </svg>
+                                                                            <span class="slds-assistive-text">Help</span>
+                                                                        </a>
+                                                                    </div> -->                                                                                                                                       
+                                                                    <div class="slds-picklist slds-picklist--multi" data-aljs-multi-select="unselected">
+                                                                        <ul class="slds-picklist__options slds-picklist__options--multi shown"></ul>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-grid slds-grid--vertical">
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="unselect" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#left')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="select" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#right')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="slds-form-element">                                                                    
+                                                                    <div class="slds-form-element__label" aria-label="select-2">
+                                                                        <label class="slds-align-middle" for="form-help">Record Types In Rollup</label>
+                                                                    </div>
+                                                                    <div class="slds-form-element__icon" data-aljs="recordTypesIn" data-aljs-placement="top" data-aljs-show="recordTypesInContent">
+                                                                        <a href="javascript:void(0);">
+                                                                            <svg aria-hidden="true" class="slds-icon slds-icon--x-small slds-icon-text-default">
+                                                                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                                                            </svg>
+                                                                            <span class="slds-assistive-text">Help</span>
+                                                                        </a>
+                                                                    </div>                                                                     
+                                                                    <div class="slds-picklist slds-picklist--multi" data-aljs-multi-select="selected">
+                                                                        <ul class="slds-picklist__options slds-picklist__options--multi shown">                                                                            
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-grid slds-grid--vertical">
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="move-up" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#up')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="move-down" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>                                                                                                       
+                                                    </section>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium slds-align--absolute-center">
+                                                        <div class="slds-form-element slds-text-align--center">
+                                                            <button class="slds-button slds-button--brand slds-m-top--medium" onClick="jsUpdateRecordTypes(event)">Update</button>
+                                                        </div>
+                                                    </section>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                                <div class="slds-grid slds-m-top--small">
+                                    <div class="slds-col">
+                                        <div class="slds-box slds-text-align--center">
+                                            <ul>
+                                                <!-- <li class="slds-has-divider--bottom-space">List item with bottom divider with space</li>
+                                                <li class="slds-has-divider--bottom-space">List Item with bottom divider with space</li> -->   
+                                                <li>
+                                                    <section class="slds-clearfix slds-p-top--medium">
+                                                        <div class="slds-float--left slds-text-align--left ">
+                                                            <div class="slds-text-heading--small">Full Contact Rollup</div>
+                                                            <div class="slds-text-body--regular">The Run Full Contact Rollup will only calculate the Giving rollup for Transaction Record Types specified in "Record Types in Rollup" above. Select the Record Types you would like to include, click on Update and then click on Run Full Contact Rollup.</div>
+                                                        </div>
+                                                    </section>
+                                                </li>
+                                                <li>
+                                                    <section class="slds-clearfix">
+                                                        <div class="slds-float--right slds-text-align--right">
+                                                            <div class="slds-form-element slds-p-top--medium">
+                                                                <div id="jobRunningProgress" class="slds-float--left slds-p-right--medium">
+                                                                    <label id="jobStatus" class="slds-text-heading--small"></label>
+                                                                    <img id="jobStatusImg" src="/img/loading32.gif" width="25" height="25" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </li>                                             
+                                                <li>
+                                                    <section class="slds-clearfix">
+                                                        <div class="slds-float--right slds-text-align--right">
+                                                            <div class="slds-form-element slds-p-top--xxx-small">
+                                                                <button id="fullContactRollupButton" class="slds-button slds-button--brand slds-float--left" onClick="toggleRollupButton(event)">Run Full Contact Rollup</button>
+                                                                <button id="scheduleFullContactRollupButton" class="slds-button slds-button--brand slds-float--left" onClick="scheduleContactRollupWarning(event)">Schedule Full Contact Rollup</button>
+                                                            </div>
+                                                        </div>
+                                                    </section>                                                    
+                                                </li>
+                                                <li>
+                                                    <section class="slds-clearfix">
+                                                        <div class="slds-float--right slds-text-align--right">
+                                                            <div class="slds-form-element slds-p-top--xxx-small">
+                                                                <div class="slds-input-has-icon slds-input-has-icon--right">
+                                                                    <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                        <use xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#event')}"></use>
+                                                                    </svg> 
+                                                                    <input id="date" class="slds-input" type="text" placeholder="Pick a Date" label="Date Picker Label"/>
+                                                                </div>
+                                                                <span id="SelectedDate"></span>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <!-- / Rollups -->
+
+                            <!-- Gift Aid -->
+                            <div id="tab-default-3" class="slds-tabs--default__content slds-hide" role="tabpanel">
+                                <!-- <div class="slds-grid">
+                                    <div class="slds-col">
+                                        <div class="slds-text-heading--medium slds-m-around--small slds-text-align--center">UK Settings</div>
+                                        <div class="slds-box slds-text-align--center">
+                                            <ul>
+                                                <li>
+                                                    <section class="slds-clearfix">
+                                                        <div class="slds-float--left slds-text-align--left">
+                                                            <div class="slds-text-heading--small">Gift Aid</div>
+                                                            <div class="slds-text-body--regular">Enable/Disable Gift Aid for your organization. This will change page layout to show Gift Aid fields on the Payment, Campaign, &amp; Fund Objects.</div>
+                                                        </div>
+                                                        <div class="slds-float--right slds-text-align--right slds-align--absolute-center">
+                                                            <div class="slds-form-element">
+                                                              <label class="slds-checkbox--toggle slds-grid">
+                                                                <span class="slds-form-element__label slds-m-bottom--none"></span>
+                                                                <input name="checkbox" type="checkbox" aria-describedby="toggle-desc" />
+                                                                <span id="toggle-desc" class="slds-checkbox--faux_container" aria-live="assertive">
+                                                                  <span class="slds-checkbox--faux"></span>
+                                                                  <span class="slds-checkbox--on">Enabled</span>
+                                                                  <span class="slds-checkbox--off">Disabled</span>
+                                                                </span>
+                                                              </label>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>  -->  
+                                <div class="slds-grid  slds-m-top--small">
+                                    <div class="slds-col">
+                                        <!-- <div class="slds-text-heading--medium slds-m-around--small slds-text-align--center">Gift Aid Eligible Payment Types</div> -->
+                                        <div class="slds-box slds-text-align--center">
+                                            <ul>
+                                                <!-- <li class="slds-has-divider--bottom-space">List item with bottom divider with space</li>
+                                                <li class="slds-has-divider--bottom-space">List Item with bottom divider with space</li> -->                                                
+                                                <li>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium">
+                                                        <div class="slds-grid slds-grid--pull-padded-medium">
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--left">
+                                                                <div class="slds-text-heading--small">Gift Aid Eligible Payment Types</div>
+                                                                <div class="slds-text-body--regular">Payment record types that are Gift Aid Eligible, this will affect Gift Aid Payments &amp; Gift Aid Interface.</div>
+                                                            </div>
+                                                            <div class="slds-col slds-p-horizontal--medium slds-text-align--right slds-form--inline"></div>
+                                                        </div>
+                                                    </section>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium slds-align--absolute-center">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-picklist--draggable slds-grid" data-aljs="giftAidPaymentTypes">
+                                                                <div class="slds-form-element">
+                                                                    <span class="slds-form-element__label" aria-label="select-1">Eligible Payment Types</span>
+                                                                    <div class="slds-picklist slds-picklist--multi" data-aljs-multi-select="unselected">
+                                                                        <ul class="slds-picklist__options slds-picklist__options--multi shown"></ul>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-grid slds-grid--vertical">
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="unselect" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#left')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="select" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#right')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="slds-form-element">
+                                                                    <span class="slds-form-element__label" aria-label="select-2">NOT Eligible Payment Types</span>
+                                                                    <div class="slds-picklist slds-picklist--multi" data-aljs-multi-select="selected">
+                                                                        <ul class="slds-picklist__options slds-picklist__options--multi shown"></ul>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-grid slds-grid--vertical">
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="move-up" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#up')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                    <button class="slds-button slds-button--icon-container" data-aljs-multi-select="move-down" onclick="preventRefresh(event)">
+                                                                        <svg aria-hidden="true" class="slds-button__icon">
+                                                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Pick list</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium slds-align--absolute-center">
+                                                        <div class="slds-form-element slds-text-align--center">
+                                                            <button class="slds-button slds-button--brand slds-m-top--medium" onClick="jsUpdatePaymentTypes(event)">Update</button>
+                                                        </div>
+                                                    </section>                                                  
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>    
+                            </div>
+                            <!-- / Gift Aid -->
+                            
+                            <!-- Sandbox -->
+                            <div id="tab-default-4" class="slds-tabs--default__content slds-hide" role="tabpanel">
+                                <div class="slds-grid slds-m-top--small">
+                                    <div class="slds-col">
+                                        <div class="slds-box slds-text-align--center">
+                                            <ul>
+                                                <!-- <li class="slds-has-divider--bottom-space">List item with bottom divider with space</li>
+                                                <li class="slds-has-divider--bottom-space">List Item with bottom divider with space</li> -->                                                
+                                                <li>
+                                                    <section class="slds-clearfix slds-p-top--medium slds-p-bottom--medium">
+                                                        <div class="slds-float--left slds-text-align--left">
+                                                            <div class="slds-text-heading--small">Sandbox Config</div>
+                                                            <div class="slds-text-body--regular">Go to the Sandbox you would like to configure &amp; click the button below.</div>
+                                                        </div>
+                                                        <div class="slds-float--right slds-text-align--right slds-align--absolute-center">
+                                                            <div class="slds-form-element">
+                                                                <apex:commandButton value="Configure Sandbox" action="{!configureSandbox}" styleClass="slds-button slds-button--brand" disabled="{!NOT(isSandbox)}" />
+                                                            </div>
+                                                        </div>
+                                                    </section>                                                    
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <!-- / Sandbox -->
+
+                        </div>
+                        <!-- / TABS -->
+                    </div>
+                </div>
+            </div>
+            <!-- / PRIMARY CONTENT WRAPPER -->
+
+            <!-- MODALS -->
+            <div aria-hidden="true" role="dialog" class="slds-modal slds-fade-in-open slds-hide" id="modal-1">
+                <div class="slds-modal__container">
+                    <div class="slds-modal__header">
+                        <h2 class="slds-text-heading--medium">Add New Historical Account</h2>
+                        <button class="slds-button slds-button--icon-inverse slds-modal__close" data-aljs-dismiss="modal">
+                            <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/action-sprite/svg/symbols.svg#close')}"></use>
+                            </svg>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                    </div>
+                    <div id="modalContent" class="slds-modal__content slds-p-around--medium">
+                        <div>
+                            <div class="slds-form-element slds-lookup" data-select="single" data-scope="single">
+                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                    <svg id="deleteSVG" aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#search')}"></use>        
+                                    </svg>
+                                    <input id="addHistoricalAccountLookup" class="slds-lookup__search-input slds-input" type="search" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="" placeholder="Search Accounts" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-modal__footer" style="text-align: center;">
+                        <button class="slds-button slds-button--neutral" data-aljs-dismiss="modal">Cancel</button>
+                        <button class="slds-button slds-button--neutral slds-button--brand" data-aljs-dismiss="modal" onclick="addNewHistorical(event)">Save</button>
+                    </div>
+                </div>
+            </div>
+            <!-- / MODALS -->
+            
+            <!-- TOOLTIPS -->
+            <div id="recordTypesNotInContent" class="slds-hide">
+                <div class="slds-text-longform">
+                    <p>Select the Record Types you would like to include and click Update.</p>
+                </div>
+            </div>
+            
+            <div id="recordTypesInContent" class="slds-hide">
+                <div class="slds-text-longform">
+                    <p>The "Record Types In Rollup" are Transaction Record Types included when Giving Rollups are calculated. Transaction Record Types of Gift and Pledge are always part of the rollup.</p>
+                </div>
+            </div>
+            <!-- / TOOLTIPS -->
+            
+            <!-- Action Function -->
+            <apex:actionFunction name="updateRecordTypes" action="{!updateRecordTypes}" rerender="false" oncomplete="recordTypesUpdated()">
+              <apex:param name="selectedRecordTypes" assignTo="{!recordTypesToUpdate}" value="" />
+            </apex:actionFunction>
+            <apex:actionFunction name="updatePaymentTypes" action="{!updatePaymentTypes}" rerender="false" oncomplete="recordTypesUpdated()">
+              <apex:param name="selectedPaymentTypes" assignTo="{!paymentTypesToUpdate}" value="" />
+            </apex:actionFunction>
+            <apex:actionFunction name="updateHistoricBucketAccounts" action="{!updateAccounts}" rerender="false">
+              <apex:param name="enteredAccount" assignTo="{!newHistoricalBucketAccount}" value="" />
+            </apex:actionFunction>
+            <apex:actionFunction name="deleteHistoricBucketAccounts" action="{!deleteAccount}" rerender="{!$Component.historicalIds}" onComplete="deleteBucketAccountSuccess()">
+              <apex:param name="bucketAccountToDelete" assignTo="{!bucketAccountIdToDelete}" value="" />
+            </apex:actionFunction>                
+            <!-- / Action Function -->
+
+            <!-- FOOTER -->
+            <footer role="contentinfo" class="slds-p-around--large">
+                <!-- LAYOUT GRID -->
+                <div class="slds-grid slds-text-align--center">
+                    <p class="slds-col">copyright &copy; 2009 -<apex:outputText value=" {0,date,yyyy}"><apex:param value="{!NOW()}" /></apex:outputText> com, Breakeven Inc. All rights reserved.</p>
+                </div>
+                <!-- / LAYOUT GRID -->
+            </footer>
+            <!-- / FOOTER -->
+        </apex:form>
+    </div>
+    <!-- / REQUIRED SLDS WRAPPER -->
+
+    <!-- JAVASCRIPT -->
+    <script type="text/javascript">       
+        $ = jQuery.noConflict(); 
+        var assetsLocation = "{!URLFOR($Resource.SLDS212)}";
+        var rollupRunning = "inconclusive";
+        var selectedItems = {!selectedRecordTypes};
+        var unselectedItems = {!unselectedRecordTypes};
+        var selectedPaymentItems = {!selectedPaymentTypes};
+        var unselectedPaymentItems = {!unselectedPaymentTypes};
+        var newBucketAccount = '';
+        var bucketAccountToDelete;
+
+        var originalActiveBucketAccount;
+        var currentBucketAccount;
+        getCurrentBucketAccount();
+        getHistoricalBucketAccounts();
+
+        var deleteSVG = $('#deleteSVG').html();
+
+        // get current active bucket account from controller
+        var originalBucketAccountName = '{!JSENCODE(currentBucketAccount.Name)}';
+        var originalBucketAccountId = '{!currentBucketAccount.Id}';
+        var currentBucketAccountName;
+        var currentBucketAccountId;
+
+        var bucketAccountSearchResults;
+        bucketAccountQuery( null );
+        
+        $(document).ready(function() {
+            // ALJS
+            $.aljsInit({ assetsLocation: assetsLocation, scoped: true });
+            $('[data-aljs="tabs"]').tabs({
+                defaultTabId: 'tab-default-1',
+                onChange: function(obj) {}
+            });
+
+            $('#date').datepicker({
+                initDate: moment(), //Today Date
+                format: 'MM/DD/YYYY hh:mm A', //Date Format Of Datepicker Input Field
+                onChange: function(datepicker) {
+                    $('#SelectedDate').html('Selected Date: <strong>'+moment(datepicker.selectedFullDate._d).format('MM/DD/YYYY hh:mm A')+'</strong>');
+                } 
+            });
+
+            $('#date').change(function(){
+                $('#SelectedDate').html('Selected Date: <strong>'+moment($('#date').val()).format('MM/DD/YYYY hh:mm A')+'</strong>');
+            });        
+            
+            $('[data-aljs="recordTypesNotIn"]').popover({ 
+                modifier: '#recordTypesNotInContent',
+                theme: 'info'
+            });
+            $('[data-aljs="recordTypesIn"]').popover({ 
+                modifier: '#recordTypesInContent',
+                theme: 'info'
+            }); 
+            
+            $('#activeButtonAccount').lookup({
+                items: bucketAccountSearchResults,
+                objectPluralLabel: 'Accounts',
+                objectLabel: 'Account',
+                useImgTag: false,
+                objectIconUrl: "{!URLFOR($Resource.SLDS212, '/assets/icons/standard-sprite/svg/symbols.svg#account')}",
+                objectIconClass: 'slds-icon-standard-account',
+                initialSelection: { id: originalBucketAccountId, label: originalBucketAccountName },
+                emptySearchTermQuery: function(callback) {
+                    callback(bucketAccountSearchResults);
+                },
+                filledSearchTermQuery: function(searchTerm, callback) {
+                    bucketAccountQuery(searchTerm);
+                    callback(bucketAccountSearchResults);
+                    var lookupHeight = $('.slds-lookup__menu').height();
+                    $('.slds-modal__content').height(lookupHeight + 40);
+                },
+            });
+
+            $('#addHistoricalAccountLookup').lookup({
+                items: bucketAccountSearchResults,
+                objectPluralLabel: 'Accounts',
+                objectLabel: 'Account',
+                useImgTag: false,
+                objectIconUrl: "{!URLFOR($Resource.SLDS212, '/assets/icons/standard-sprite/svg/symbols.svg#account')}",
+                objectIconClass: 'slds-icon-standard-account',
+                emptySearchTermQuery: function(callback) {
+                    callback(bucketAccountSearchResults);
+                },
+                filledSearchTermQuery: function(searchTerm, callback) {
+                    bucketAccountQuery(searchTerm);
+                    callback(bucketAccountSearchResults);
+                },
+                onChange: function(currentSelection, isAdd) {
+                    if($( '#modalContent' ).height() > 300) {
+                        $( '#modalContent' ).animate({ "height": "-=300px" }, "slow" );
+                    }                        
+                }
+            });      
+
+            $('[data-aljs="multi-select"]').multiSelect({
+                unselectedItems: unselectedItems,
+                selectedItems: selectedItems
+            });
+
+            $('[data-aljs="giftAidPaymentTypes"]').multiSelect({
+                unselectedItems: unselectedPaymentItems,
+                selectedItems: selectedPaymentItems
+            });            
+
+            $('[data-aljs="modal"]').modal({
+                backdropDismiss: false,
+                dismissSelector: '[data-aljs-dismiss="modal"]',
+                onShow: function(obj) {},
+                onShown: function(obj) {
+                    bucketAccountQuery( null );
+                    $( "#addHistoricalAccountLookup" ).focus();
+                },
+                onDismiss: function(obj) {},
+                onDismissed: function(obj) {}
+            });
+
+            // modal - lookup height fix
+            $( "#addHistoricalAccountLookup" ).focus(function() {
+                if($( '#modalContent' ).height() < 332) {
+                    $( '#modalContent' ).animate({ "height": "+=300px" }, "slow" );
+                }
+            });
+
+            // $( "#addHistoricalAccountLookup" ).focusout(function() {                
+            //     $( '#modalContent' ).animate({ "height": "-=300px" }, "slow" );
+            // });
+            // hide Gift Aid tab if not enabled
+            // this should instead look at org locale
+            if('{!isGiftAidEnabled}' == 'false'){ $('#giftAidTab').hide(); }
+            if(rollupRunning == 'true'){$('#fullContactRollupButton').text('Abort Full Contact Rollup');}
+            if(rollupRunning == 'inconclusive'){$('#jobStatus').text('Retreiving Status...');}
+            
+            setInterval(function(){
+                if(rollupRunning == 'true' || rollupRunning == 'inconclusive'){
+                    var batchJob = 'RollupBatch';
+                    Visualforce.remoting.Manager.invokeAction(                
+                        '{!$RemoteAction.CauseviewSettingsController.batchJobRunning}',
+                        batchJob,
+                        function(result, event){
+                            if (event.status) {
+                                if(result != 'false'){
+                                    var json = result.replace(/(&quot\;)/g,"\""),
+                                        obj = JSON && JSON.parse(json) || $.parseJSON(json);
+                                    if(obj.Status != 'Completed' && obj.Status != 'Aborted'){
+                                        setTimeout( function() { rollupRunning = 'true'; }, 500);
+                                        $('#jobStatus').text('Job is ' + obj.Status + ' with ' + obj.JobItemsProcessed + '/' + obj.TotalJobItems + ' batches completed and ' + obj.NumberOfErrors + ' errors...');
+                                        $('#fullContactRollupButton').text('Abort Full Contact Rollup');
+                                        $('#jobRunningProgress').show();
+                                        $('#jobStatusImg').show();
+                                    } else {
+                                        $('#jobStatus').text('Last run ' + obj.Status + ' with ' + obj.JobItemsProcessed + '/' + obj.TotalJobItems + ' batches completed and ' + obj.NumberOfErrors + ' errors.');
+                                        setTimeout( function() { rollupRunning = 'false'; }, 500);
+                                        $('#fullContactRollupButton').text('Run Full Contact Rollup');
+                                        $('#jobRunningProgress').show();
+                                        $('#jobStatusImg').hide();
+                                    }     
+                                } else {
+                                    $('#jobStatus').text('Job has never been run.');
+                                }                 
+                            } else if (event.type === 'exception') {
+                                return swal({
+                                    title: 'Unknown Error',
+                                    text: 'Error in getting job',
+                                    type: 'warning',
+                                    confirmButtonText: 'Ok'
+                                }) // swal
+                            }
+                        }, 
+                        {escape: true}
+                    );
+                }
+            },3000);
+        });
+
+        function getCurrentBucketAccount(){
+            var queryFields = 'Id, Name';
+            Visualforce.remoting.Manager.invokeAction(                
+                '{!$RemoteAction.CauseviewSettingsController.currentStaticBucketAccount}',
+                queryFields,
+                function(result, event){
+                    if (event.status) {
+                        var tempJSON = JSON.stringify(toCamelImproved(result));                          
+                        currentBucketAccount = tempJSON;
+                        initializeActiveBucketAccount();
+                    } else if (event.type === 'exception') {
+                        return swal({
+                            title: 'Huston',
+                            text: 'We can\'t find your Active Bucket Account.',
+                            type: 'warning',
+                            confirmButtonText: 'Ok'
+                        }) // swal
+                    }
+                }, 
+                {escape: true}
+            );
+        }        
+
+        function bucketAccountQuery(keyword) {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.CauseviewSettingsController.getHistoricalBAccounts}',
+                keyword,
+                function(result, event){
+                    if (event.status) {
+                        result.forEach(function(e) {
+                           e.id = e.Id;
+                           e.label = e.Name;
+                           delete e.Id;
+                           delete e.Name;
+                           delete e.RecordTypeId;
+                        });
+                        bucketAccountSearchResults = result;
+                    }
+                }, 
+                {escape: true}
+            );
+        }
+
+        function saveNewActiveBucketAccount(e) {
+            e.preventDefault();
+            var currentSelection = $('#activeButtonAccount').lookup('getSelection');
+            if(currentSelection == null){
+                swal({
+                    title: 'Uh oh!',
+                    text: 'You have to select a record before you can save.',
+                    type: 'warning',
+                    confirmButtonText: 'Ok'
+                }) // swal
+            }else if(originalBucketAccountId == currentSelection.id){
+                swal({
+                    title: 'Uh oh!',
+                    text: 'You have to select a different record before you can save.',
+                    type: 'warning',
+                    confirmButtonText: 'Ok'
+                }) // swal
+            }else{
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.CauseviewSettingsController.updateActiveBucketAccount}',
+                    currentSelection.id,
+                    function(result, event){
+                        if (event.status) {
+                            if(result == 'SUCCESS') {
+                                swal({
+                                    title: 'Woohoo',
+                                    text: 'We successfully updated your Active Bucket Account.',
+                                    type: 'success',
+                                    confirmButtonText: 'Ok'
+                                }) // swal
+                                getCurrentBucketAccount();
+                            }else if(result == 'ERROR') {
+                                swal({
+                                    title: 'Boo',
+                                    text: 'There was an error, we could not update your Active Bucket Account.',
+                                    type: 'success',
+                                    confirmButtonText: 'Ok'
+                                }) // swal
+                            }
+                        }
+                    }, 
+                    {escape: true}
+                );
+            }
+        }
+
+        function resetActiveBucketAccount(e) {
+            e.preventDefault();
+            var currentSelection = $('#activeButtonAccount').lookup('getSelection');
+
+            if(currentSelection == null){
+                $('#activeButtonAccount').lookup('setSelection', { id: originalBucketAccountId, label: originalBucketAccountName});
+            }else if(originalBucketAccountId == currentSelection.id){
+                $('#activeButtonAccount').lookup('setSelection', { id: originalBucketAccountId, label: originalBucketAccountName});
+            }else{                
+                $('#activeButtonAccount').lookup('setSelection', { id: originalBucketAccountId, label: originalBucketAccountName});                
+            }
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.CauseviewSettingsController.resetActiveBucketAccount}',
+                originalBucketAccountId,
+                function(result, event){
+                    if (event.status) {
+                        var tempJSON = JSON.stringify(toCamelImproved(result));
+                        currentBucketAccount = tempJSON;                        
+                    }
+                }, 
+                {escape: true}
+            );
+        }
+
+        function getHistoricalBucketAccounts(){
+            var queryFields = 'Id, Name';
+            Visualforce.remoting.Manager.invokeAction(                
+                '{!$RemoteAction.CauseviewSettingsController.getHistoricalBucketAccountList}',
+                queryFields,
+                function(result, event){
+                    if (event.status) {
+                        buildHistoricalBucketAccountTable( result );
+                    }
+                }, 
+                {escape: true}
+            );
+        }
+
+        function addNewHistorical(e) {
+            e.preventDefault();
+            var currentSelection = $('#addHistoricalAccountLookup').lookup('getSelection');
+            if(currentSelection != null){                
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.CauseviewSettingsController.addNewHistroicalAccount}',
+                    currentSelection.id,
+                    function(result, event){
+                        if (event.status) {
+                            $('#addHistoricalAccountLookup').lookup('setSelection', {});
+                            buildHistoricalBucketAccountTable( result );
+                        }
+                    }, 
+                    {escape: true}
+                );                
+            }           
+        }
+
+        function deleteHistoricalAccount(id) {  
+            if(id != null){                
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.CauseviewSettingsController.DeleteHistroicalAccount}',
+                    id,
+                    function(result, event){
+                        if (event.status) {
+                            buildHistoricalBucketAccountTable( result );
+                        }
+                    }, 
+                    {escape: true}
+                );                
+            }      
+        }
+
+        function initializeActiveBucketAccount(){                                    
+            originalActiveBucketAccount = currentBucketAccount;
+        }
+
+        function preventRefresh(e){ e.preventDefault(); }
+
+        function jsUpdateRecordTypes(e) {
+            preventRefresh(e);
+            updateRecordTypes(JSON.stringify(selectedItems));
+        }
+        
+        function jsUpdatePaymentTypes(e) {
+            preventRefresh(e);
+            updatePaymentTypes(JSON.stringify(unselectedPaymentItems));
+        }
+
+        function recordTypesUpdated(){
+            swal({
+                title: 'Record Types Updated!',
+                text: 'Your record types have been updated.',
+                type: 'success',
+                confirmButtonText: 'Ok'
+            }) // swal
+        }
+
+        function scheduleContactRollupWarning(e) {
+            e.preventDefault();
+            swal({
+              title: 'Are you sure?',
+              text: "Are you sure you want the full contact rollup job to run for " + $('#date').val() + "?",
+              type: 'question',
+              showCancelButton: true,
+              cancelButtonText: 'Cancel',
+              confirmButtonText: 'Confirm And Schedule'
+            }).then(function() {
+                // executeFullRollup();
+                scheduleContactRollup();             
+            }) // swal
+        }
+
+        function scheduleContactRollup(){
+            var scheduleDate = $('#date').val();
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.CauseviewSettingsController.staticScheduleFullRollup}',
+                scheduleDate,
+                function(result, event){
+                    if (event.status) {
+                        if(result == 'Success'){
+                            swal(
+                                'Successfully Scheduled!',
+                                'Full Contact Rollup is now scheduled for ' + $('#date').val() + '.',
+                                'success'
+                            ); 
+                        }else if(result == 'Date Too Low'){
+                            swal(
+                                'Failed to Schedule!',
+                                'The selected date needs to be greater than the current date and time.',
+                                'error'
+                            ); 
+                        } else if(result.includes('already scheduled')){
+                            swal(
+                                'Failed to Schedule!',
+                                'The full contact rollup is already scheduled.',
+                                'error'
+                            ); 
+                        } else if(result.includes('Invalid date/time')){
+                            swal(
+                                'Failed to Schedule!',
+                                'The entered date or time is not valid.',
+                                'error'
+                            ); 
+                        } else {
+                            swal(
+                                'Failed to Schedule!',
+                                'An unknown error occured while attempting to schedule the job.',
+                                'error'
+                            ); 
+                        }
+                    }
+                }, 
+                {escape: true}
+            );
+        }
+        
+        function toggleRollupButton(e){
+            e.preventDefault();
+            if(rollupRunning == 'false'){
+                fullRollupConfirm();
+            } else if(rollupRunning == 'true') {
+                abortRollupConfirm();
+            } else {
+                inconclusiveRollupStatus();
+            }
+        }
+
+        function fullRollupConfirm() {
+            swal({
+              title: 'Warning, before you run...',
+              text: "Running a full contact rollup may cause row lock errors. It is recommended to run this job outside of peek hours.",
+              type: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Run Full Rollup!'
+            }).then(function() {
+                runFullRollup();
+                swal(
+                    'Running Full Rollup!',
+                    'The full rollup is now running. It may take some time to complete.',
+                    'success'
+                );              
+            }) // swal
+        }
+        
+        function runFullRollup() {  
+            Visualforce.remoting.Manager.invokeAction(
+                 '{!$RemoteAction.CauseviewSettingsController.staticExecuteFullRollup}',
+                 function(result, event){
+                     if (event.status) {
+                         rollupRunning = 'true';
+                         $('#jobStatus').text(result + '...');
+                         $('#fullContactRollupButton').text('Abort Full Contact Rollup');
+                         $('#jobRunningProgress').show();
+                     }
+                 }, 
+                 {escape: true}
+             );
+        }
+        
+        function abortRollupConfirm() {
+            swal({
+              title: "Warning, you're about to abort...",
+              text: "Aborting the full contact rollup now could cause inconsistencies in contact rollup fields.",
+              type: 'warning',
+              showCancelButton: true,
+              cancelButtonText: 'Continue Full Rollup!',
+              confirmButtonText: 'Abort Full Rollup!'
+            }).then(function() {
+                // executeFullRollup();
+                abortFullRollup();
+                swal(
+                    'Full Rollup Aborted!',
+                    'The full rollup is now aborted.',
+                    'success'
+                );              
+            }) // swal
+        }
+
+        function inconclusiveRollupStatus() {
+            swal({
+              title: "Still retrieving job status...",
+              text: "The contact rollup can't be run or aborted until the jobs status is received.",
+              type: 'info'
+          })
+        }
+        
+        function abortFullRollup() {  
+             var batchJob = 'RollupBatch';
+             Visualforce.remoting.Manager.invokeAction(                
+                 '{!$RemoteAction.CauseviewSettingsController.abortBatchJob}',
+                 batchJob,
+                 function(result, event){
+                     if (event.status) {
+                        if(result != 'failed'){
+                            var json = result.replace(/(&quot\;)/g,"\""),
+                                            obj = JSON && JSON.parse(json) || $.parseJSON(json);
+                            $('#jobStatus').text('Last run ' + obj.Status + ' with ' + obj.JobItemsProcessed + '/' + obj.TotalJobItems + ' batches completed and ' + obj.NumberOfErrors + ' errors.');
+                            setTimeout( function() { rollupRunning = 'false'; }, 5000);
+                            $('#fullContactRollupButton').text('Run Full Contact Rollup');
+                            $('#jobRunningProgress').show();
+                            $('#jobStatusImg').hide();
+                        }
+                     }
+                 }, 
+                 {escape: true}
+             );
+        }
+
+        function updateAccounts() {
+            updateHistoricBucketAccounts(newBucketAccount);
+        }
+
+        function addBucketAccount() {
+            swal({
+                title: 'Input something',
+                input: 'text',
+                inputPlaceholder: "Paste Salesforce Account ID Here",
+                showCancelButton: true,
+                inputValidator: function(value) {
+                    return new Promise(function(resolve, reject) {
+                        if (value.length != 18 || value == '' || value == null){
+                            reject('You must enter a 18 digit Salesforce ID!');
+                        } else if (value.substring(0,3) != '001') {
+                            reject('You must an account ID!');
+                        } else {
+                            resolve(); 
+                        }
+                    });
+                }
+            }).then(function(result) {
+              newBucketAccount = result;
+              updateAccounts();
+              swal({
+                type: 'success',
+              });
+            }) // swal
+        }
+
+        function deleteBucketAccount(id, name) {
+            swal({
+                title: 'Are you sure?',
+                text: "You are about to delete one of your individual bucket accounts. This will affect something.",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete it!'})
+                .then(function() {
+                    bucketAccountToDelete = id;
+                    deleteHistoricBucketAccounts(id);              
+                }) // swal
+        }
+
+        function deleteBucketAccountSuccess() {
+            $( "#"+bucketAccountToDelete ).remove();
+            swal(
+                'Bucket Account Deleted',
+                '',
+                'success'
+            ) // swal
+        }
+
+        function toCamelImproved(o) {
+            var build, key, destKey, value;
+
+            if (o instanceof Array) {
+                build = [];
+                for (key in o) {
+                    value = o[key];
+
+                    if (typeof value === "object") {
+                        value = toCamelImproved(value);
+                    }
+                    build.push(value);
+                }
+            } else {
+                build = {};
+                var hasAtleastOneOwnProperty = false;
+                for (key in o) {
+                    if (o.hasOwnProperty(key)) {
+                        hasAtleastOneOwnProperty = true;
+                        destKey = (key.charAt(0).toLowerCase() + key.slice(1) || key).toString();
+                        value = o[key];
+                        if (value !== null && typeof value === "object") {
+                            value = toCamelImproved(value);
+                        }
+
+                        build[destKey] = value;
+                    }
+                }
+                if (!hasAtleastOneOwnProperty) {
+                    build = o
+                }
+            }
+            return build;
+        }
+
+        function buildHistoricalBucketAccountTable( obj ) {
+            // ref: http://stackoverflow.com/questions/327047/what-is-the-most-efficient-way-to-create-html-elements-using-jquery
+            var imageURL = '{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#delete')}';
+            // clear table
+            $("#historicalBucketAccountTable tbody").empty();
+            // for each Account in list
+            $.each(obj, function (key, data) {
+                var id,name;
+                $.each(data, function (index, data) {
+                    if(index == 'Id') { id = data }
+                    if(index == 'Name') { name = data }
+                });
+                $("#historicalBucketAccountTable tbody").append(
+                    $('<tr/>').append(
+                        $('<td/>', {'data-label': 'Account Name'})
+                        .append(
+                            $('<div/>', {
+                                'class': 'slds-truncate',
+                                'title': name,
+                                'text': name
+                            })
+                        )
+                    ).append(
+                        $('<td/>', {'data-label': 'Account Id'}).append(
+                            $('<div/>', {
+                                'class': 'slds-truncate',
+                                'title': id,
+                                'text': id
+                            })
+                        )
+                    ).append(
+                        $('<td/>', {
+                            'class': 'slds-cell-shrink',
+                            'role': 'gridcell',
+                            'data-label': 'Actions'
+                        }).append(
+                            $('<button/>', {
+                                'id': id,
+                                'class': 'slds-button slds-button--icon-border slds-button--icon-x-small',
+                                'click':function(event){ event.preventDefault(); deleteHistoricalAccount(this.id); }
+                            }).append('<svg aria-hidden="true" class="slds-button__icon slds-button__icon--hint slds-button__icon--small"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Resource.SLDS212, '/assets/icons/utility-sprite/svg/symbols.svg#delete')}"></use></svg>'
+                                // $('<svg/>', {
+                                //     'class': 'slds-button__icon slds-button__icon--hint slds-button__icon--small',
+                                //     'aria-hidden': 'true'
+                                // }).append(
+                                //     $('<use/>', {
+                                //         'xmlns': 'http://www.w3.org/2000/svg',
+                                //         'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+                                //         'xlink:href': imageURL
+                                //     })
+                                // )
+                            ).append(
+                                $('<span/>', {
+                                    'class': 'slds-assistive-text',
+                                    'text':'Delete '+name,
+                                })
+                            )
+                        )
+                    )
+                );
+            });
+        }
+
+        function SVG(tag)
+        {
+           return document.createElementNS('http://www.w3.org/2000/svg', tag);
+        }
+
+        $(document).cheatCode({ // Default values below
+            code: 383840403739373966,
+            time: 500,
+            callback: function() { 
+                swal(
+                    'hello world',
+                    '',
+                    'success'
+                )
+            }
+        });
+
+        var decodeHtmlEntity = function(str) {
+          return str.replace(/&#(\d+);/g, function(match, dec) {
+            return String.fromCharCode(dec);
+          });
+        };
+
+        var encodeHtmlEntity = function(str) {
+          var buf = [];
+          for (var i=str.length-1;i>=0;i--) {
+            buf.unshift(['&#', str[i].charCodeAt(), ';'].join(''));
+          }
+          return buf.join('');
+        };
+
+        function rollupTabDrop(e){
+            e.preventDefault();
+            $('#rollupTabLink').click();
+            if($('#rollupTab').hasClass('slds-is-open')){
+                $('#rollupTab').removeClass('slds-is-open');
+            }else{
+                $('#rollupTab').addClass('slds-is-open'); 
+            }
+                
+        }
+
+    </script>
+    <!-- / JAVASCRIPT -->    
+</body>
+</html>
+</apex:page>

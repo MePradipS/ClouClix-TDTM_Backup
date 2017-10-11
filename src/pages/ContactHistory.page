@@ -1,0 +1,27 @@
+<apex:page standardController="Contact" extensions="ContactHistoryController" showHeader="false">
+ <table width="100%">
+   <tr>
+    <td>
+       <apex:outputPanel layout="none" rendered="{!hasdata2}">
+           <apex:chart height="250" width="550" data="{!AmountByFund}">
+              <apex:pieSeries dataField="data" labelField="name">
+              </apex:pieSeries>
+              <apex:legend position="right"/>
+           </apex:chart>
+       </apex:outputPanel>
+       <apex:outputPanel layout="none" rendered="{!Not(hasdata2)}"><h1 style="line-height:200px;font-size:18px;padding-left:100px;color:#888;">No Data Available</h1></apex:outputPanel>
+    </td>
+    <td>
+       <apex:outputPanel layout="none" rendered="{!hasdata1}">
+        <apex:chart height="240" width="400" data="{!amountByYear}">
+          <apex:axis type="Numeric" position="left" fields="data"  title="Transactions" grid="true"/>
+          <apex:axis type="Category" position="bottom" fields="name"  title="Years"/>
+          <apex:barSeries orientation="vertical" axis="left"  xField="name" yField="data"/>
+        </apex:chart>
+       </apex:outputPanel>
+       <apex:outputPanel layout="none" rendered="{!Not(hasdata1)}"><h1 style="line-height:200px;font-size:18px;padding-left:100px;color:#888;">No Data Available</h1></apex:outputPanel>
+    </td>
+   </tr>
+ </table>
+
+</apex:page>

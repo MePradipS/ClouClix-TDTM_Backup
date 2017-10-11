@@ -1,0 +1,9 @@
+<apex:component access="global" controller="ConsolidatedReceiptPDFTemplateController">
+    <apex:attribute name="_relatedtoid" type="String" assignTo="{!relatedToId}" description=""/>
+    <apex:attribute name="_recipientid" type="String" assignTo="{!recipientId}" description=""/>
+    <apex:attribute name="_relatedtotype" type="String" assignTo="{!relatedToType}" description=""/>
+    <apex:attribute name="_recipienttype" type="String" assignTo="{!recipientType}" description=""/>
+    <apex:attribute name="_dupe" type="String" assignTo="{!isDupe}" description=""/>
+
+    <apex:outputText escape="false" value="{!content}"></apex:outputText>
+</apex:component>

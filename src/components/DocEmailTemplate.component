@@ -1,0 +1,11 @@
+<apex:component access="global" controller="DocEmailTemplateController">
+  <apex:attribute access="global" name="_recipientType" type="String" assignTo="{!recipientType}" description="The Salesforce.com object receiving the email." />
+  <apex:attribute access="global" name="_relatedToType" type="String" assignTo="{!relatedToType}" description="The Salesforce.com object from which the template retrieves merge field data. Valid objects: objects that have a standard controller, including custom objects Visualforce supports."/>
+  <apex:attribute access="global" name="_recipientId" type="String" assignTo="{!recipientId}" description=""/>
+  <apex:attribute access="global" name="_relatedToId" type="String" assignTo="{!relatedToId}" description=""/>
+  <apex:attribute access="global" name="templateType" type="String" assignTo="{!emailTemplateType}" description=""/>
+  <apex:attribute access="global" name="dupe" type="String" assignTo="{!isDupe}" description=""/>
+  
+  <apex:outputText escape="false" value="{!content}"></apex:outputText>
+  
+</apex:component>

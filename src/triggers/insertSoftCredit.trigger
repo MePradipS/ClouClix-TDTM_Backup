@@ -1,0 +1,1 @@
+trigger insertSoftCredit  on Solicitor__c (after insert) {}

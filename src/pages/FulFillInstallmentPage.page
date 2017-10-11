@@ -1,0 +1,233 @@
+<apex:page standardController="Payment__c" extensions="FulFillInstallmentPageController" sidebar="false">
+     <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/> 
+    <script>
+    var j$ = jQuery.noConflict();
+    var inputLookupVal;
+    function af(objVal){
+        if(inputLookupVal != objVal){
+            var idVal = j$( "input[id$='targetId']" ).val();
+            //alert('test -'+objVal+'  '+idVal);
+            inputLookupVal = objVal;
+            afCall();
+        }
+    }
+ var newWin=null;
+ function openLookupPopup(name, id)
+ {
+    var packageNamespace = "{!PackageNamespace}"; 
+  var url="/apex/" + packageNamespace + "CustomAccountContactLookup?namefield=" + name + "&idfield=" + id;
+  newWin=window.open(url, 'Popup','height=500,width=600,left=100,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no');
+  if (window.focus) 
+  {
+   newWin.focus();
+  }
+    
+     
+     return false;
+    }
+       
+ function closeLookupPopup()
+ {
+    if (null!=newWin)
+    {
+       newWin.close();
+       j$( "input[id$='targetName']" ).focus();
+    }  
+ }
+ 
+ function jShowBusy() { document.body.style.cursor = "wait"; }
+  function jHideBusy() { document.body.style.cursor = "default"; }
+  
+  
+  function changeTarget(){
+      var targetvalue = j$("span[id$='instAccountContact']").find('a').attr('target', '_blank');
+      var targetvalue1 = j$("span[id$='instTransaction']").find('a').attr('target', '_blank'); 
+  }
+</script>
+    <apex:form id="theForm">
+        <apex:actionPoller action="{!submitPayment}" enabled="{!shouldSubmit}" interval="5" reRender="theForm" onsubmit="jShowBusy()" oncomplete="jHideBusy()"/>
+        <apex:outputPanel id="progress" rendered="{!shouldSubmit}">
+          <center>
+              <div style="padding:8px; border:1px solid #ccc; border-radius:5px;">
+                <!--<apex:image url="{!URLFOR($Resource.gpAssets,'loader.gif')}"/>-->
+                <div style="font-size:1.6em">Processing the payment...</div>
+              </div>
+          </center>
+        </apex:outputPanel>
+        <apex:outputPanel id="page" rendered="{!not(shouldSubmit)}">
+            <apex:pageBlock title="Payment :">
+                <apex:pageBlockSection columns="1">
+                    <!--<apex:outputField value="{!Payment.Donation__c}" id="TranscationFieldId"/>-->
+                    <apex:inputField value="{!Payment.Amount__c}" required="true" rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == null}"/>    <!-- onchange="populateAllocationAmount(this)"-->
+                    <apex:inputField value="{!Payment.Date__c}" required="true" rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == ''}"/>
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c != 'Credit Card' || PaymentId == ''}">
+                        <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+                        <apex:outputPanel layout="none">
+                            <apex:actionRegion >
+                                <apex:inputField required="true" id="pType" value="{!Payment.Payment_Type__c}" >
+                                    <apex:actionSupport event="onchange" reRender="theTransSection2"/>
+                                </apex:inputField>
+                           </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem> 
+                    <apex:outputField value="{!Payment.Amount__c}" rendered="{!Payment.Payment_Type__c == 'Credit Card' && PaymentId != ''}"/> 
+                      <apex:outputField value="{!Payment.Date__c}" rendered="{!Payment.Payment_Type__c == 'Credit Card' && PaymentId != ''}"/>   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && PaymentId != ''}">
+                        <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+                        <apex:outputPanel layout="none">
+                            <apex:actionRegion >
+                                <apex:outputField value="{!Payment.Payment_Type__c}" >
+                                </apex:outputField>
+                           </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>    
+                </apex:pageBlockSection>
+                
+                <apex:pageblockSection id="theTransSection2" columns="1" >  
+                    <apex:outputField value="{!Payment.Credit_Card_Type__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c == 'Approved'}" />
+                    <apex:outputField value="{!Payment.Credit_Card_Number__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c == 'Approved'}"/>               
+                                   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c == 'Approved'}" >
+                        <apex:outputLabel value="Credit Card Expiry" />
+                        <apex:outputLabel value="{!ccExpM}{!ccExpY}" />
+                    </apex:pageBlockSectionItem>     
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c == 'Approved'}" >
+                        <apex:outputLabel for="ccCVV" value="CVV" />               
+                        <apex:outputText id="ccCVV" value="{!ccCVV}" />                                                        
+                    </apex:pageBlockSectionItem>  
+                    <apex:outputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c == 'Approved'}" />  
+                    
+                    <apex:inputField required="true" value="{!Payment.Credit_Card_Type__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c != 'Approved'}"/>
+                    <apex:inputField required="true" value="{!Payment.Credit_Card_Number__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && Payment.Status__c != 'Approved'}"/>                      
+                                   
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c != 'Approved'}" >
+                        <apex:outputLabel value="Credit Card Expiry" />
+                        <apex:outputpanel layout="block" styleClass="requiredInput">
+                        <apex:outputPanel layout="block" styleClass="requiredBlock"/>
+                            <apex:selectList required="true" size="1" value="{!ccExpM}">
+                                <apex:selectOptions value="{!months}" />
+                            </apex:selectList>   
+                            <apex:selectList required="true" size="1" value="{!ccExpY}">
+                                <apex:selectOptions value="{!years}" />
+                            </apex:selectList>                      
+                        </apex:outputPanel>        
+                    </apex:pageBlockSectionItem>     
+                    <apex:pageBlockSectionItem rendered="{!Payment.Payment_Type__c == 'Credit Card' && Payment.Status__c != 'Approved'}" >
+                        <apex:outputLabel for="ccCVV" value="CVV" />               
+                        <apex:inputText id="ccCVV" value="{!ccCVV}" />                                                        
+                    </apex:pageBlockSectionItem> 
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Credit Card' && PaymentId == ''}" />
+                    
+                    <apex:inputField value="{!Payment.Credit_Card_Type__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" required="true"/>
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" />
+                    <!--<apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Credit Card - Offline'}" required="true"/>-->
+                    
+                    <apex:inputField value="{!Payment.Cheque_Num__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>
+                    <apex:inputField value="{!Payment.Cheque_Date__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Check'}"/>
+                    <!--<apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Check'}" required="true"/>--> 
+                    
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Cash'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Cash'}"/>
+                    <!--<apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Cash'}" required="true"/>-->   
+                    
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Stock'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Stock'}" />
+                    <!--<apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Stock'}" required="true"/>-->    
+                    
+                    <apex:inputField value="{!Payment.Date_Deposited__c}" rendered="{!Payment.Payment_Type__c=='Other'}" required="true"/>
+                    <apex:inputField value="{!Payment.Description__c}" rendered="{!Payment.Payment_Type__c=='Other'}"/>
+                    <!--<apex:inputField value="{!Payment.Status__c}" rendered="{!Payment.Payment_Type__c=='Other'}" required="true"/>  --> 
+                    
+                    
+                    
+                    <!--<apex:repeat value="{!PaymentFieldList}" var="f">
+                      
+                        <apex:inputField value="{!Payment[f.fieldPath]}" 
+                        required="{!OR(f.required, f.dbrequired)}"/>
+                    </apex:repeat>  -->
+                    
+                      
+                    <apex:pageBlockSectionItem rendered="{!multiCurrenyEnable}">
+                    <apex:outputLabel value="Currency Code" for="ccode" />
+                    <apex:selectList multiselect="false" size="1" value="{!selectedCurrencyCode}">
+                        <apex:selectOptions value="{!PicklistValues}"/>
+                    </apex:selectList> 
+                </apex:pageBlockSectionItem> 
+                </apex:pageblockSection>
+                
+       
+            </apex:pageBlock>
+             <apex:pageBlock title="Open Installment List: " id="installmentBlock">      
+                <div>
+                    <apex:pageMessages />
+                </div> 
+                <apex:actionRegion >
+                <!--apex:actionFunction name="afCall" reRender="installmentPanel" action="{!callInstallmentMethods}"/>-->
+                <apex:pageblockSection >
+                <apex:pageBlockSectionitem >
+                  <apex:outputLabel value="Account/Contact"/>
+                  <apex:outputPanel >
+                 <apex:inputHidden value="{!accContId}" id="targetId" />
+                    <apex:inputText size="30" value="{!accContName}" id="targetName" onfocus="af(this.value);" disabled="true" style="vertical-align: super;" /> 
+                        <!--a href="#" onclick="openLookupPopup('{!$Component.targetName}', '{!$Component.targetId}'); return false">
+                            <apex:image url="{!$Resource.lookup}" width="18" height="18"/>
+                        </a-->
+                    <!--<apex:commandButton value="Get Installment" action="{!callAllMethods}" reRender="installmentPanel" immediate="true"/>-->
+                  </apex:outputPanel>
+                </apex:pageBlockSectionitem>
+                </apex:pageblockSection>
+                <apex:outputPanel id="installmentPanel">
+                    <apex:pageBlockTable id="installment" value="{!installmentWrapper}" var="item">
+                        <apex:column id="instNameCol" headerValue="Name">
+                            <apex:outputField id="instAccountContact" value="{!item.installment.Account_Contact__c}" styleClass="alcAmount"/>
+                        </apex:column>                      
+                        <apex:column id="instInstallmentCol" headerValue="Installment">
+                            <apex:outputLink value="/{!item.installment.id}" target="_blank">{!item.installment.Name}</apex:outputLink>
+                        </apex:column>
+                        <apex:column id="instAmountCol" headerValue="{!$ObjectType.Installment__c.fields.Installment_Amount__c.label}">
+                            <apex:outputField id="instAmount" value="{!item.installment.Installment_Amount__c}"/>
+                        </apex:column>
+                        <apex:column id="instBalanceCol" headerValue="{!$ObjectType.Installment__c.fields.Installment_Balance__c.label}">
+                            <apex:outputField id="instBalance" value="{!item.installment.Installment_Balance__c}"/>
+                        </apex:column>
+                        <apex:column id="instTransactionCol" headerValue="Transaction">
+                            <apex:outputField id="instTransaction" value="{!item.installment.Pledge__c}"/>
+                        </apex:column>
+                        <apex:column id="instDateCol" headerValue="{!$ObjectType.Installment__c.fields.Installment_Date__c.label}">
+                            <apex:outputField id="instDate" value="{!item.installment.Installment_Date__c}"/>
+                        </apex:column>
+                        <apex:column id="instFullfilmentCol" headerValue="Fulfillment Amount">
+                            <apex:inputText id="instFullfilment" value="{!item.fullfilmentAmount}"/>
+                        </apex:column>
+                    </apex:pageBlockTable> 
+                    <script>
+                        changeTarget();
+                    </script>
+                </apex:outputPanel>
+              <!--<div style="padding:6px;">
+                <apex:commandLink value="Add New Installment" action="{!newInstallment}" immediate="true" reRender="page" status="pageStatus"/>
+              </div>        -->                      
+               </apex:actionRegion>
+                   
+                   <center> <apex:commandButton action="{!saveAll}" value="Submit" reRender="theForm" status="pageStatus">
+                   <apex:actionStatus id="pageStatus">
+                        <apex:facet name="start" >    
+                            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;opacity:0.65; height:100%;width:100%;">
+                            <div class="waitingHolder" style="top: 100px; width: 91px;">
+                            <img class="waitingImage" src="/img/loading.gif" />
+                            <span class="waitingDescription">Loading...</span>
+                            </div>
+                            </div>
+                     </apex:facet>
+            </apex:actionStatus> 
+            </apex:commandButton>         
+                    <apex:commandButton action="{!cancelAll}" value="Cancel" reRender="theForm" status="pageStatus" immediate="true"/></center>
+                                                
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

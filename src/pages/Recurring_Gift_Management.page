@@ -1,0 +1,1570 @@
+<apex:page standardcontroller="Recurring_Donation__c" extensions="RecurringGiftManagementExtension" id="recurringGiftMgmt" action="{!redirect}"
+           showheader="true" standardstylesheets="false" sidebar="true" applyhtmltag="true" applybodytag="false" doctype="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <head>
+        <title>Recurring Gift Management</title>    
+
+        <!-- SweetAlert:http://t4t5.github.io/sweetalert/ -->
+        <apex:includescript value="{!$Resource.SweetAlert_AP}" /> 
+
+        <!-- jQuery Validation -->
+        <apex:includescript value="{!$Resource.jQuery172}" />
+
+        <!-- https://github.com/hsnayd/validetta/ -->
+        <apex:includescript value="{!URLFOR($Resource.validetta)}" />
+
+        <!-- Recurring Gift Management Scripts -->
+        <apex:includescript value="{!URLFOR($Resource.recurringGiftManagementScripts)}" />
+
+        <!-- jQuery UI -->
+        <apex:includescript value="{!$Resource.jQueryUIjs}" />            
+
+        <!-- jQuery Credit Card Validator -->
+        <apex:includescript value="{!$Resource.jQueryCCvalidator}" />
+
+        <!-- jQuery & ALJS Init -->
+        <apex:includescript value="{!URLFOR($Resource.ALJS200, 'jquery.aljs-init.min.js')}"/ >
+        <!-- Page-Specific ALJS Plugins -->
+        <apex:includescript value="{!URLFOR($Resource.ALJS200, 'jquery.aljs-lookup.min.js')}" />
+        <apex:includescript value="{!URLFOR($Resource.ALJS200, 'jquery.aljs-modal.min.js')}" />  
+
+        <!-- Lightning Design System -->
+        <apex:stylesheet value="{!URLFOR($Resource.SLDS203, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        
+        <!-- jQuery UI -->
+        <apex:stylesheet value="{!URLFOR($Resource.jQueryUI112css)}" />
+
+        <!-- Recurring Gift Management -->
+        <apex:stylesheet value="{!URLFOR($Resource.recurringGiftManagementStyle)}" />
+
+        <!-- SweetAlert:http://t4t5.github.io/sweetalert/ -->
+        <apex:stylesheet value="{!$Resource.SweetAlert_APcss}" /> 
+        
+        <script type="text/javascript">
+            j$ = jQuery.noConflict();
+            
+            var NamespacePrefix = '{!PackageNamespace}'; 
+            var submitClicked = false;
+            var originalModalHeight = 0;
+            var closeAddAllocationClicked = false;
+            var closeEditAllocationClicked = false;
+            var openEditAllocationClicked = false;
+            var allocationEdited = false;
+            var appealListResults;
+            var fundListResults;
+
+            window.onbeforeunload = function (e) {
+                if (allocationEdited && !submitClicked) {
+                    return "Are you sure you want to navigate away?";
+                } else {
+                    return null;
+                }
+            }    
+
+            j$(document).ready(function() {
+                var paymentType = '{!paymentType}';
+                var ukCancelled = '{!UkCancelled}';
+                var success = '{!Success}';
+                var originalStatus = '{!status}';
+                var originalScheduleDate = '{!scheduleDate}';
+                var isReferenceNumberIats = '{!IsReferenceNumberIats}';
+                var frequency = '{!frequency}';
+                var status = '{!status}';
+
+                hideSection("ukDirectDebitPayment");
+                hideSection("achPayment");
+                hideSection("creditCardPayment");
+                hideCancellationReason();
+
+                if (paymentType == 'UK Direct Debit') {
+                    setProperty("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}", "disabled", true);
+                    setProperty("{!$Component.recurringGiftMgmt.updateForm.selectFrequency}", "disabled", true);
+
+                    setCss("paymentInfoHelperUk", "display", "block");
+                    setHtml("stateLabel", "County");
+                    setProperty("{!$Component.recurringGiftMgmt.updateForm.province}", "placeholder", "County");
+
+                    showSection("ukDirectDebitPayment");
+                    hideNonUkDirectDebitInfoHelpers();
+                } else if (paymentType == 'Credit Card') {
+                    showSection("creditCardPayment");
+                    hideUkDirectDebitInfoHelpers();
+                } else if (paymentType == 'ACH/PAD' || paymentType == 'ACH/EFT') {
+                    showSection("achPayment");
+                    setHtml("routingNumberLabel", "{!RoutingNumberTitle}");
+                    hideUkDirectDebitInfoHelpers();
+                }
+
+                if (isReferenceNumberIats == 'false') {
+                    swal({
+                        title: "Note",
+                        text: "This functionality is only available with iATS Payments" +
+                        "<br /><br /><a href='https://help.causeview.com/501C0000000pmnnIAA' target='_blank'>Updating Recurring Gifts Help Article</a>" + 
+                        "<br /><br />Click OK to return to the recurring gift.",
+                        html: true,
+                        imageUrl: 'http://causeview.com/wp-content/uploads/2016/05/60x60.jpg' 
+                    },
+                    function () {
+                        window.location.href = GetRecurringGiftUrl();
+                    });
+                } else {
+                    if (ukCancelled == 'true') {
+                        swal({
+                            title: "Error:",
+                            text: "You cannot update a cancelled recurring gift. \n\nClick OK to return to the recurring gift.",
+                            type: "error"
+                        },
+                        function () {
+                            window.location.href = GetRecurringGiftUrl();
+                        });
+                    }
+
+                    if (originalStatus == "On Hold") {
+                        disableSchedleDate();
+                    } else if (originalStatus == "Cancelled") {
+                        showCancellationReason();
+                    }
+
+                    if (frequency != "Monthly" && frequency != "Weekly") {
+                        disableSchedleDate();
+                    } else if (frequency == "Weekly") {
+                        enableWeeklyScheduleDate();
+                    }
+
+                    if (success == 'false') {
+                        processErrors();
+                    } else {
+                        allocationEdited = false;
+                        var areDeclined = "{!AreThereDeclinedPayments}";
+                        var text = ""; 
+                        var type = "success";
+                        
+                        if (areDeclined == 'true') {
+                            text += "<div style='font-weight:bold'>Looks like there are declined payments"; 
+                            text += "</br>click <a href='/apex/" + NamespacePrefix + "Charge_a_Token?id={!recurringGiftId}'>here</a> to recover them</div></br>"; 
+                            type = "warning"; 
+                        }
+                        
+                        text += "Click OK to go back to the Recurring Gift."; 
+
+                        swal({
+                            title: "Update Successful", 
+                            text: text,
+                            html: true,
+                            type: type
+                        },
+                        function () {
+                            window.location.href = GetRecurringGiftUrl();
+                        });
+                    }
+                    if (status == 'Cancelled') {
+                        j$(".accountNumber").each(function() {
+                            j$(this).attr("data-validetta", j$(this).attr("data-validetta").replace("required", ""));
+                        });
+                    } else {
+                        j$(".accountNumber").each(function() {
+                            if(j$(this).attr("data-validetta").includes("required") == false) {
+                                j$(this).attr("data-validetta", j$(this).attr("data-validetta") + ",required");
+                            }
+                        });
+                    }
+                }
+
+                j$(".updateForm").validetta({
+                    showErrorMessages: true,
+                    realTime: true,
+                    display: 'inline',
+                    errorTemplateClass: 'slds-form-element__help',
+                    errorClass: 'slds-has-error',
+                    onValid: function (event) {
+                        if (submitClicked) {
+                            event.preventDefault();
+                            swal({
+                                title: "Confirm Recurring Gift Update",
+                                text: "Are you sure you want to update this recurring gift?",
+                                type: "warning",
+                                confirmButtonColor: '#66ff33',
+                                confirmButtonText: "Confirm",
+                                showLoaderOnConfirm: true,
+                                showCancelButton: true,
+                                closeOnConfirm: false,
+                                closeOnCancel: true
+                            },
+                            function (isConfirm) {
+                                if (isConfirm) {
+                                    j$('.sweet-alert p').text('Processing... please wait.');
+                                    updateRecurringGift();
+                                    setTimeout(function () {
+                                        swal({
+                                            title: "Error:",
+                                            text: "The request has timed out, please contact your system administrator...",
+                                            type: "error"
+                                        });
+                                    }, 120000)
+                                } else {
+                                    submitClicked = false;
+                                }
+                            })
+                        }
+                    },
+                    validators: {
+                        callback: {
+                            min: {
+                                callback: function (el, value) {
+                                    if (value > 0) {
+                                        return true;
+                                    }
+                                    return false;
+                                },
+                                errorMessage: "Please enter a number greater than 0 (Exclude any currency symbols)."
+                            },
+                            accountNumber: {
+                                callback: function (el, value) {
+                                    if (j$.isNumeric(value)) {
+                                        return true;
+                                    } else if (value.indexOf("*") != -1) {
+                                        return true;
+                                    }
+
+                                    return false;
+                                },
+                                errorMessage: "Only numbers or asterix (*) allowed."
+                            },
+                            expiry: {
+                                callback: function (el, value) {
+                                    var validFormat = /[0-9]{2}\/[0-9]{2}/.test(value);
+                                    if (validFormat) {
+                                        var values = value.split("/");
+                                        var month = parseFloat(values[0]);
+                                        var year = parseFloat(values[1]);
+                                        year += 2000;
+
+                                        var today = new Date();
+                                        var currentYear = today.getFullYear();
+                                        var currentMonth = today.getMonth() + 1;
+
+                                        if (year < currentYear) {
+                                            return false;
+                                        } else if (year == currentYear) {
+                                            if (month < currentMonth) {
+                                                return false;
+                                            } else {
+                                                return true;
+                                            }
+                                        } else {
+                                            return true;
+                                        }
+                                    } else {
+                                        return false;
+                                    }
+                                },
+                                errorMessage: "Please enter the following format: MM/YY</br>Expiry date must be greater than or equal to this month and year"
+                            },
+                            beginDate: {
+                                callback: function (el, value) {
+                                    value = value.replace(/-/, '/').replace(/-/, '/');
+
+                                    var status = j$(".selectStatus").find(":selected").text();
+                                    var inputDate = new Date(value);
+                                    var today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+
+                                    if (j$(".beginDate").attr('readonly') == 'readonly') {
+                                        return true;
+                                    }
+
+                                    if ((originalStatus == 'On Hold' || originalStatus == "Cancelled") && status == 'Active' && inputDate <= today) {
+                                        return false;
+                                    }
+                                    
+                                    if (status == 'Active' && (j$(".frequency").val() == 'Quarterly' || j$(".frequency").val() == 'Annually') && inputDate <= today) {
+                                        return false;
+                                    }
+                                    
+                                    return true;
+                                },
+                                errorMessage: "Date must be greater than today"
+                            },
+                            endDate: { 
+                                callback: function (el, value) {
+                                    value = value.replace(/-/, '/').replace(/-/, '/'); 
+ 
+                                    var status = j$(".selectStatus").find(":selected").text(); 
+                                    var inputDate = new Date(value); 
+                                    var today = new Date(); 
+                                    today.setHours(0, 0, 0, 0); 
+ 
+                                    if ((originalStatus == 'On Hold' || originalStatus == "Cancelled") && status == 'Active' && inputDate <= today) { 
+                                        return false; 
+                                    } 
+ 
+                                    if (status == 'Active' && inputDate <= today) { 
+                                        return false; 
+                                    } 
+
+                                    return true; 
+                                }, 
+                                errorMessage: "Date must be greater than today" 
+                            },
+                            allocation: {
+                                callback: function (el, value) {
+                                    var amount = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.recurringAmount}").value;
+                                    var allocationTotal = 0;
+
+                                    j$(".allocation").each(function (i, obj) {
+                                        allocationTotal += parseFloat(obj.value);
+                                    });
+
+                                    return (amount == allocationTotal);
+                                },
+                                errorMessage: "Total allocation amount must equal amount"
+                            },
+                            creditCard: {
+                                callback: function (el, value) {
+                                    var ccNumber = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.ccAccountNumber}");
+
+                                    var result = j$(ccNumber).validateCreditCard({
+                                        accept: ['visa', 'mastercard', 'amex', 'discover']
+                                    });
+
+                                    if (!result.valid) {
+                                        return (value.indexOf("*") != -1);
+                                    } else {
+                                        updateCreditCardType(result.card_type.name);
+                                        return true;
+                                    }
+                                },
+                                errorMessage: "Credit Card is not valid"
+                            }
+                        }
+                    }
+                },
+                {
+                    required: 'This field is required.',
+                    number: 'You can enter only numbers in this field.',
+                    maxLength: 'Maximum {count} characters allowed.',
+                    minLength: 'Minimum {count} characters allowed.'
+                });
+
+                j$("#routingInfoTabs").tabs();
+
+                j$("#routingInfoContainer").dialog({
+                    autoOpen: false,
+                    title: "What is this?",
+                    minWidth: 450,
+                    height: 'auto',
+                    buttons: {
+                        Ok: function () {
+                            j$(this).dialog("close");
+                        }
+                    }
+                });
+
+                j$(".frequency").change(function() {
+                    if (this.value != "Monthly" && this.value != "Weekly") {   
+                        disableWeeklyScheduleDate();
+                        disableSchedleDate();
+                    } else if (this.value == "Monthly") {
+                        if (j$(".selectStatus").val() == 'Active') {
+                            setScheduleDate(originalScheduleDate);
+                            disableWeeklyScheduleDate();
+                            enableSchedleDate();
+                        }
+                    } else if (this.value == "Weekly") {   
+                        if (j$(".selectStatus").val() == 'Active') {
+                            setReadonly("{!$Component.recurringGiftMgmt.updateForm.beginDate}");
+                            enableWeeklyScheduleDate();
+                            enableSchedleDate();
+                        }
+                    }
+
+                    if (this.value == "Monthly" || this.value == "Quarterly" || this.value == "Annually") {
+                        if (j$(".selectStatus").val() == 'Active') {
+                            setProperty("{!$Component.recurringGiftMgmt.updateForm.beginDate}", "readonly", "");
+                        }
+                    }   
+                });
+
+                j$(".selectStatus").change(function () {
+                    if (this.value == "Active") {
+                        if (originalStatus != "Active") {
+                            setProperty("{!$Component.recurringGiftMgmt.updateForm.beginDate}", "readonly", "");
+                        } else if (j$(".frequency").val() == 'Monthly' || j$(".frequency").val() == 'Quarterly' || j$(".frequency").val() == 'Annually') {
+                            setProperty("{!$Component.recurringGiftMgmt.updateForm.beginDate}", "readonly", "");
+                        }
+
+                        if (j$(".hiddenFrequency").val() == "Monthly") {
+                            disableWeeklyScheduleDate();
+                            enableSchedleDate();
+                        } else if (j$(".hiddenFrequency").val() == "Weekly") {
+                            enableWeeklyScheduleDate();
+                            disableSchedleDate();
+                        }
+
+                        j$(".accountNumber").each(function() {
+                            if(j$(this).attr("data-validetta").includes("required") == false) {
+                                j$(this).attr("data-validetta", j$(this).attr("data-validetta") + ",required");
+                            }
+                        });
+                        
+                        hideCancellationReason();
+                    } else {
+                        setReadonly("{!$Component.recurringGiftMgmt.updateForm.beginDate}");
+                        disableWeeklyScheduleDate();
+                        disableSchedleDate();
+
+                        if (this.value == "Cancelled") {
+                            j$(".accountNumber").each(function() {
+                                j$(this).attr("data-validetta", j$(this).attr("data-validetta").replace("required", ""));
+                            });
+                            showCancellationReason();                           
+                        } else {
+                            j$(".accountNumber").each(function() {
+                                if(j$(this).attr("data-validetta").includes("required") == false) {
+                                    j$(this).attr("data-validetta", j$(this).attr("data-validetta") + ",required");
+                                }
+                            });
+                            hideCancellationReason();
+                        }
+                    }
+                });
+
+                j$(".beginDate").change(function() {
+                    var inputDate = j$(this).val();
+                    var date = new Date(inputDate);
+                    document.getElementById("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}").selectedIndex = date.getDate();
+                });
+
+                //init ALJS
+                var assetsLocation = '{!URLFOR($Resource.SLDS203)}';
+                j$.aljsInit({ assetsLocation: assetsLocation, scoped: true });
+
+                AppealListQuery(null);
+                FundListQuery(null);
+
+                j$('#newAllocationAppeal').lookup({
+                    items: appealListResults,
+                    objectPluralLabel: 'Appeals',
+                    objectLabel: 'Appeal',
+                    objectIconUrl: "{!URLFOR($Resource.SLDS203, 'assets/icons/standard-sprite/svg/symbols.svg#drafts')}",
+                    objectIconClass: 'slds-icon-standard-drafts',
+                    onChange: function() {
+                        appeal = j$('#newAllocationAppeal').lookup('getSelection');
+                        if (appeal != null && appeal != undefined) {
+                            j$('[id$=hiddenFieldNewAllocationAppeal]').val(appeal.id);
+                            j$("#newAllocationAppeal").val(appeal.id);
+                            if (appeal.fund != null && appeal.fund != undefined) {
+                                j$('#newAllocationFund').lookup('setSelection', { id: appeal.fund, label: appeal.fundname});
+                            }
+                            j$("#newAllocationAppeal").change();
+                        }
+                    },
+                    emptySearchTermQuery: function(callback) {
+                        callback(appealListResults);
+                    },
+                    filledSearchTermQuery: function(searchTerm, callback) {
+                        AppealListQuery(searchTerm);
+                        callback(appealListResults);
+                    },
+                    showSearch: false
+                }).change(function() {
+                    if (!closeAddAllocationClicked) {
+                        resetModalHeight();
+                        validateRequired("newAllocationAppeal", true);
+                    }
+                }).focus(function() {
+                    resizeModal('addModal');
+                });
+
+                j$('#newAllocationFund').lookup({
+                    items: fundListResults,
+                    objectPluralLabel: 'Funds',
+                    objectLabel: 'Fund',
+                    objectIconUrl: "{!URLFOR($Resource.SLDS203, 'assets/icons/standard-sprite/svg/symbols.svg#drafts')}",
+                    objectIconClass: 'slds-icon-standard-drafts',
+                    onChange: function() {
+                        fund = j$('#newAllocationFund').lookup('getSelection');
+                        if (fund != null && fund != undefined) {
+                            j$('[id$=hiddenFieldNewAllocationFund]').val(fund.id);
+                            j$("#newAllocationFund").val(fund.id);
+                            j$("#newAllocationFund").change();
+                        }
+                    },
+                    emptySearchTermQuery: function(callback) {
+                        callback(fundListResults);
+                    },
+                    filledSearchTermQuery: function(searchTerm, callback) {
+                        FundListQuery(searchTerm);
+                        callback(fundListResults);
+                    },   
+                    showSearch: false
+                }).change(function() {
+                    if (!closeAddAllocationClicked) {
+                        resetModalHeight();
+                        validateRequired("newAllocationFund", true);
+                    }
+                }).focus(function() {
+                    resizeModal('addModal');
+                });
+                
+                j$('#editAllocationAppeal').lookup({
+                    items: appealListResults,
+                    objectPluralLabel: 'Appeals',
+                    objectLabel: 'Appeal',
+                    objectIconUrl: "{!URLFOR($Resource.SLDS203, 'assets/icons/standard-sprite/svg/symbols.svg#drafts')}",
+                    objectIconClass: 'slds-icon-standard-drafts',
+                    onChange: function() {
+                        appeal = j$('#editAllocationAppeal').lookup('getSelection');
+                        if (appeal != null && appeal != undefined) {
+                            j$('[id$=hiddenFieldEditAllocationAppeal]').val(appeal.id);
+                            j$("#editAllocationAppeal").val(appeal.id);
+                            if (appeal.fund != null && appeal.fund != undefined) {
+                                j$('#editAllocationFund').lookup('setSelection', { id: appeal.fund, label: appeal.fundname});
+                            }
+                            j$("#editAllocationAppeal").change();
+                        }
+                    },
+                    emptySearchTermQuery: function(callback) {
+                        callback(appealListResults);
+                    },
+                    filledSearchTermQuery: function(searchTerm, callback) {
+                        AppealListQuery(searchTerm);
+                        callback(appealListResults);
+                    },
+                    showSearch: false
+                }).change(function() {
+                    if (!closeEditAllocationClicked && !openEditAllocationClicked) {
+                        resetModalHeight();
+                        validateRequired("editAllocationAppeal", true);
+                    }
+                }).focus(function() {
+                    resizeModal('editModal');
+                });
+
+                j$('#editAllocationFund').lookup({
+                    items: fundListResults,
+                    objectPluralLabel: 'Funds',
+                    objectLabel: 'Fund',
+                    objectIconUrl: "{!URLFOR($Resource.SLDS203, 'assets/icons/standard-sprite/svg/symbols.svg#drafts')}",
+                    objectIconClass: 'slds-icon-standard-drafts',
+                    onChange: function() {
+                        fund = j$('#editAllocationFund').lookup('getSelection');
+                        if (fund != null && fund != undefined) {
+                            j$('[id$=hiddenFieldEditAllocationFund]').val(fund.id);
+                            j$("#editAllocationFund").val(fund.id);
+                            j$("#editAllocationFund").change();   
+                        }                  
+                    },
+                    emptySearchTermQuery: function(callback) {
+                        callback(fundListResults);
+                    },
+                    filledSearchTermQuery: function(searchTerm, callback) {
+                        FundListQuery(searchTerm);
+                        callback(fundListResults);
+                    },
+                    showSearch: false
+                }).change(function() {
+                    if (!closeEditAllocationClicked && !openEditAllocationClicked) {
+                        resetModalHeight();
+                        validateRequired("editAllocationFund", true);
+                    }
+                }).focus(function() {
+                    resizeModal('editModal');
+                });
+
+                var newAllocAmountElement = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.newAllocationAmount}");
+                j$(newAllocAmountElement).change(function() {
+                    var isValid = true;
+                    isValid = validateRequired("{!$Component.recurringGiftMgmt.updateForm.newAllocationAmount}", isValid);
+                    isValid = validateNumeric("{!$Component.recurringGiftMgmt.updateForm.newAllocationAmount}", isValid);
+                });
+
+                var editAllocAmountElement = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.editAllocationAmount}");
+                j$(editAllocAmountElement).change(function() {
+                    var isValid = true;
+                    isValid = validateRequired("{!$Component.recurringGiftMgmt.updateForm.editAllocationAmount}", isValid);
+                    isValid = validateNumeric("{!$Component.recurringGiftMgmt.updateForm.editAllocationAmount}", isValid);
+                });
+            });
+
+            function AppealListQuery(keyword) {
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.RecurringGiftManagementExtension.GetAppeals}',
+                    keyword,
+                    function(result, event) {
+                        if (event.status) {
+                            j$.each(result, function(index, e) {
+                                e.id = e.Id;
+                                e.label = e.Name;
+                                e.fund = eval('e.' + NamespacePrefix + 'Fund__c'); 
+                                if (eval('e.' + NamespacePrefix + 'Fund__r') != null && eval('e.' + NamespacePrefix + 'Fund__r') != undefined) { 
+                                    e.fundname = eval('e.' + NamespacePrefix + 'Fund__r.Name') + ' : ' + eval('e.' + NamespacePrefix + 'Fund__r.' + NamespacePrefix + 'Fund_Name__c');
+                                }
+                                delete e.Id;
+                                delete e.Name;
+                                delete e.RecordTypeId;
+                            });
+                            appealListResults = result;
+                        }
+                    },
+                    {
+                        escape : true
+                    }
+                );
+            }
+
+            function FundListQuery(keyword) {
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.RecurringGiftManagementExtension.GetFunds}',
+                    keyword,
+                    function(result, event) {
+                        if (event.status) {
+                            j$.each(result, function(index, e) {
+                                e.id = e.Id;
+                                e.label = e.Name + ' : ' + eval('e.' + NamespacePrefix + 'Fund_Name__c'); 
+                                delete e.Id;
+                                delete e.Name;
+                                delete e.RecordTypeId;
+                            });
+                            fundListResults = result;
+                        }
+                    },
+                    {
+                        escape : true
+                    }
+                );
+            }
+
+            function cancelClicked() {
+                window.location.href = GetRecurringGiftUrl();
+            }            
+
+            function resetModalFields(id) {
+                var modal = j$("#" + id);
+                j$(modal).find("input").each(function(i) {
+                    j$(this).val('');
+                });
+
+                j$(modal).find(".slds-lookup__search-input").each(function(i) {
+                    j$(this).lookup('setSelection', { id: '', label: ''});
+                    j$(this).attr("aria-expanded", "false");
+                    var parent = j$(this).closest('.slds-lookup');
+                    j$(parent[0]).removeClass('slds-is-open');
+                });
+
+                j$(modal).find(".errorMessage").each(function(i) {
+                    var parent = j$(this).parent();
+                    parent.removeClass('slds-has-error');
+                    j$(this).hide();
+                });
+            }
+
+            function confirmDelete(id) {
+                
+                var allocAmounts = j$(".allocationAmount");
+                if (allocAmounts.length == 1) {
+                    swal({
+                        title: "Unable to Delete Allocation",
+                        text: "You must have at least 1 Recurring Gift Allocation!",
+                        type: "warning"
+                    });
+                } else {
+                   swal({
+                       title: "Confirm Recurring Gift Allocation Delete",
+                       text: "Are you sure you want to delete this recurring gift allocation?",
+                       type: "warning",
+                       confirmButtonColor: '#66ff33',
+                       confirmButtonText: "Confirm",                    
+                       showCancelButton: true,
+                       closeOnConfirm: true,
+                       closeOnCancel: true
+                   },
+                   function (isConfirm) {
+                       if (isConfirm) {
+                           deleteAllocation(id);
+                           allocationEdited = true;
+                       }
+                   });
+                }
+
+                return false;
+            } 
+
+            function addNewAllocation(){
+
+                var isValid = true;
+                isValid = validateRequired("{!$Component.recurringGiftMgmt.updateForm.newAllocationAmount}", isValid);
+                isValid = validateNumeric("{!$Component.recurringGiftMgmt.updateForm.newAllocationAmount}", isValid);
+                isValid = validateRequired("newAllocationAppeal", isValid);
+                isValid = validateRequired("newAllocationFund", isValid);
+
+                if (isValid) {
+                    j$("{!$Component.hiddenFieldNewAllocationAppeal}").val(j$("#newAllocationAppeal").val());
+                    j$("{!$Component.hiddenFieldNewAllocationFund}").val(j$("#newAllocationFund").val());
+                    j$('#addModal').modal('dismiss');
+                    addAllocation();
+                    allocationEdited = true;
+                }
+                
+                return false;
+            }
+
+            function editCurrentAllocation(){
+
+                var isValid = true;
+                isValid = validateRequired("{!$Component.recurringGiftMgmt.updateForm.editAllocationAmount}", isValid);
+                isValid = validateNumeric("{!$Component.recurringGiftMgmt.updateForm.editAllocationAmount}", isValid);
+                isValid = validateRequired("editAllocationAppeal", isValid);
+                isValid = validateRequired("editAllocationFund", isValid);
+
+                if (isValid) {
+                    j$("{!$Component.hiddenFieldEditAllocationAppeal}").val(j$("#editAllocationAppeal").val());
+                    j$("{!$Component.hiddenFieldEditAllocationFund}").val(j$("#editAllocationFund").val());        
+                    
+                    j$('#editModal').modal('dismiss');
+                    editAllocation();
+                    allocationEdited = true; 
+                }
+                
+                return false;
+            }
+
+            function validateRequired(id, isValid) {
+
+                var element = document.getElementById(id);
+                if (j$(element).val() == null || j$(element).val() == undefined || j$(element).val() == '') {
+                    ShowError(element, "requiredMessage");
+                    isValid = false;
+                } else {
+                    HideError(element, "requiredMessage");
+                }
+
+                return isValid;
+            }
+
+            function validateNumeric(id, isValid) {
+
+                var element = document.getElementById(id);
+                if (isNaN(j$(element).val()) || j$(element).val() <= 0) {
+                    ShowError(element, "numberMessage");
+                    isValid = false;
+                } else {
+                    HideError(element, "numberMessage");
+                }
+
+                return isValid;
+            }
+
+            function ShowError(element, cls) {
+                var parent = j$(element).parent();
+                parent.addClass('slds-has-error');
+                j$(parent).find(" ." + cls).show();
+            }
+
+            function HideError(element, cls) {
+                var parent = j$(element).parent();
+                parent.removeClass('slds-has-error');
+                j$(parent).find(" ." + cls).hide();
+            }
+            
+            function disableSchedleDate() {
+                setProperty("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}", "disabled", true);
+            }
+
+            function enableSchedleDate() {
+                setProperty("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}", "disabled", false);
+            }
+
+            function enableWeeklyScheduleDate() {
+                disableSchedleDate();
+                setCss("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}", "display", "none");
+
+                setProperty("{!$Component.recurringGiftMgmt.updateForm.scheduleDateWeekly}", "disabled", false);
+                setCss("{!$Component.recurringGiftMgmt.updateForm.scheduleDateWeekly}", "display", "block");
+            }
+
+            function disableWeeklyScheduleDate() {
+                enableSchedleDate();
+                setCss("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}", "display", "block");
+
+                setProperty("{!$Component.recurringGiftMgmt.updateForm.scheduleDateWeekly}", "disabled", true);
+                setCss("{!$Component.recurringGiftMgmt.updateForm.scheduleDateWeekly}", "display", "none");
+            }
+
+            function setScheduleDate(value) {
+                document.getElementById("{!$Component.recurringGiftMgmt.updateForm.scheduleDate}").value = value;
+            }
+
+            function processErrors() {
+                var errors = new Array();
+                var validationErrors = new Array();
+                <apex:repeat value="{!errors}" var="error">
+                    errors.push("{!error}");
+                </apex:repeat>
+
+                <apex:repeat value="{!validationErrors}" var="validationError">
+                    validationErrors.push("{!validationError}");
+                </apex:repeat>
+
+                var message = "";
+
+                if (validationErrors != null && validationErrors.length > 0) {
+                    for (var index = 0; index < validationErrors.length; index++) {
+                        message += validationErrors[index] + "\n";
+                    };
+                    swal({
+                        title: "Validation Error:",
+                        text: message,
+                        type: "error"
+                    },
+                    function() {
+                        window.location.href = GetRecurringGiftUrl();
+                    });
+                } else if (errors != null && errors.length > 0) {
+                    for (var index = 0; index < errors.length; index++) {
+                        message += errors[index] + "\n";
+                    };
+                    swal("Error:", message, "error");
+                }
+            }
+
+            function updateCreditCardType(cardType) {
+                var convertedCardType = "";
+
+                if (cardType == "visa") {
+                    convertedCardType = "VISA"; 
+                } else if (cardType == "mastercard") {
+                    convertedCardType = "MC"; 
+                } else if (cardType == "amex") {
+                    convertedCardType = "AMX"; 
+                } else if (cardType == "discover") {
+                    convertedCardType = "DSC"; 
+                }
+
+                document.getElementById("{!$Component.recurringGiftMgmt.updateForm.ccCardType}").value = convertedCardType;
+            }
+
+            function GetRecurringGiftUrl() {
+                return '/' + '{!recurringGiftId}';
+            }
+            
+            function openEdit(e, id, campaignId, campaign, fundId, fund, amount){
+                e.preventDefault();
+
+                closeEditAllocationClicked = false;
+                openEditAllocationClicked = true;
+
+                var allocationAmount = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.editAllocationAmount}");
+                j$(allocationAmount).val(amount);
+                j$('#editAllocationAppeal').lookup('setSelection', { id: campaignId, label: campaign});
+                j$('#editAllocationFund').lookup('setSelection', { id: fundId, label: fund});
+                var idToEdit = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.hiddenFieldIdToEdit}");
+                j$(idToEdit).val(id);
+
+                openEditAllocationClicked = false;
+
+                j$('#editModal').modal('show');
+                setModalOriginalHeight('editModal');
+                return false;
+            }
+            
+            function closeEditAllocationModal() {
+
+                closeEditAllocationClicked = true;
+                resetModalHeight();
+                j$('#editModal').modal('dismiss');
+                return false;
+            }
+
+            function openNewAllocation() {
+
+                closeAddAllocationClicked = false;
+                j$('#addModal').modal('show');
+                setModalOriginalHeight('addModal');
+                return false;
+            }
+            
+            function closeNewAllocationModal() {
+
+                closeAddAllocationClicked = true;
+                resetModalHeight();
+                j$('#addModal').modal('dismiss');
+                return false;
+            }
+
+            function updateAmount() {
+            
+                var allocAmounts = j$(".allocationAmount");             
+                var amount = 0;
+                
+                j$(allocAmounts).each(function(i) {
+                    amount += parseFloat(j$(this).text());
+                });
+                
+                var amountElement = document.getElementById("{!$Component.recurringGiftMgmt.updateForm.recurringAmount}");
+                j$(amountElement).val(amount.toFixed(2));
+                
+                return false;           
+            }
+
+            function resizeModal(id) {
+                var lookupHeight = j$('.slds-lookup__menu').height();
+                var contentHeight = j$('#' + id).find('.slds-modal__content').height();
+                j$('.slds-modal__content').height(contentHeight + lookupHeight);
+            }
+
+            function resetModalHeight() {
+                j$('.slds-modal__content').each(function(i) {
+                    j$(this).height(originalModalHeight);
+                });
+            }
+
+            function setModalOriginalHeight(id) {
+                if (originalModalHeight == 0) {
+                    j$("#" + id).find('.slds-modal__content').each(function(i) {
+                        var contentHeight = j$(this).height();
+                        originalModalHeight = contentHeight + 75;
+                    });
+                }
+            }
+        </script>
+    </head>
+    <body ng-app="myApp" ng-controller="MainCtrl as main">
+        <!-- REQUIRED SLDS WRAPPER -->
+        <div class="cv"> 
+            <!-- PRIMARY CONTENT WRAPPER -->
+            <div class="myapp"> 
+                <h2 class="slds-section-title--divider" >
+                    <div class="slds-text-heading--medium" >Recurring Gift Management</div>
+                    <div class="slds-text-body--small" >
+                        <a href="/{!recurringGiftId}">Go back to {!recurringGiftName}</a>
+                    </div>
+                </h2>
+                <div class="slds-container--center slds-container--medium" >
+                    <apex:form id="updateForm" styleclass="slds-form--stacked slds-grid slds-wrap updateForm" html-novalidate="novalidate">
+
+                        <apex:actionFunction action="{!updateProfile}" name="updateRecurringGift" />
+                        <apex:actionFunction action="{!AddAllocation}" name="addAllocation" rerender="allocationsContainer" oncomplete="return updateAmount();" />
+                        <apex:actionFunction action="{!EditAllocation}" name="editAllocation" rerender="allocationsContainer" oncomplete="return updateAmount();" /> 
+                        <apex:actionFunction action="{!DeleteAllocation}" name="deleteAllocation" rerender="allocationsContainer" oncomplete="return updateAmount();" >
+                            <apex:param name="idToDelete" assignTo="{!IdToDelete}" value=""/>
+                        </apex:actionFunction>
+                        
+                        <apex:inputHidden value="{!idToEdit}" id="hiddenFieldIdToEdit"/>
+                        <apex:inputHidden value="{!NewAllocation.aAllocation.New_Campaign__c}" id="hiddenFieldNewAllocationAppeal"/>
+                        <apex:inputHidden value="{!NewAllocation.aAllocation.Fund__c}" id="hiddenFieldNewAllocationFund"/>
+                        <apex:inputHidden value="{!EditAllocation.aAllocation.New_Campaign__c}" id="hiddenFieldEditAllocationAppeal"/>
+                        <apex:inputHidden value="{!EditAllocation.aAllocation.Fund__c}" id="hiddenFieldEditAllocationFund"/>
+
+                        <div class="slds-col--padded slds-size--1-of-1 center headerContainer" >
+                            <div class="slds-text-heading--medium">Payer Information</div>
+                            <div class="slds-text-body--small" >
+                                <p>Any update to the payer information will reflect in</p>
+                                <p>the related contact</p>
+                            </div>
+                        </div>
+                        <!-- left col -->
+                        <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+
+                            <!-- firstName -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small" for="firstName">First Name</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="firstName" styleclass="slds-input" html-placeholder="First Name" value="{!firstName}" html-data-validetta="required,minLength[0],maxLength[100]" maxlength="100" html-readonly="true" />
+                                </div>
+                            </div>
+
+                            <!-- lastName -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small" >Last Name</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="lastName" styleclass="slds-input" html-placeholder="Last Name" value="{!lastName}" html-data-validetta="required,minLength[0],maxLength[100]" maxlength="100" html-readonly="true" />
+                                </div>
+                            </div>
+
+                            <!-- address -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small">Address</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="address" styleclass="slds-input" html-placeholder="Address" value="{!address}" html-data-validetta="required,maxLength[100]" maxlength="100" />
+                                </div>
+                            </div>
+
+                            <!-- city -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small" >City</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="city" styleclass="slds-input" html-placeholder="City" value="{!city}" html-data-validetta="required,maxLength[40]" maxlength="40" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- right col -->  
+                        <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+
+                            <!-- country -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small" >Country</label>
+                                <div class="slds-form-element__control">
+                                    <apex:selectList id="country" styleclass="slds-input" value="{!SelectedCountry}" size="1">
+                                        <apex:selectOptions value="{!CountriesList}" />
+                                    </apex:selectList>
+                                </div>
+                            </div>  
+
+                            <!-- state/province -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small" id="stateLabel">State / Province</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="province" styleclass="slds-input" value="{!state}" html-data-validetta="maxLength[40]" maxlength="40" html-placeholder="State / Province" />
+                                </div>
+                            </div>
+
+                            <!-- postal/zip code -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small" >Postal / Zip Code</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="postalCode" styleclass="slds-input" html-placeholder="Postal/Zip Code" value="{!postalCode}" html-data-validetta="required,maxLength[40]" maxlength="40" />
+                                </div>
+                            </div>
+                        </div> 
+
+                        <!-- Profile Information -->
+                        <div class="slds-col--padded slds-size--1-of-1 headerContainer center">
+                            <div class="slds-text-heading--medium">
+                                Profile Information
+                            </div>
+                        </div>
+
+                        <!-- left col profile information -->
+                        <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                            
+                            <!-- status -->
+                            <div class="slds-form-element slds-is-required">
+                                <label class="slds-text-heading--small" for="selectStatus">Status</label>
+                                <svg aria-hidden="true" class="slds-button__icon"
+                                        onmouseover="hoverdiv(event, 'statusInfoContainer')" onmouseout="hoverdiv(event, 'statusInfoContainer')">
+                                    <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                </svg>
+                                <div id="statusInfoContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent">
+                                        <p>Active - On in gateway</p>
+                                        <p>On Hold - On in gateway, end date set to a future date</p>
+                                        <p>Cancelled - Off in gateway</p>
+                                    </div>
+                                </div>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <apex:selectList id="selectStatus" value="{!status}" size="1" styleclass="slds-select selectStatus" multiselect="false" onchange="changeStatus(this)">
+                                            <apex:selectOptions value="{!StatusOptions}" />
+                                        </apex:selectList>
+                                        
+                                        <apex:inputHidden id="hiddenStatus" value="{!status}" html-class="hiddenStatus" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="cancellationReasonContainer" class="slds-form-element">
+                                <label class="slds-text-heading--small" >Cancellation Reason</label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="cancellationReason" styleclass="slds-input" value="{!cancellationReason}" html-data-validetta="maxLength[255]" maxlength="255" />
+                                </div>
+                            </div>
+
+                            <!-- begin date -->
+                            <div class="slds-form-element slds-is-required">
+                                <label class="slds-text-heading--small" for="beginDate">
+                                    Begin Date
+                                    <svg aria-hidden="true" class="slds-button__icon" id="beginDateInfoIcon"
+                                            onmouseover="hoverdiv(event, 'beginDateInfoContainer')" onmouseout="hoverdiv(event, 'beginDateInfoContainer')">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                    <svg aria-hidden="true" class="slds-button__icon" id="beginDateFrequencyIcon"
+                                            onmouseover="hoverdiv(event, 'beginDateFrequencyContainer')" onmouseout="hoverdiv(event, 'beginDateFrequencyContainer')">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                </label>
+                                <div class="slds-form-element__control">
+                                    <apex:input id="beginDate" styleclass="slds-input beginDate" value="{!beginDate}" type="auto" html-data-validetta="required,callback[beginDate]" html-readonly="readonly" />
+                                </div>
+                                <div id="beginDateInfoContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent" id="beginDateInfo">
+                                        <p>Update not recommended</p>
+                                        <p>Instead exisiting schedule should be cancelled</p>
+                                        <p>and a new one set up.</p>
+                                    </div>
+                                </div>
+                                <div id="beginDateFrequencyContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent" id="beginDateFrequencyInfo">
+                                        <p>For Quarterly and Annually frequencies</p>
+                                        <p>the begin date determines when the gift is processed</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- schedule date -->
+                            <div class="slds-form-element slds-is-required">
+                                <label class="slds-text-heading--small">
+                                    Schedule Day
+                                    <svg aria-hidden="true" class="slds-button__icon" id="scheduleDateInfoIcon"
+                                            onmouseover="hoverdiv(event, 'scheduleDateInfoContainer')" onmouseout="hoverdiv(event, 'scheduleDateInfoContainer')">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                    <svg aria-hidden="true" class="slds-button__icon" id="scheduleDateMonthlyIcon"
+                                            onmouseover="hoverdiv(event, 'scheduleDateMonthlyContainer')" onmouseout="hoverdiv(event, 'scheduleDateMonthlyContainer')">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                </label>
+                                <div class="slds-form-element__control">
+                                    <apex:selectList id="scheduleDate" styleclass="slds-input" value="{!scheduleDate}" size="1" onchange="changeScheduleDate(this)">
+                                        <apex:selectOptions value="{!ScheduleDateOptions}" />
+                                    </apex:selectList>
+                                    <apex:selectList id="scheduleDateWeekly" styleclass="slds-input" value="{!scheduleDate}" size="1" onchange="changeScheduleDate(this)" disabled="true" style="display:none">
+                                        <apex:selectOption itemValue="1" itemLabel="Sunday" />
+                                        <apex:selectOption itemValue="2" itemLabel="Monday" />
+                                        <apex:selectOption itemValue="3" itemLabel="Tuesday" />
+                                        <apex:selectOption itemValue="4" itemLabel="Wednesday" />
+                                        <apex:selectOption itemValue="5" itemLabel="Thursday" />
+                                        <apex:selectOption itemValue="6" itemLabel="Friday" />
+                                        <apex:selectOption itemValue="7" itemLabel="Saturday" />
+                                    </apex:selectList>
+                                    <apex:inputHidden id="hiddenScheduleDate" value="{!scheduleDate}" html-class="hiddenScheduleDate" />
+                                </div>
+                                <div id="scheduleDateInfoContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent" id="scheduleDateInfo">
+                                        <p>Update not recommended</p>
+                                        <p>Instead exisiting schedule should be cancelled</p>
+                                        <p>and a new one set up</p>
+                                    </div>
+                                </div>
+                                <div id="scheduleDateMonthlyContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent" id="scheduleDateMonthlyInfo">
+                                        <p>For Monthly frequency the schedule date</p>
+                                        <p>determines when the gift is processed</p>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>
+
+                        <!-- right col profile information -->
+                        <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                            <!-- frequency -->
+                            <div class="slds-form-element slds-is-required">
+                                <label class="slds-text-heading--small" for="frequency">
+                                    Frequency
+                                    <svg aria-hidden="true" class="slds-button__icon" id="frequencyInfoIcon"
+                                         onmouseover="hoverdiv(event, 'frequencyInfoContainer')" onmouseout="hoverdiv(event, 'frequencyInfoContainer')">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                </label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <apex:selectList id="selectFrequency" value="{!frequency}" multiselect="false" styleclass="slds-select frequency" size="1" onchange="changeFrequency(this)">
+                                            <apex:selectOptions value="{!FrequencyOptions}" />
+                                        </apex:selectList>
+                                        <apex:inputHidden id="hiddenFrequency" value="{!frequency}" html-class="hiddenFrequency" />
+                                    </div>
+                                </div>
+                                <div id="frequencyInfoContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent"  id="frequencyInfo">
+                                        <p>Update not recommended</p>
+                                        <p>Instead exisiting schedule should be cancelled</p>
+                                        <p>and a new one set up</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- end date --> 
+                            <div class="slds-form-element slds-is-required"> 
+                                <label class="slds-text-heading--small" for="endDate"> 
+                                    End Date 
+                                    <svg aria-hidden="true" class="slds-button__icon" id="endDateInfoIcon" 
+                                            onmouseover="hoverdiv(event, 'endDateInfoContainer')" onmouseout="hoverdiv(event, 'endDateInfoContainer')"> 
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use> 
+                                    </svg> 
+                                </label> 
+                                <div class="slds-form-element__control"> 
+                                    <apex:input id="endDate" styleclass="slds-input endDate" value="{!endDate}" type="auto" html-data-validetta="callback[endDate]" /> 
+                                </div> 
+                                <div id="endDateInfoContainer" class="hover"> 
+                                    <div class="slds-text-body--small hoverContent" id="endDateInfo"> 
+                                        <p>Used to specify an end date</p> 
+                                        <p>If you don't indent on setting an end date, leave blank</p> 
+                                        <p>ex: Recurring gift for the next year</p> 
+                                    </div> 
+                                </div> 
+                            </div> 
+
+                            <!-- amount -->
+                            <div class="slds-form-element">
+                                <label class="slds-text-heading--small">
+                                    Amount
+                                    <svg aria-hidden="true" class="slds-button__icon" id="amountInfoIcon"
+                                         onmouseover="hoverdiv(event, 'amountInfoContainer')" onmouseout="hoverdiv(event, 'amountInfoContainer')">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                </label>
+                                <div class="slds-form-element__control">
+                                    <apex:inputText id="recurringAmount" styleclass="slds-input" value="{!amount}" tabindex="-1" html-readonly="readonly" />
+                                </div>
+                                <div id="amountInfoContainer" class="hover">
+                                    <div class="slds-text-body--small hoverContent" id="amountInfo">
+                                        Must be sent at least 6 days in advance of next debit
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- recurring gift allocations -->
+                        <div class="slds-col--padded slds-size--1-of-1 slds-p-top--medium">
+                            <apex:outputPanel id="allocationsContainer" layout="block" >
+                            <article class="slds-card">
+                              <header class="slds-card__header slds-grid">
+                                <div class="slds-media slds-media--left slds-has-flexi-truncate">
+                                  <div class="slds-media__figure">
+                                    <img src="{!URLFOR($Resource.SLDS203, '/assets/icons/utility/identity_60.png')}" class="allocationsIcons" />
+                                  </div>
+                                  <div class="slds-media__body slds-truncate" style="margin: 3px;margin-left: 0px;">
+                                    <span class="slds-text-heading--small">Recurring Gift Allocations</span>
+                                  </div>
+                                </div>
+                                <div class="slds-no-flex">
+                                    <button class="slds-button slds-button--neutral slds-col--bump-left" type="button" data-aljs="modal" data-aljs-show="addModal"
+                                        onclick="return openNewAllocation();">New Allocation</button>
+                                </div>
+                              </header>
+                              <div class="slds-card__body">
+                                <table class="slds-table slds-table--bordered slds-no-row-hover slds-table--cell-buffer">
+                                  <thead>
+                                    <tr class="slds-text-heading--label">
+                                      <th scope="col">
+                                        <div class="slds-truncate" title="Name">Name</div>
+                                      </th>
+                                      <th scope="col">
+                                        <div class="slds-truncate" title="Appeal">Appeal</div>
+                                      </th>
+                                      <th scope="col">
+                                        <div class="slds-truncate" title="Fund">Fund</div>
+                                      </th>
+                                      <th scope="col">
+                                        <div class="slds-truncate" title="Amount">Amount</div>
+                                      </th>
+                                      <th scope="col">
+                                        <div class="slds-truncate" title="Modify">Modify</div>
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <apex:repeat id="allocationsRepeat" value="{!AllocationList}" var="allocation">
+                                    <tr class="slds-hint-parent allocationRow" data-id="{!allocation.aId}">
+                                      <th scope="row">
+                                        <div class="slds-truncate">
+                                            <script>
+                                                var row = j$("tr").find("[data-id='" + "{!allocation.aId}" + "']");
+                                                var currentDiv = j$(row).find(".slds-truncate:first");
+                                                if ("{!allocation.aId}".includes("newAlloc")) {
+                                                    j$(currentDiv).append('{!allocation.aName}');
+                                                } else {
+                                                    j$(currentDiv).append("<a href='/{!allocation.aId}' target='_blank'>{!allocation.aName}</a>")
+                                                }
+                                            </script>
+                                        </div>
+                                      </th>
+                                      <td>
+                                        <div class="slds-truncate">{!allocation.aAppealName}</div>
+                                      </td>
+                                      <td>
+                                        <div class="slds-truncate">{!allocation.aFundName}</div>
+                                      </td>
+                                      <td>
+                                        <div class="slds-truncate allocationAmount" >{!allocation.aAmount}</div>
+                                      </td>
+                                        <td data-label="Actions">
+                                            <div class="slds-truncate">
+                                                <apex:commandLink styleClass="slds-button slds-button--icon"
+                                                    onclick="return openEdit(event, '{!allocation.aId}', '{!allocation.aAppealId}', '{!allocation.aAppealName}', '{!allocation.aFundId}', '{!allocation.aFundName}', '{!allocation.aAmount}');" >
+                                                    <img src="{!URLFOR($Resource.SLDS203, '/assets/icons/utility/edit_60.png')}" class="allocationsIcons" />
+                                                    <span class="slds-assistive-text">Edit</span>
+                                                </apex:commandLink>
+                                                <apex:commandLink onclick="return confirmDelete('{!allocation.aId}');" styleClass="slds-button slds-button--icon" >
+                                                    <apex:param value="{!allocation.aId}" name="idToDelete" assignTo="{!IdToDelete}"/>
+                                                    <img src="{!URLFOR($Resource.SLDS203, '/assets/icons/utility/delete_60.png')}" class="allocationsIcons" />
+                                                    <span class="slds-assistive-text">Delete</span>
+                                                </apex:commandLink>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </apex:repeat>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </article>
+                            </apex:outputPanel>
+                        </div>
+
+                        <!-- Payment Information -->
+                        <div class="slds-col--padded slds-size--1-of-1 headerContainer center">
+                            <div class="slds-text-heading--medium">Payment Information</div>
+                            <div class="slds-text-body--small" id="paymentInfoHelper">
+                                <p>If you do not wish to update the account information</p>
+                                <p>please leave it as is</p>
+                            </div>
+                            <div class="slds-text-body--small hidden" id="paymentInfoHelperUk">
+                                <p>Should only be updated for record keeping purposes</p>
+                                <p>Data not pushed to smart debit as all donors must update their</p>
+                                <p>account details via their bank directly</p>
+                            </div>
+                        </div>
+
+                        <!-- ukDirectDebitPayment info -->
+                        <div id="ukDirectDebitPayment" class="slds-grid slds-wrap paymentContainer">
+
+                            <!-- left col -->
+                            <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                                <div class="slds-form-element slds-is-required">
+                                    <label class="slds-text-heading--small" for="ukAccountNumber">Account Number</label>
+                                    <div class="slds-form-element__control">
+                                        <apex:inputText id="ukAccountNumber" styleclass="slds-input accountNumber" html-placeholder="Account Number" value="{!accountNumber}" html-data-validetta="required,callback[accountNumber],maxLength[16]" maxlength="16" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- right col -->
+                            <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                                <div class="slds-form-element slds-is-required">
+                                    <label class="slds-text-heading--small">Sort Code</label>
+                                    <div id="sortCodeContainer" class="slds-grid slds-form-element__control" style="width: 60%;">
+                                        <apex:inputText id="sortCode1" styleclass="slds-input sortCode accountNumber" html-placeholder="##"
+                                                        html-data-validetta="required,callback[accountNumber],maxLength[2]" maxlength="2" html-data-vd-parent-up="2" value="{!sortCode1}" />
+                                        <apex:inputText id="sortCode2" styleclass="slds-input sortCode accountNumber" html-placeholder="##"
+                                                        html-data-validetta="required,callback[accountNumber],maxLength[2]" maxlength="2" html-data-vd-parent-up="2" value="{!sortCode2}" />
+                                        <apex:inputText id="sortCode3" styleclass="slds-input sortCode accountNumber" html-placeholder="##"
+                                                        html-data-validetta="required,callback[accountNumber],maxLength[2]" maxlength="2" html-data-vd-parent-up="2" value="{!sortCode3}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- creditCardPayment info -->
+                        <div id="creditCardPayment" class="slds-grid slds-wrap paymentContainer">
+
+                            <!-- left col -->
+                            <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                                <!--<div class="slds-form-element slds-is-required" >
+                                    <label class="slds-text-heading--small" for="ccCardType">Card Type</label>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-select_container">
+                                        </div>
+                                    </div>
+                                </div>-->
+                                <div class="slds-form-element slds-is-required">
+                                    <label class="slds-text-heading--small" for="ccAccountNumber">Credit Card Number</label>
+                                    <div class="slds-form-element__control">
+                                        <apex:inputText id="ccAccountNumber" styleclass="slds-input accountNumber" value="{!accountNumber}"
+                                                        html-data-validetta="required,minLength[15],maxLength[16],callback[creditCard]" maxlength="16" />
+                                        <svg aria-hidden="true" class="slds-button__icon"
+                                                onmouseover="hoverdiv(event, 'creditCardInfoContainer')" onmouseout="hoverdiv(event, 'creditCardInfoContainer')">
+                                            <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                        </svg>
+                                        <div id="creditCardInfoContainer" class="hover">
+                                            <div class="slds-text-body--small hoverContent">
+                                                Credit Card type is detected automatically
+                                            </div>
+                                        </div>
+                                        <apex:selectList id="ccCardType" value="{!ccAccountType}" size="1" styleclass="slds-select hidden" multiselect="false">
+                                            <apex:selectOption itemValue="VISA" itemLabel="Visa" />
+                                            <apex:selectOption itemValue="MC" itemLabel="Master Card" />
+                                            <apex:selectOption itemValue="AMX" itemLabel="American Express" />
+                                            <apex:selectOption itemValue="DSC" itemLabel="Discover" />
+                                        </apex:selectList>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- right col -->
+                            <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                                <div class="slds-form-element slds-is-required">
+                                    <label class="slds-text-heading--small" for="ccExpiryDate">Expiration Date</label>
+                                    <div class="slds-form-element__control">
+                                        <apex:inputText id="ccExpiryDate" styleclass="slds-input" html-placeholder="MM/YY" value="{!expirationDate}" html-data-validetta="callback[expiry],maxLength[5]" maxlength="5" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- achPayment info -->
+                        <div id="achPayment" class="slds-grid slds-wrap paymentContainer">
+
+                            <!-- left col -->
+                            <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                                <div class="slds-form-element slds-is-required">
+                                    <label class="slds-text-heading--small" for="achAccountNumber">Account Number</label>
+                                    <div class="slds-form-element__control">
+                                        <apex:inputText id="achAccountNumber" styleclass="slds-input accountNumber" html-placeholder="Account Number" value="{!accountNumber}"
+                                            maxlength="16" html-data-validetta="required,callback[accountNumber],maxLength[16]" />
+                                    </div>
+                                </div>
+
+                                <div class="slds-form-element__control">
+                                    <label class="slds-text-heading--small" for="achAccountType">Account Type</label>
+                                    <div class="slds-select_container">
+                                        <apex:selectList id="achAccountType" value="{!achAccountType}" size="1" styleclass="slds-select" multiselect="false" >
+                                            <apex:selectOption itemValue="Undefined" itemLabel="Please select..." />
+                                            <apex:selectOption itemValue="PC" itemLabel="Personal Checking" />
+                                            <apex:selectOption itemValue="PS" itemLabel="Personal Saving" />
+                                            <apex:selectOption itemValue="BC" itemLabel="Business Checking" />
+                                            <apex:selectOption itemValue="BS" itemLabel="Business Saving" />
+                                        </apex:selectList>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- right col -->
+                            <div class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+                                <!-- routing number -->
+                                <div class="slds-form-element slds-is-required">
+                                    <label class="slds-text-heading--small" for="routingNumber" id="routingNumberLabel">Routing Number</label>
+                                    <svg aria-hidden="true" class="slds-button__icon routingInfoIcon" onclick="showRoutingInfo();">
+                                        <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+                                    </svg>
+                                    <div class="slds-form-element__control">
+                                        <apex:inputText id="routingNumber" styleclass="slds-input accountNumber" html-placeholder="Routing Number" value="{!routingNumber}"
+                                            maxlength="16" html-data-validetta="required,callback[accountNumber],maxLength[16]" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Buttons  -->
+                        <div class="slds-col--padded buttonContainer slds-p-bottom--large" >
+                            <div class="slds-col--padded slds-size--1-of-1 center">
+                                <input type="button" value="Back" id="cancelButton" onclick="cancelClicked();" class="slds-button slds-button--neutral slds-button--small slds-button--brand" />
+                                <apex:commandbutton action="{!updateProfile}" value="Update Recurring Profile" id="submitButton" onClick="onSubmitClicked();" styleclass="slds-button slds-button--neutral slds-button--small slds-button--brand" />                                
+                            </div>
+                        </div>
+
+                        <!-- Routing info dialog -->
+                        <div id="routingInfoContainer" class="dialogContainer">
+                            <div id="routingInfoTabs">
+                                <ul>
+                                    <li><a href="#usdCheck">USD</a></li>
+                                    <li><a href="#cadCheck">CAD</a></li>
+                                    <li><a href="#audCheck">AUD</a></li>
+                                </ul>
+                                <div id="usdCheck">
+                                    <img src="https://api.causeview.com/form/v2.1/Contents/Images/usd_check.gif" class="checkImg"></img>
+                                    <p>For USD accounts, this is the 9-digit routing number of the customer&apos;s bank</p>
+                                </div>
+                                <div id="cadCheck">
+                                    <img src="https://api.causeview.com/form/v2.1/Contents/Images/cad_check.jpg" class="checkImg"></img>
+                                    <p>For CAD accounts, this is a combination of the 3-digit institution ID followed by the 5-digit transit number of the customer&apos;s bank branch. They must be entered in this order</p>
+                                </div>
+                                <div id="audCheck">
+                                    <img src="https://api.causeview.com/form/v2.1/Contents/Images/aud_check.gif" class="checkImg"></img>
+                                    <p>For AUD accounts, BSB numbers are used by Australian banks to identify an account&apos;s Bank, State and Branch. This is a 6-digit number</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add new Allocation Modal -->
+                        <div aria-hidden="true" role="dialog" class="slds-modal slds-fade-in-open slds-hide allocationModal" id="addModal">
+                            <div class="slds-modal__container">
+                                <div class="slds-modal__header">
+                                    <h2 class="slds-text-heading--medium">Add New Recurring Gift Allocation</h2>
+                                </div>
+                                <div class="slds-modal__content slds-p-around--medium">
+                                    <div class="slds-form-element" >
+                                        <label class="slds-form-element__label" for="newAllocationAmount">Amount</label>
+                                        <div class="slds-form-element__control">
+                                            <apex:inputField value="{!NewAllocation.aAllocation.Amount__c}" id="newAllocationAmount" styleClass="slds-input" html-placeholder="Amount" />
+                                            <span class="slds-form-element__help slds-form-element__help--right requiredMessage errorMessage" style="display:none;">This field is required.</span>
+                                            <span class="slds-form-element__help slds-form-element__help--right numberMessage errorMessage" style="display:none;">Please enter a number greater than 0 (Exclude any currency symbols).</span>
+                                        </div>
+                                    </div> 
+                                    <div class="slds-lookup" data-select="single" data-scope="single">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="newAllocationAppeal">Appeal</label>
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right">
+                                                <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                    <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#search')}"></use>
+                                                </svg>
+                                                <input id="newAllocationAppeal" class="slds-lookup__search-input slds-input" type="text" 
+                                                    aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="" placeholder="Appeal" />
+                                                <span class="slds-form-element__help slds-form-element__help--right requiredMessage errorMessage" style="display:none;">This field is required.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="slds-form-element slds-lookup" data-select="single" data-scope="single">
+                                        <label class="slds-form-element__label" for="newAllocationAmount">Fund</label>
+                                        <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right">
+                                            <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#search')}"></use>
+                                            </svg>
+                                            <input id="newAllocationFund" class="slds-lookup__search-input slds-input" type="text" aria-autocomplete="list" 
+                                                role="combobox" aria-expanded="true" aria-activedescendant="" placeholder="Fund" />
+                                            <span class="slds-form-element__help slds-form-element__help--right requiredMessage errorMessage" style="display:none;">This field is required.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-modal__footer">
+                                    <button class="slds-button slds-button--neutral" onclick="return closeNewAllocationModal();">Cancel</button>
+                                    <apex:commandLink onclick="return addNewAllocation();" styleClass="slds-button slds-button--neutral slds-button--brand">Add</apex:commandLink>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Allocation Modal -->
+                        <div aria-hidden="true" role="dialog" class="slds-modal slds-fade-in-open slds-hide allocationModal" id="editModal">
+                            <div class="slds-modal__container">
+                                <div class="slds-modal__header">
+                                    <h2 class="slds-text-heading--medium">Edit Recurring Gift Allocation</h2>
+                                </div>
+                                <div class="slds-modal__content slds-p-around--medium">
+                                    <div class="slds-form-element" >
+                                        <label class="slds-form-element__label" for="editAllocationAmount">Amount</label>
+                                        <div class="slds-form-element__control">
+                                            <apex:inputField value="{!EditAllocation.aAllocation.Amount__c}" id="editAllocationAmount" styleClass="slds-input" html-placeholder="Amount" />
+                                            <span class="slds-form-element__help slds-form-element__help--right requiredMessage errorMessage" style="display:none;">This field is required.</span>
+                                            <span class="slds-form-element__help slds-form-element__help--right numberMessage errorMessage" style="display:none;">Please enter a number greater than 0 (Exclude any currency symbols).</span>
+                                        </div>
+                                    </div> 
+
+                                    <div class="slds-lookup" data-select="single" data-scope="single">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="editAllocationAppeal">Appeal</label>
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right">
+                                                <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                    <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#search')}"></use>
+                                                </svg>
+                                                <input id="editAllocationAppeal" class="slds-lookup__search-input slds-input" type="text" 
+                                                    aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="" placeholder="Appeal" />
+                                                <span class="slds-form-element__help slds-form-element__help--right requiredMessage errorMessage" style="display:none;">This field is required.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                
+                                    <div class="slds-form-element slds-lookup" data-select="single" data-scope="single">
+                                        <label class="slds-form-element__label" for="editAllocationAmount">Fund</label>
+                                        <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right">
+                                            <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/utility-sprite/svg/symbols.svg#search')}"></use>
+                                            </svg>
+                                            <input id="editAllocationFund" class="slds-lookup__search-input slds-input" type="text" aria-autocomplete="list" 
+                                                role="combobox" aria-expanded="true" aria-activedescendant="" placeholder="Fund" />
+                                            <span class="slds-form-element__help slds-form-element__help--right requiredMessage errorMessage" style="display:none;">This field is required.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-modal__footer">
+                                    <button class="slds-button slds-button--neutral" onclick="return closeEditAllocationModal();">Cancel</button>
+                                    <apex:commandLink onclick="return editCurrentAllocation();" styleClass="slds-button slds-button--neutral slds-button--brand">Save</apex:commandLink>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+</apex:page>

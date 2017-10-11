@@ -1,0 +1,2064 @@
+<apex:page id="GiftAidPage" title="Gift Aid" controller="GiftAidController" showHeader="true" standardStylesheets="false" sidebar="true" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Gift Aid</title>
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!-- jQuery?v=1.7.2 -->
+        <apex:includescript value="{!$Resource.jQuery224}" />
+        <apex:stylesheet value="{!URLFOR($Resource.SLDS212, 'assets/styles/salesforce-lightning-design-system-vf.min.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.SLDS212, 'assets/styles/salesforce-lightning-design-system-vf.min.css')}" />
+        <!-- SweetAlert: https://limonte.github.io/sweetalert2/ -->
+        <apex:includescript value="{!$Resource.SweetAlert2_503js}" />
+        <apex:stylesheet value="{!$Resource.SweetAlert2_503css}" />
+        <!-- Font-Awesome -->
+        <apex:stylesheet value="{!$Resource.fontawesome461css}" />
+        <!-- Moment.js -->
+        <apex:includescript value="{!$Resource.moment2112js}" />
+        <!-- Bootstrap -->
+        <apex:stylesheet value="{!URLFOR($Resource.Bootstrap337, 'css/bootstrap.css')}" />
+        <!-- Handlebars JS -->
+        <apex:includeScript value="{!$Resource.HandleBars2js}"/>
+        <!-- DataTables: https://datatables.net/ -->
+        <apex:stylesheet value="{!$Resource.datatables11012css}"/>
+        <apex:includeScript value="{!$Resource.datatables11012js}"/>
+        <!-- ALJS -->
+        <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-init.min.js')}"></script>
+        <script src="{!URLFOR($Resource.ALJS200, 'jquery.aljs-tabs.min.js')}"></script>
+        <!-- MathJS -->
+        <apex:includescript value="{!$Resource.math351js}" />
+        <style>
+        /*.swal2-modal button.styled { background: #3085D6 !important; }*/
+        .swal2-confirm { background: #0070d2 !important; }
+        .swal2-cancel { background: #c23934 !important; }
+        /*.fullwidth { margin: -10px -10px 0px -10px !important; }*/
+        /*.fullwidth { margin: -5px -10px 0px -0px !important; }*/
+        .cv .slds-notify_container { top: 35% !important; }
+        table.dataTable tbody>tr.selected, table.dataTable tbody>tr>.selected { background-color: #08C !important; }
+        table.dataTable { width: 100% !important; }
+        .swal2-modal h2 {
+            line-height: 30px;
+            padding-bottom: 20px;
+        }
+        .checkboxColumn {
+          width: 17px !important;
+        }
+        .centerAlign {
+          text-align: center !important;
+        }
+        .slds .slds-spinner {
+          position: fixed !important;
+        }
+        </style>
+
+        <script id="CheckboxCellTemplate" type="text/x-handlebars-template">
+          <span class="slds-checkbox">
+            <input type="checkbox" name="options" id="checkbox-{{rowId}}" />
+            <label class="slds-checkbox__label" for="checkbox-{{rowId}}">
+              <span class="slds-checkbox--faux"></span>
+              <span class="slds-form-element__label slds-assistive-text">Select item {{rowId}}</span>
+            </label>
+          </span>
+        </script>
+
+        <script id="LOADING" type="text/x-handlebars-template">
+          <div role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+          </div>
+        </script>
+
+        <apex:variable var="slds" value="{!URLFOR($Resource.SLDS212)}" />
+
+    </head>
+
+    <body>
+        <!-- REQUIRED SLDS WRAPPER -->
+        <apex:form id="mainForm" html-novalidate="novalidate">
+        <div class="slds">
+                <!-- PAGE HEADER -->
+                <div id="pageHeader" class="slds-page-header fullwidth"  role="banner">
+                    <!-- PAGE HEADER TOP ROW -->
+                    <div class="slds-grid">
+                        <!-- PAGE HEADER / ROW 1 / COLUMN 1 -->
+                        <div class="slds-col">
+                            <!-- HEADING AREA -->
+                            <!-- MEDIA OBJECT = FIGURE + BODY -->
+                            <div class="slds-media slds-media--top slds-no-space slds-grow">
+                                <div class="slds-media__figure">
+                                  <span class="slds-icon_container slds-icon-standard-apps">
+                                    <svg aria-hidden="true" class="slds-icon slds-icon--large">
+                                      <use xlink:href="{!slds}/assets/icons/standard-sprite/svg/symbols.svg#thanks"></use>
+                                    </svg>
+                                  </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <p class="slds-text-heading--label">Causeview</p>
+                                    <h1 class="slds-page-header__title">Gift Aid</h1>
+                                </div>
+                            </div>
+                            <!-- / MEDIA OBJECT -->
+                            <!-- HEADING AREA -->
+                        </div>
+                        <!-- / PAGE HEADER / ROW 1 / COLUMN 1 -->
+                        <!-- PAGE HEADER / ROW 1 / COLUMN 2 -->
+                        <div class="slds-col">
+                            <!-- <div id="totalSelected" class="slds-text-body--small slds-text-align--right"></div> -->
+                        </div>
+                        <!-- / PAGE HEADER / ROW 1 / COLUMN 2 -->
+                    </div>
+                    <!-- / PAGE HEADER TOP ROW -->
+                    <!-- PAGE HEADER DETAIL ROW -->
+                    <!-- / PAGE HEADER DETAIL ROW -->
+                </div>
+                <!-- / PAGE HEADER -->
+                <!-- PRIMARY CONTENT WRAPPER -->
+                <div class="myapp">
+                    <!-- NOTIFICATIONS -->
+                    <div class="slds-notify_container" style="display:none;">
+                      <div class="slds-notify slds-notify--toast slds-theme--success" role="alert">
+                        <span class="slds-assistive-text">Success</span>
+                        <button class="slds-button slds-button--icon-inverse slds-notify__close">
+                          <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+                            <use xlink:href="{!slds}/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+                          </svg>
+                          <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <div class="slds-notify__content slds-grid">
+                          <svg aria-hidden="true" class="slds-icon slds-icon--small slds-m-right--small slds-col slds-no-flex">
+                            <use xlink:href="{!slds}/assets/icons/utility-sprite/svg/symbols.svg#notification"></use>
+                          </svg>
+                          <div class="slds-col slds-align-middle">
+                            <h2 class="slds-text-heading--small ">Your new contact <a href="javascript:void(0);">Sara Smith</a> was successfully created.</h2>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- / NOTIFICATIONS -->
+
+                    <!-- TABS-->
+                    <apex:outputPanel layout="block" id="tabBlock" styleClass="slds-grid slds-grid--pull-padded" style="min-height: 584px">
+                    <!-- <div class="slds-grid slds-grid--pull-padded slds-m-top--large">                         -->
+                        <div class="slds-col--padded">
+                            <div class="slds-tabs--default" data-aljs="tabs">
+                                <ul class="slds-tabs--default__nav" role="tablist">
+                                    <li class="slds-tabs--default__item slds-text-heading--label slds-active" title="Not Claimed" role="presentation">
+                                        <a class="slds-tabs--default__link" href="javascript:void(0);" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-default-1" id="not_claimed__item" data-aljs-show="not-claimed-tab">Not Claimed</a>
+                                    </li>
+                                    <li class="slds-tabs--default__item slds-text-heading--label" title="Claimed Not Received" role="presentation">
+                                        <a class="slds-tabs--default__link" href="javascript:void(0);" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-2" id="claimed__item" data-aljs-show="claimed-tab">Claimed</a>
+                                    </li>
+                                    <li class="slds-tabs--default__item slds-text-heading--label" title="Received" role="presentation">
+                                        <a class="slds-tabs--default__link" href="javascript:void(0);" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-3" id="received__item" data-aljs-show="received-tab">Received</a>
+                                    </li>
+                                    <li class="slds-tabs--default__item slds-text-heading--label" title="Rejected" role="presentation">
+                                        <a class="slds-tabs--default__link" href="javascript:void(0);" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-4" id="rejected__item" data-aljs-show="rejected-tab">Rejected</a>
+                                    </li>
+                                    <li class="slds-tabs--default__item slds-text-heading--label" title="To Be Refunded" role="presentation">
+                                        <a class="slds-tabs--default__link" href="javascript:void(0);" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-5" id="to_be_refunded__item" data-aljs-show="to-be-refunded-tab">To Be Refunded</a>
+                                    </li>
+                                    <li class="slds-tabs--default__item slds-text-heading--label" title="Refunded" role="presentation">
+                                        <a class="slds-tabs--default__link" href="javascript:void(0);" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-6" id="refunded__item" data-aljs-show="refunded-tab">Refunded</a>
+                                    </li>
+                                </ul>
+                                <!-- Not Claimed -->
+                                <div id="not-claimed-tab" class="slds-tabs--default__content slds-show" role="tabpanel" aria-labelledby="not_claimed__item">
+                                    <div class="slds-col--padded">
+                                        <div class="bootstrap-scope">
+                                            <apex:outputPanel id="notClaimedTableBlock" layout="block">
+                                                <table id="notClaimedTable" class="table table-hover">
+                                                  <thead>
+                                                      <tr>
+                                                          <th class="centerAlign"><input type="checkbox" name="options" id="NotClaimedTableSelectAll" checked="" /></th>
+                                                          <th>Payment</th>
+                                                          <th>Donor</th>
+                                                          <th>Gift Date</th>
+                                                          <th>Gift Aid Amount</th>
+                                                          <th>Gift Aid Claim Status</th>
+                                                          <th>Gift Aid Declaration</th>
+                                                      </tr>
+                                                  </thead>
+                                                </table>
+                                            </apex:outputPanel>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Not Received -->
+                                <div id="claimed-tab" class="slds-tabs--default__content slds-hide" role="tabpanel" aria-labelledby="claimed__item">
+                                    <div class="slds-col--padded">
+                                        <div class="bootstrap-scope">
+                                            <apex:outputPanel id="claimedTableBlock" layout="block">
+                                                <table id="claimedTable" class="table table-hover">
+                                                  <thead>
+                                                      <tr>
+                                                          <th class="centerAlign"><input type="checkbox" name="options" id="ClaimedTableSelectAll" checked="" /></th>
+                                                          <th>Claim Reference Number</th>
+                                                          <th>Payment</th>
+                                                          <th>Donor</th>
+                                                          <th>Gift Aid Claim Date</th>
+                                                          <th>Gift Aid Amount</th>
+                                                          <th>Gift Aid Claim Status</th>
+                                                          <th>Gift Aid Declaration</th>
+                                                      </tr>
+                                                  </thead>
+                                                </table>
+                                            </apex:outputPanel>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Received -->
+                                <div id="received-tab" class="slds-tabs--default__content slds-hide" role="tabpanel" aria-labelledby="received__item">
+                                    <div class="slds-col--padded">
+                                        <div class="bootstrap-scope">
+                                            <apex:outputPanel id="receivedTableBlock" layout="block">
+                                                <table id="receivedTable" class="table table-hover">
+                                                  <thead>
+                                                      <tr>
+                                                          <th class="centerAlign"><input type="checkbox" name="options" id="ReceivedTableSelectAll" checked="" /></th>
+                                                          <th>Claim Reference Number</th>
+                                                          <th>Payment</th>
+                                                          <th>Donor</th>
+                                                          <th>Gift Aid Received Date</th>
+                                                          <th>Gift Aid Amount</th>
+                                                          <th>Gift Aid Claim Status</th>
+                                                          <th>Gift Aid Declaration</th>
+                                                      </tr>
+                                                  </thead>
+                                                </table>
+                                            </apex:outputPanel>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Rejected -->
+                                <div id="rejected-tab" class="slds-tabs--default__content slds-hide" role="tabpanel" aria-labelledby="rejected__item">
+                                    <div class="slds-col--padded">
+                                        <div class="bootstrap-scope">
+                                            <apex:outputPanel id="rejectedTableBlock" layout="block">
+                                                <table id="rejectedTable" class="table table-hover"></table>
+                                            </apex:outputPanel>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- To Be Refunded -->
+                                <div id="to-be-refunded-tab" class="slds-tabs--default__content slds-hide" role="tabpanel" aria-labelledby="to_be_refunded__item">
+                                    <div class="slds-col--padded">
+                                        <div class="bootstrap-scope">
+                                          <table id="ToBeRefundedTable" class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th class="centerAlign"><input type="checkbox" name="options" id="ToBeRefundedTableSelectAll" checked="" /></th>
+                                                    <th>Claim Reference Number</th>
+                                                    <th>Payment</th>
+                                                    <th>Donor</th>
+                                                    <th>Gift Aid Received Date</th>
+                                                    <th>Gift Aid Amount</th>
+                                                    <th>Gift Aid Claim Status</th>
+                                                    <th>Gift Aid Declaration</th>
+                                                </tr>
+                                            </thead>
+                                          </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Refunded -->
+                                <div id="refunded-tab" class="slds-tabs--default__content slds-hide" role="tabpanel" aria-labelledby="refunded__item">
+                                    <div class="slds-col--padded">
+                                        <div class="bootstrap-scope">
+                                          <table id="refundedTable" class="table table-hover"></table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    <!-- </div> -->
+                    </apex:outputPanel>
+                    <!-- / TABS -->
+                </div>
+                <!-- / PRIMARY CONTENT WRAPPER -->
+
+                <!-- FOOTER -->
+                <footer role="contentinfo" class="slds-p-around--large">
+                    <!-- LAYOUT GRID -->
+                    <div class="slds-grid slds-text-align--center">
+                        <p class="slds-col">copyright &copy; 2009 -<apex:outputText value=" {0,date,yyyy}"><apex:param value="{!NOW()}" /></apex:outputText> Causeview.com, Breakeven Inc. All rights reserved.</p>
+                    </div>
+                    <!-- / LAYOUT GRID -->
+                </footer>
+                <!-- / FOOTER -->
+
+                <!-- NON-DT LOADING -->
+                <div id="LightningLoading" class="slds-spinner_container" style="display:none;">
+                  <div role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                  </div>
+                </div>
+                <!-- NON-DT LOADING -->
+        </div>
+        <!-- / REQUIRED SLDS WRAPPER -->
+
+        <!-- APEX HIDDEN INPUT -->
+        <!-- / APEX HIDDEN INPUT -->
+
+        <!-- APEX ACTION FUNCTION -->
+        <!-- / APEX ACTION FUNCTION -->
+
+        </apex:form>
+
+        <!-- JAVASCRIPT -->
+        <script type="text/javascript">
+          $ = jQuery.noConflict();
+          var assetsLocation = '{!URLFOR($Resource.SLDS212, 'assets')}';
+          var NamespacePrefix = '{!PackageNamespace}';
+
+          // Datatables
+          var notClaimedTable;
+            var NotClaimedSelectLimit = 1000;
+            var selectedNotClaimedPaymentIds = [];
+            var NotClaimedSum = 0;
+            var NotClaimedCount = 0;
+
+          var claimedTable;
+            var ClaimedSelectLimit = 5000;
+            var selectedClaimedPaymentIds = [];
+            var ClaimedSum = 0;
+            var ClaimedCount = 0;
+
+          var receivedTable;
+            var ReceivedSelectLimit = 5000;
+            var selectedReceivedPaymentIds = [];
+            var ReceivedSum = 0;
+            var ReceivedCount = 0;
+
+          var rejectedTable;
+
+          var ToBeRefundedTable;
+            var ToBeRefundedSelectLimit = 5000;
+            var selectedToBeRefundedPaymentIds = [];
+            var ToBeRefundedSum = 0;
+            var ToBeRefundedCount = 0;
+
+          var refundedTable;
+
+          // dep
+          var notClaimedSelectedCount = 0;
+          var sumAmount = 0.0;
+
+          // tab ids
+          var notClaimedTab = '?tab=not_claimed__item';
+          var claimedTab = '?tab=claimed__item';
+          var receivedTab = '?tab=received__item';
+          var rejectedTab = '?tab=rejected__item';
+          var teBeRefundedTab = '?tab=to_be_refunded__item';
+          var refundedTab = '?tab=refunded__item';
+
+            $(document).ready(function() {
+
+                $.aljsInit({ assetsLocation: assetsLocation, scoped: true });
+
+                // aljs init
+                $('[data-aljs="tabs"]').tabs({
+                    defaultTabId: '',
+                    onChange: function(obj) {
+                        $('#pageHeader').scrollView();
+                        $('[id$=changeCurrentTab]').val(obj["id"]);
+                    }
+                });
+
+                // check if gift aid is enabled & redirect if it isn't
+                if('{!IsGiftAidEnabled}' == 'false'){
+                    swal({
+                      title: 'Gift Aid Disabled',
+                      text: "Gift-Aid needs to be enabled in Custom Settings for you to access this feature.",
+                      type: 'warning',
+                      allowEscapeKey: false,
+                      allowOutsideClick: false,
+                      confirmButtonText: 'Ok'
+                    }).then(function() {
+                        // exit page
+                        window.history.back();
+                    })
+                }
+
+                // set default settings for Datatables
+                setDataTableDefaults();
+
+                // init Datatables
+                initDatatable();
+
+                // go to callback tab
+                // url param
+                var callbackTab = getUrlParameter('tab');
+                if(callbackTab != null || callbackTab != undefined){
+                  $('#'+callbackTab).click();
+                }
+
+                //Set the search property:
+                //location.search = querystring
+
+            }); // end: (document).ready(function()
+
+            /**
+             *
+             * NOT CLAIMED TABLE CHECKBOX FUNCTIONS
+             *
+             */
+            $('#NotClaimedTableSelectAll').on('change', function(){
+              var el = $('#NotClaimedTableSelectAll').get(0);
+              var rows = notClaimedTable.rows({ page: 'current' }).nodes();
+              var rowIds = notClaimedTable.rows({ page: 'current' }).ids();
+
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+              // if indeterminate true, remove id from selected array
+              if(el.indeterminate){
+                $('input[type="checkbox"]', rows).prop('checked', false);
+                $(rows).removeClass('selected');
+                // http://stackoverflow.com/questions/4869292/remove-itemi-from-jquery-each-loop
+                selectedNotClaimedPaymentIds = $.grep(selectedNotClaimedPaymentIds, function (el, i) {
+                  if($.inArray(el, rowIds) !== -1){
+                    var index = selectedNotClaimedPaymentIds.indexOf(el);
+                    if (index > -1) {
+                      SubtractAmount(el);
+                      return false;
+                    }
+                  }
+                  return true;
+                });
+                $('#NotClaimedTableSelectAll').prop("checked",false);
+                el.indeterminate = false;
+              }else{
+                var exitGrep = false;
+                rows = $.grep(rows, function (el, i) {
+                  if(selectedNotClaimedPaymentIds.length > NotClaimedSelectLimit - 1){
+                    exitGrep = true;
+                    return false;
+                  }else{
+                    if ($.inArray(el.id, selectedNotClaimedPaymentIds) !== -1) {
+                      selectedNotClaimedPaymentIds.splice(selectedNotClaimedPaymentIds.indexOf(el.id), 1);
+                      SubtractAmount(el);
+                      return false;
+                    }
+                    selectedNotClaimedPaymentIds.push(el.id);
+                    AddAmount(el.id);
+
+                    return true;
+                  }
+                });
+                el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+                $('input[type="checkbox"]', rows).prop('checked', el.checked);
+                $(rows).toggleClass('selected');
+                if(exitGrep){
+                  var AnyChecked = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+                  $('#NotClaimedTableSelectAll').prop("checked",AnyChecked);
+                  el.indeterminate = AnyChecked;
+                  showLimitError();
+                }
+              }
+              totalRows();
+            });
+
+            // Handle click on checkbox to set state of "Select all" control
+            // $('#notClaimedTable tbody').on('click', 'input[type="checkbox"]', function(e){
+            $('#notClaimedTable').on('click', 'tbody tr input[type="checkbox"]', function(e){
+              var $row = $(this).closest("tr");
+              if(selectedNotClaimedPaymentIds.length > NotClaimedSelectLimit - 1){
+                if($row.hasClass('selected')){
+                  $row.toggleClass('selected');
+                  var index = selectedNotClaimedPaymentIds.indexOf($row[0].id);
+                  if (index > -1) {
+                    selectedNotClaimedPaymentIds.splice(index, 1);
+                    SubtractAmount($row[0].id);
+                  }
+                  totalRows();
+                  // recalculateSum();
+                }else{
+                  $(this).prop('checked', false);
+                  showLimitError();
+                }
+
+              }else{
+                // toggle checkbox
+                // $('input[type="checkbox"]', this).prop('checked', this.checked);
+                // toggle class
+                $row.toggleClass('selected');
+                // handle selected array
+                if($row.hasClass('selected')){
+                  selectedNotClaimedPaymentIds.push($row[0].id);
+                  AddAmount($row[0].id);
+                }else{
+                  var index = selectedNotClaimedPaymentIds.indexOf($row[0].id);
+                  if (index > -1) {
+                    selectedNotClaimedPaymentIds.splice(index, 1);
+                    SubtractAmount($row[0].id);
+                  }
+                }
+                // toggle indeterminate
+                var rows = notClaimedTable.rows({ page: 'current' }).nodes();
+                var el = $('#NotClaimedTableSelectAll').get(0);
+                el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+                totalRows();
+                // recalculateSum();
+              }
+            });
+
+          /**
+           *
+           * NOT CLAIMED CHECKBOX HELPERS
+           *
+           */
+          function ParseAmount(rowId){
+            var temp = $('#'+rowId+'>td.amount')[0].textContent;
+            return parseFloat(temp.replace(/[^0-9.-]+/g, ''))
+          }
+
+          function SubtractAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            NotClaimedCount--;
+            NotClaimedSum = math.subtract(NotClaimedSum, scopeAmount);
+          }
+
+          function AddAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            NotClaimedCount++;
+            NotClaimedSum = math.add(NotClaimedSum, scopeAmount);
+          }
+
+          function totalRows() {
+              // var recordCount = selectedNotClaimedPaymentIds.length;
+              // var amount = sumAmount;
+              if( NotClaimedCount == 1 ){
+                  $('#totalSelected').html('<span class="slds-text-heading--medium">' + NotClaimedCount + '</span> row selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(NotClaimedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else if( NotClaimedCount > 1 ){
+                  $('#totalSelected').html('<span class="slds-text-heading--medium">' + NotClaimedCount + '</span> rows selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(NotClaimedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else{
+                  $('#totalSelected').html('');
+              }
+          }
+
+          /**
+           *
+           * CLAIM CHECKBOX FUNCTIONS
+           *
+           */
+          $('#ClaimedTableSelectAll').on('change', function(){
+            var el = $('#ClaimedTableSelectAll').get(0);
+            var rows = claimedTable.rows({ page: 'current' }).nodes();
+            var rowIds = claimedTable.rows({ page: 'current' }).ids();
+
+            el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+            // if indeterminate true, remove id from selected array
+            if(el.indeterminate){
+              $('input[type="checkbox"]', rows).prop('checked', false);
+              $(rows).removeClass('selected');
+              // http://stackoverflow.com/questions/4869292/remove-itemi-from-jquery-each-loop
+              selectedClaimedPaymentIds = $.grep(selectedClaimedPaymentIds, function (el, i) {
+                if($.inArray(el, rowIds) !== -1){
+                  var index = selectedClaimedPaymentIds.indexOf(el);
+                  if (index > -1) {
+                    ClaimSubtractAmount(el);
+                    return false;
+                  }
+                }
+                return true;
+              });
+              $('#ClaimedTableSelectAll').prop("checked",false);
+              el.indeterminate = false;
+            }else{
+              var exitGrep = false;
+              rows = $.grep(rows, function (el, i) {
+                if(selectedClaimedPaymentIds.length > ClaimedSelectLimit - 1){
+                  exitGrep = true;
+                  return false;
+                }else{
+                  if ($.inArray(el.id, selectedClaimedPaymentIds) !== -1) {
+                    selectedClaimedPaymentIds.splice(selectedClaimedPaymentIds.indexOf(el.id), 1);
+                    ClaimSubtractAmount(el);
+                    return false;
+                  }
+                  selectedClaimedPaymentIds.push(el.id);
+                  ClaimAddAmount(el.id);
+
+                  return true;
+                }
+              });
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+              $('input[type="checkbox"]', rows).prop('checked', el.checked);
+              $(rows).toggleClass('selected');
+              if(exitGrep){
+                var AnyChecked = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+                $('#ClaimedTableSelectAll').prop("checked",AnyChecked);
+                el.indeterminate = AnyChecked;
+                showLimitError();
+              }
+            }
+            ClaimtotalRows();
+          });
+
+          // Handle click on checkbox to set state of "Select all" control
+          // $('#notClaimedTable tbody').on('click', 'input[type="checkbox"]', function(e){
+          $('#claimedTable').on('click', 'tbody tr input[type="checkbox"]', function(e){
+            var $row = $(this).closest("tr");
+            if(selectedClaimedPaymentIds.length > ClaimedSelectLimit - 1){
+              if($row.hasClass('selected')){
+                $row.toggleClass('selected');
+                var index = selectedClaimedPaymentIds.indexOf($row[0].id);
+                if (index > -1) {
+                  selectedClaimedPaymentIds.splice(index, 1);
+                  ClaimSubtractAmount($row[0].id);
+                }
+                ClaimtotalRows();
+                // recalculateSum();
+              }else{
+                $(this).prop('checked', false);
+                showLimitError();
+              }
+
+            }else{
+              // toggle checkbox
+              // $('input[type="checkbox"]', this).prop('checked', this.checked);
+              // toggle class
+              $row.toggleClass('selected');
+              // handle selected array
+              if($row.hasClass('selected')){
+                selectedClaimedPaymentIds.push($row[0].id);
+                ClaimAddAmount($row[0].id);
+              }else{
+                var index = selectedClaimedPaymentIds.indexOf($row[0].id);
+                if (index > -1) {
+                  selectedClaimedPaymentIds.splice(index, 1);
+                  ClaimSubtractAmount($row[0].id);
+                }
+              }
+              // toggle indeterminate
+              var rows = claimedTable.rows({ page: 'current' }).nodes();
+              var el = $('#ClaimedTableSelectAll').get(0);
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+              ClaimtotalRows();
+              // recalculateSum();
+            }
+          });
+
+          /**
+           *
+           * NOT CLAIMED CHECKBOX HELPERS
+           *
+           */
+
+          function ClaimSubtractAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            ClaimedCount--;
+            ClaimedSum = math.subtract(ClaimedSum, scopeAmount);
+          }
+
+          function ClaimAddAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            ClaimedCount++;
+            ClaimedSum = math.add(ClaimedSum, scopeAmount);
+          }
+
+          function ClaimtotalRows() {
+              // var recordCount = selectedNotClaimedPaymentIds.length;
+              // var amount = sumAmount;
+              if( ClaimedCount == 1 ){
+                  $('#totalClaimSelected').html('<span class="slds-text-heading--medium">' + ClaimedCount + '</span> row selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(ClaimedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else if( ClaimedCount > 1 ){
+                  $('#totalClaimSelected').html('<span class="slds-text-heading--medium">' + ClaimedCount + '</span> rows selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(ClaimedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else{
+                  $('#totalClaimSelected').html('');
+              }
+          }
+
+          // Order by the grouping
+          // $('#claimedTable').on( 'click', 'tbody tr.group', function () {
+          //     var currentOrder = claimedTable.order()[0];
+          //     if ( currentOrder[0] === 1 && currentOrder[1] === 'asc' ) {
+          //         claimedTable.order( [ 1, 'desc' ] ).draw();
+          //     }
+          //     else {
+          //         claimedTable.order( [ 1, 'asc' ] ).draw();
+          //     }
+          // } );
+
+          /**
+           *
+           * RECEIVED CHECKBOX FUNCTIONS
+           *
+           */
+          $('#ReceivedTableSelectAll').on('change', function(){
+            var el = $('#ReceivedTableSelectAll').get(0);
+            var rows = receivedTable.rows({ page: 'current' }).nodes();
+            var rowIds = receivedTable.rows({ page: 'current' }).ids();
+
+
+            el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+            // if indeterminate true, remove id from selected array
+            if(el.indeterminate){
+              $('input[type="checkbox"]', rows).prop('checked', false);
+              $(rows).removeClass('selected');
+              // http://stackoverflow.com/questions/4869292/remove-itemi-from-jquery-each-loop
+              selectedReceivedPaymentIds = $.grep(selectedReceivedPaymentIds, function (el, i) {
+                if($.inArray(el, rowIds) !== -1){
+                  var index = selectedReceivedPaymentIds.indexOf(el);
+                  if (index > -1) {
+                    ReceivedSubtractAmount(el);
+                    return false;
+                  }
+                }
+                return true;
+              });
+              $('#ReceivedTableSelectAll').prop("checked",false);
+              el.indeterminate = false;
+            }else{
+              var exitGrep = false;
+              rows = $.grep(rows, function (el, i) {
+                if(selectedReceivedPaymentIds.length > ReceivedSelectLimit - 1){
+                  exitGrep = true;
+                  return false;
+                }else{
+                  if ($.inArray(el.id, selectedReceivedPaymentIds) !== -1) {
+                    selectedReceivedPaymentIds.splice(selectedReceivedPaymentIds.indexOf(el.id), 1);
+                    ReceivedSubtractAmount(el);
+                    return false;
+                  }
+                  selectedReceivedPaymentIds.push(el.id);
+                  ReceivedAddAmount(el.id);
+
+                  return true;
+                }
+              });
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+              $('input[type="checkbox"]', rows).prop('checked', el.checked);
+              $(rows).toggleClass('selected');
+              if(exitGrep){
+                var AnyChecked = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+                $('#ReceivedTableSelectAll').prop("checked",AnyChecked);
+                el.indeterminate = AnyChecked;
+                showLimitError();
+              }
+            }
+            ReceivedTotalRows();
+          });
+
+          // Handle click on checkbox to set state of "Select all" control
+          // $('#notreceivedTable tbody').on('click', 'input[type="checkbox"]', function(e){
+          $('#receivedTable').on('click', 'tbody tr input[type="checkbox"]', function(e){
+            var $row = $(this).closest("tr");
+            if(selectedReceivedPaymentIds.length > ReceivedSelectLimit - 1){
+              if($row.hasClass('selected')){
+                $row.toggleClass('selected');
+                var index = selectedReceivedPaymentIds.indexOf($row[0].id);
+                if (index > -1) {
+                  selectedReceivedPaymentIds.splice(index, 1);
+                  ReceivedSubtractAmount($row[0].id);
+                }
+                ReceivedTotalRows();
+                // recalculateSum();
+              }else{
+                $(this).prop('checked', false);
+                showLimitError();
+              }
+
+            }else{
+              // toggle checkbox
+              // $('input[type="checkbox"]', this).prop('checked', this.checked);
+              // toggle class
+              $row.toggleClass('selected');
+              // handle selected array
+              if($row.hasClass('selected')){
+                selectedReceivedPaymentIds.push($row[0].id);
+                ReceivedAddAmount($row[0].id);
+              }else{
+                var index = selectedReceivedPaymentIds.indexOf($row[0].id);
+                if (index > -1) {
+                  selectedReceivedPaymentIds.splice(index, 1);
+                  ReceivedSubtractAmount($row[0].id);
+                }
+              }
+              // toggle indeterminate
+              var rows = receivedTable.rows({ page: 'current' }).nodes();
+              var el = $('#ReceivedTableSelectAll').get(0);
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+              ReceivedTotalRows();
+            }
+          });
+
+          /**
+           *
+           * RECEIVED CHECKBOX HELPERS
+           *
+           */
+
+          function ReceivedSubtractAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            ReceivedCount--;
+            ReceivedSum = math.subtract(ReceivedSum, scopeAmount);
+          }
+
+          function ReceivedAddAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            ReceivedCount++;
+            ReceivedSum = math.add(ReceivedSum, scopeAmount);
+          }
+
+          function ReceivedTotalRows() {
+              if( ReceivedCount == 1 ){
+                  $('#totalReceivedSelected').html('<span class="slds-text-heading--medium">' + ReceivedCount + '</span> row selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(ReceivedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else if( ReceivedCount > 1 ){
+                  $('#totalReceivedSelected').html('<span class="slds-text-heading--medium">' + ReceivedCount + '</span> rows selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(ReceivedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else{
+                  $('#totalReceivedSelected').html('');
+              }
+          }
+
+          /**
+           *
+           * ToBeRefunded CHECKBOX FUNCTIONS
+           *
+           */
+          $('#ToBeRefundedTableSelectAll').on('change', function(){
+            var el = $('#ToBeRefundedTableSelectAll').get(0);
+            var rows = ToBeRefundedTable.rows({ page: 'current' }).nodes();
+            var rowIds = ToBeRefundedTable.rows({ page: 'current' }).ids();
+
+            el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+            // if indeterminate true, remove id from selected array
+            if(el.indeterminate){
+              $('input[type="checkbox"]', rows).prop('checked', false);
+              $(rows).removeClass('selected');
+              // http://stackoverflow.com/questions/4869292/remove-itemi-from-jquery-each-loop
+              selectedToBeRefundedPaymentIds = $.grep(selectedToBeRefundedPaymentIds, function (el, i) {
+                if($.inArray(el, rowIds) !== -1){
+                  var index = selectedToBeRefundedPaymentIds.indexOf(el);
+                  if (index > -1) {
+                    ToBeRefundedSubtractAmount(el);
+                    return false;
+                  }
+                }
+                return true;
+              });
+              $('#ToBeRefundedTableSelectAll').prop("checked",false);
+              el.indeterminate = false;
+            }else{
+              var exitGrep = false;
+              rows = $.grep(rows, function (el, i) {
+                if(selectedToBeRefundedPaymentIds.length > ToBeRefundedSelectLimit - 1){
+                  exitGrep = true;
+                  return false;
+                }else{
+                  if ($.inArray(el.id, selectedToBeRefundedPaymentIds) !== -1) {
+                    selectedToBeRefundedPaymentIds.splice(selectedToBeRefundedPaymentIds.indexOf(el.id), 1);
+                    ToBeRefundedSubtractAmount(el);
+                    return false;
+                  }
+                  selectedToBeRefundedPaymentIds.push(el.id);
+                  ToBeRefundedAddAmount(el.id);
+
+                  return true;
+                }
+              });
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+              $('input[type="checkbox"]', rows).prop('checked', el.checked);
+              $(rows).toggleClass('selected');
+              if(exitGrep){
+                var AnyChecked = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true;
+                $('#ToBeRefundedTableSelectAll').prop("checked",AnyChecked);
+                el.indeterminate = AnyChecked;
+                showLimitError();
+              }
+            }
+            ToBeRefundedTotalRows();
+          });
+
+          // Handle click on checkbox to set state of "Select all" control
+          // $('#notToBeRefundedTable tbody').on('click', 'input[type="checkbox"]', function(e){
+          $('#ToBeRefundedTable').on('click', 'tbody tr input[type="checkbox"]', function(e){
+            var $row = $(this).closest("tr");
+            if(selectedToBeRefundedPaymentIds.length > ToBeRefundedSelectLimit - 1){
+              if($row.hasClass('selected')){
+                $row.toggleClass('selected');
+                var index = selectedToBeRefundedPaymentIds.indexOf($row[0].id);
+                if (index > -1) {
+                  selectedToBeRefundedPaymentIds.splice(index, 1);
+                  ToBeRefundedSubtractAmount($row[0].id);
+                }
+                ToBeRefundedTotalRows();
+                // recalculateSum();
+              }else{
+                $(this).prop('checked', false);
+                showLimitError();
+              }
+
+            }else{
+              // toggle checkbox
+              // $('input[type="checkbox"]', this).prop('checked', this.checked);
+              // toggle class
+              $row.toggleClass('selected');
+              // handle selected array
+              if($row.hasClass('selected')){
+                selectedToBeRefundedPaymentIds.push($row[0].id);
+                ToBeRefundedAddAmount($row[0].id);
+              }else{
+                var index = selectedToBeRefundedPaymentIds.indexOf($row[0].id);
+                if (index > -1) {
+                  selectedToBeRefundedPaymentIds.splice(index, 1);
+                  ToBeRefundedSubtractAmount($row[0].id);
+                }
+              }
+              // toggle indeterminate
+              var rows = ToBeRefundedTable.rows({ page: 'current' }).nodes();
+              var el = $('#ToBeRefundedTableSelectAll').get(0);
+              el.indeterminate = $('input[type="checkbox"]:checked', rows).length == 0 ? false : true ;
+              ToBeRefundedTotalRows();
+            }
+          });
+
+          /**
+           *
+           * ToBeRefunded CHECKBOX HELPERS
+           *
+           */
+
+          function ToBeRefundedSubtractAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            ToBeRefundedCount--;
+            ToBeRefundedSum = math.subtract(ToBeRefundedSum, scopeAmount);
+          }
+
+          function ToBeRefundedAddAmount(rowId){
+            var scopeAmount = ParseAmount(rowId);
+            ToBeRefundedCount++;
+            ToBeRefundedSum = math.add(ToBeRefundedSum, scopeAmount);
+          }
+
+          function ToBeRefundedTotalRows() {
+              if( ToBeRefundedCount == 1 ){
+                  $('#totalToBeRefundedSelected').html('<span class="slds-text-heading--medium">' + ToBeRefundedCount + '</span> row selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(ToBeRefundedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else if( ToBeRefundedCount > 1 ){
+                  $('#totalToBeRefundedSelected').html('<span class="slds-text-heading--medium">' + ToBeRefundedCount + '</span> rows selected <span style="font-size: 22px;">|</span> Total <span class="slds-text-heading--medium">£' + math.format(ToBeRefundedSum, {notation: 'fixed', precision: 2}).toLocaleString() + '</span>' );
+              }else{
+                  $('#totalToBeRefundedSelected').html('');
+              }
+          }
+
+
+/*
+              ####    ##   #    #  ####  ###### #    # # ###### #    #
+             #    #  #  #  #    # #      #      #    # # #      #    #
+             #      #    # #    #  ####  #####  #    # # #####  #    #
+             #      ###### #    #      # #      #    # # #      # ## #
+             #    # #    # #    # #    # #       #  #  # #      ##  ##
+              ####  #    #  ####   ####  ######   ##   # ###### #    #
+
+                Causeview: Gift Aid Interface
+                Author: Alexander Yhap
+                Last Modified: 07/03/2017
+*/
+            checkbox_cell_template = Handlebars.compile( $('#CheckboxCellTemplate').html() );
+            function getNamespacePrefix(row, value){
+              if(NamespacePrefix != ''){
+                return eval(value);
+              }else{
+                return eval(value);
+              }
+            }
+            // init datatables
+            var indeterminateCheck = false;
+            function initDatatable(){
+                //https://datatables.net/reference/option/ajax.dataSrc
+                notClaimedTable = $('[id$="notClaimedTable"]').DataTable( {
+                  "ajax": "/apex/" + NamespacePrefix + "DataTableHelper?core.apexpages.devmode.url=0&q={!tbcQuery}",
+                  "order": [[ 3, 'desc' ]],
+                  dom:
+                  "<'row'<'col-xs-4 text-left slds-m-bottom--medium'B><'#totalSelected.col-xs-8 text-left slds-m-vertical--x-small slds-text-heading--small'>>" +
+                  "<'row'<'clearfix'>>" +
+                  "<'row'<'col-xs-6 text-left'l><'col-xs-6 text-right'p>>" +
+                  // "<'row'<'col-xs-3 text-left'l><'col-xs-3 text-left'B><'#totalSelected.col-xs-3 text-leftslds-text-heading--small'><'col-xs-3 text-right'p>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                  columnDefs: [{
+                      orderable: false,
+                      targets:   0
+                  }],
+                  rowId: 'Id',
+                  "columns":[
+                    {
+                      "visible": true,
+                      "className": 'centerAlign',
+                      "render": function(data, type, row, meta){
+                        return $("<input />",{
+                          "id":row.Id,
+                          "value":row.Id,
+                          "class": 'select',
+                          "type":"checkbox"
+                        }).prop('outerHTML')
+                      }
+                    },
+                    {
+                      "data":"Name",
+                      "render": function(data, type, row, meta){
+                          return $("<a />",{
+                              "id":row.Id,
+                              "href":"/"+row.Id,
+                              "target": "_blank",
+                              "text":row.Name
+                          }).prop('outerHTML')
+                      }
+                    },{
+                      "data": NamespacePrefix+"Donation__r."+NamespacePrefix+"Constituent__r.FirstName",
+                      "render": function(data, type, row, meta){
+                        if(data == null || data == '') {
+                          return '';
+                        }return $("<a />",{
+                          "href":"/"+row.Id,
+                          "target": "_blank",
+                          "text": function (){
+                            return eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'FirstName')
+                              + " " + eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'LastName');
+                          }
+                        }).prop('outerHTML')
+                      }
+                    },{
+                      "data":NamespacePrefix+"Date__c",
+                      "render": function(data, type, row, meta){
+                        if(data == null || data == '') {
+                            return '';
+                        }
+                        return formatUkDate(data);
+                      }
+                    },{
+                      "className": 'amount',
+                      "data":NamespacePrefix+"Gift_Aid_Amount__c",
+                      "render": function(data, type, row, meta){
+                        if(data == null || data == '') {
+                            return '';
+                        }
+                        return '£'+parseFloat(data).toFixed(2)
+                      }
+                    },{
+                      "data":NamespacePrefix+"Gift_Aid_Claim_Status__c",
+                      "render": function(data, type, row, meta){
+                        if(data == null || data == '') {
+                            return '';
+                        }return data
+                      }
+                    },{
+                      "data":NamespacePrefix+"Gift_Aid_Declaration__r.Name",
+                      "render": function(data, type, row, meta){
+                        if(data == null || data == '') {
+                            return '';
+                        }return $("<a />",{
+                          // "href":"/"+row.Gift_Aid_Declaration__c,
+                          "href":"/"+eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__c'),
+                          "target": "_blank",
+                          "text":eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__r.Name')
+                        }).prop('outerHTML')
+                      }
+                    }
+                  ],
+                  "rowCallback": function( row, data, index ) {
+                    // get header checkbox
+                    var el = $('#NotClaimedTableSelectAll').get(0);
+                    el.indeterminate = indeterminateCheck;
+                    $('#NotClaimedTableSelectAll').prop("checked",indeterminateCheck);
+                    // if id in selected array
+                        if ( $.inArray(data.Id, selectedNotClaimedPaymentIds) !== -1 ) {
+                      indeterminateCheck = true;
+                      // header checbox indeterminate
+                      el.indeterminate = indeterminateCheck;
+                      $('#NotClaimedTableSelectAll').prop("checked",indeterminateCheck);
+                      $('input[type="checkbox"]', row).prop('checked', indeterminateCheck);
+                      var $row = $('input[type="checkbox"]', row).closest("tr");
+                      $row.toggleClass('selected');
+                                }
+                            },
+                  buttons: [
+                    {
+                      extend: 'csv',
+                      text: 'Claim Payments',
+                      exportOptions: {
+                          modifier: {
+                              search: 'none',
+                              selected: true
+                          }
+                      },
+                      action: function ( e, dt, button, config ) {
+                          // export data into a JSON file to send to controller & save to documents
+                          // var data = dt.buttons.exportData();
+                          // var jsonData = JSON.stringify( data );
+                          if(selectedNotClaimedPaymentIds.length > 0){
+                              swal({
+                                title: 'Are you sure?',
+                                html: '<p>You are about to generate a claim file containing the selected payments. These payments will be marked as <div class="slds"><span class="slds-badge">Claimed Not Received</span></div></p>',
+                                type: 'question',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes'
+                              }).then(function() {
+                                  $('#LightningLoading').show();
+                                  processGiftAid(e, dt, button, config);
+                              })
+                          }else{
+                              swal(
+                                'No Gifts Selected',
+                                'please select gifts first and try again',
+                                'warning'
+                              );
+                          }
+                      } // end action
+                    } // end process selected
+                  ]
+                } );
+                // on order
+                notClaimedTable.on( 'order.dt', function () {
+                  indeterminateCheck = false;
+                } );
+                // on page
+                notClaimedTable.on( 'page.dt', function () {
+                  indeterminateCheck = false;
+                });
+                // BUG: on length change select all checkbox doesn't Evaluate
+                // notClaimedTable.on( 'length.dt', function () {
+                //   // toggle indeterminate
+                //   var rowIds = notClaimedTable.rows({ page: 'current' }).nodes();
+                //   $.each( rowIds, function( key, value ) {
+                //   });
+                // });
+
+                notClaimedTable.on( 'length.dt', function ( e, settings, len ) {
+                } );
+
+
+                claimedTable = $('[id$="claimedTable"]').DataTable( {
+                  "ajax": "/apex/" + NamespacePrefix + "DataTableHelper?core.apexpages.devmode.url=0&q={!cnrQuery}",
+                  "order": [[ 1, 'desc' ]],
+                  columnDefs: [{
+                      orderable: false,
+                      targets:   0
+                  }],
+                  rowId: 'Id',
+                  dom:
+                  "<'row'<'col-xs-4 text-left slds-m-bottom--medium'B><'#totalClaimSelected.col-xs-8 text-left slds-m-vertical--x-small slds-text-heading--small'>>" +
+                  "<'row'<'clearfix'>>" +
+                  "<'row'<'col-xs-6 text-left'l><'col-xs-6 text-right'p>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                  // "drawCallback": function ( settings ) {
+                  //     var api = this.api();
+                  //     var rows = api.rows( {page:'current'} ).nodes();
+                  //     var last=null;
+                  //
+                  //     api.column(1, {page:'current'} ).data().each( function ( group, i ) {
+                  //         if ( last !== group ) {
+                  //             $(rows).eq( i ).before(
+                  //                 '<tr class="group"><td colspan="7"><input id="'+group+'" type="checkbox" /> Claim Reference Number: '+group+'</td></tr>'
+                  //             );
+                  //
+                  //             last = group;
+                  //         }
+                  //     } );
+                  // },
+                  "columns":[
+                    {
+                        "visible": true,
+                        "className": 'centerAlign',
+                        "render": function(data, type, row, meta){
+                            return $("<input />",{
+                                "id":row.Id,
+                                "value":row.Id,
+                                "class": 'select',
+                                "type":"checkbox"
+                            }).prop('outerHTML')
+                        }
+                    },
+                      {
+                          "data":NamespacePrefix+"Claim_Reference_Number__c",
+                          "type": "numeric-empty-bottom",
+                          "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return data
+                          }
+                          ,"defaultContent": "<i>Not Set</i>",
+                      },{
+                          // "title":"Payment",
+                          "data":"Name",
+                          "render": function(data, type, row, meta){
+                              return $("<a />",{
+                                  "id":row.Id,
+                                  "href":"/"+row.Id,
+                                  "target": "_blank",
+                                  "text":row.Name
+                              }).prop('outerHTML')
+                          }
+                      },{
+                          // "title":"Donor",
+                          "data":NamespacePrefix+"Donation__r."+NamespacePrefix+"Constituent__r.FirstName",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }return $("<a />",{
+                                "href":"/"+row.Id,
+                                "target": "_blank",
+                                "text": function (){
+                                  return eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'FirstName')
+                                    + " " + eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'LastName');
+                                }
+                            }).prop('outerHTML')
+                          }
+                      },{
+                          // "title":"Claim Date",
+                          "data":NamespacePrefix+"Gift_Aid_Claim_Date__c",
+                          "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return formatUkDate(data);
+                          }
+                      },{
+                          // "title":"Gift Aid Amount",
+                          "className": 'amount',
+                          "data":NamespacePrefix+"Gift_Aid_Amount__c",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }
+                            return '£'+parseFloat(data).toFixed(2)
+                          }
+                      },{
+                          // "title":"Gift-Aid Claim Status",
+                          "data":NamespacePrefix+"Gift_Aid_Claim_Status__c",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }return data
+                          }
+                      },{
+                          // "title":"Gift Aid Declaration",
+                          "data":NamespacePrefix+"Gift_Aid_Declaration__r.Name",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }return $("<a />",{
+                              // "href":"/"+row.Gift_Aid_Declaration__c,
+                              "href":"/"+eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__c'),
+                              "target": "_blank",
+                              "text":eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__r.Name')
+                            }).prop('outerHTML')
+                          }
+                      }
+
+                  ],
+                  "rowCallback": function( row, data, index ) {
+                    // get header checkbox
+                    var el = $('#ClaimedTableSelectAll').get(0);
+
+                    el.indeterminate = indeterminateCheck;
+                    $('#ClaimedTableSelectAll').prop("checked",indeterminateCheck);
+                    // if id in selected array
+                        if ( $.inArray(data.Id, selectedClaimedPaymentIds) !== -1 ) {
+                      indeterminateCheck = true;
+                      // header checbox indeterminate
+                      el.indeterminate = indeterminateCheck;
+                      $('#ClaimedTableSelectAll').prop("checked",indeterminateCheck);
+                      $('input[type="checkbox"]', row).prop('checked', indeterminateCheck);
+                      var $row = $('input[type="checkbox"]', row).closest("tr");
+                      $row.toggleClass('selected');
+                                }
+                            },
+                  buttons: [
+                      {
+                          text: 'Mark as Received',
+                          exportOptions: {
+                              modifier: {
+                                  search: 'none',
+                                  selected: true
+                              }
+                          },
+                          action: function ( e, dt, button, config ) {
+                              if(selectedClaimedPaymentIds.length > 0){
+                                  swal({
+                                    title: 'Are you sure?',
+                                    html: '<p>You are about to mark these payments as <div class="slds"><span class="slds-badge">Received</span></div></p>',
+                                    type: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes'
+                                  }).then(function() {
+                                    $('#LightningLoading').show();
+                                    updateClaimed(selectedClaimedPaymentIds, 'received');
+                                  })
+                              }else{
+                                  swal(
+                                    'No Gifts Selected',
+                                    'please select gifts first and try again',
+                                    'warning'
+                                  );
+                              }
+                          }
+                      },
+                      {
+                          text: 'Mark as Rejected',
+                          exportOptions: {
+                              modifier: {
+                                  search: 'none',
+                                  selected: true
+                              }
+                          },
+                          action: function ( e, dt, button, config ) {
+                              if(selectedClaimedPaymentIds.length > 0){
+                                  swal({
+                                    title: 'Are you sure?',
+                                    html: '<p>You are about to mark these payments as <div class="slds"><span class="slds-badge">Rejected</span></div></p>',
+                                    type: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes'
+                                  }).then(function() {
+                                    $('#LightningLoading').show();
+                                    updateClaimed(selectedClaimedPaymentIds, 'rejected');
+                                  })
+                              }else{
+                                  swal(
+                                    'No Gifts Selected',
+                                    'please select gifts first and try again',
+                                    'warning'
+                                  );
+                              }
+                          }
+                      }
+                  ]
+                } );
+                // on order
+                claimedTable.on( 'order.dt', function () {
+                  indeterminateCheck = false;
+                } );
+                // on page
+                claimedTable.on( 'page.dt', function () {
+                  indeterminateCheck = false;
+                });
+
+
+                receivedTable = $('[id$="receivedTable"]').DataTable( {
+                    "ajax": "/apex/" + NamespacePrefix + "DataTableHelper?core.apexpages.devmode.url=0&q={!recQuery}",
+                    "order": [[ 1, 'desc' ]],
+                    columnDefs: [{
+                      orderable: false,
+                      targets:   0
+                    }],
+                    rowId: 'Id',
+                    dom:
+                    "<'row'<'col-xs-4 text-left slds-m-bottom--medium'B><'#totalReceivedSelected.col-xs-8 text-left slds-m-vertical--x-small slds-text-heading--small'>>" +
+                    "<'row'<'clearfix'>>" +
+                    "<'row'<'col-xs-6 text-left'l><'col-xs-6 text-right'p>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                    "rowCallback": function( row, data, index ) {
+                      // get header checkbox
+                      var el = $('#ReceivedTableSelectAll').get(0);
+
+                      el.indeterminate = indeterminateCheck;
+                      $('#ReceivedTableSelectAll').prop("checked",indeterminateCheck);
+                      // if id in selected array
+                        if ( $.inArray(data.Id, selectedReceivedPaymentIds) !== -1 ) {
+                        indeterminateCheck = true;
+                        // header checbox indeterminate
+                        el.indeterminate = indeterminateCheck;
+                        $('#ReceivedTableSelectAll').prop("checked",indeterminateCheck);
+                        $('input[type="checkbox"]', row).prop('checked', indeterminateCheck);
+                        var $row = $('input[type="checkbox"]', row).closest("tr");
+                        $row.toggleClass('selected');
+                                }
+                            },
+                    "columns":[
+                      {
+                          "visible": true,
+                          "className": 'centerAlign',
+                          "render": function(data, type, row, meta){
+                              return $("<input />",{
+                                  "id":row.Id,
+                                  "value":row.Id,
+                                  "class": 'select',
+                                  "type":"checkbox"
+                              }).prop('outerHTML')
+                          }
+                      },
+                        {
+                          "data":NamespacePrefix+"Claim_Reference_Number__c",
+                          "type": "numeric-empty-bottom",
+                          "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return data
+                          }
+                          ,"defaultContent": "<i>Not Set</i>",
+                        },{
+                            "data":"Name",
+                            "render": function(data, type, row, meta){
+                                return $("<a />",{
+                                    "id":row.Id,
+                                    "href":"/"+row.Id,
+                                    "target": "_blank",
+                                    "text":row.Name
+                                }).prop('outerHTML')
+                            }
+                        },{
+                            "data":NamespacePrefix+"Donation__r."+NamespacePrefix+"Constituent__r.FirstName",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return $("<a />",{
+                                  "href":"/"+row.Id,
+                                  "target": "_blank",
+                                  "text": function (){
+                                    return eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'FirstName')
+                                      + " " + eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'LastName');
+                                  }
+                              }).prop('outerHTML')
+                            }
+                        },{
+                            "data":NamespacePrefix+"Gift_Aid_Received_Date__c",
+                            "render": function(data, type, row, meta){
+                                if(data == null || data == '') {
+                                    return '';
+                                }
+                                return formatUkDate(data);
+                            }
+                        },{
+                            "className": 'amount',
+                            "data":NamespacePrefix+"Gift_Aid_Amount__c",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return '£'+parseFloat(data).toFixed(2)
+                            }
+                        },{
+                            "data":NamespacePrefix+"Gift_Aid_Claim_Status__c",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return data
+                            }
+                        },{
+                            "data":NamespacePrefix+"Gift_Aid_Declaration__r.Name",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return $("<a />",{
+                                // "href":"/"+row.Gift_Aid_Declaration__c,
+                                "href":"/"+eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__c'),
+                                "target": "_blank",
+                                "text":eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__r.Name')
+                              }).prop('outerHTML')
+                            }
+                        }
+                    ],
+                    buttons: [
+                        {
+                            text: 'Mark as To Be Refunded',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'none',
+                                    selected: true
+                                }
+                            },
+                            action: function ( e, dt, button, config ) {
+                                if(selectedReceivedPaymentIds.length > 0){
+                                    swal({
+                                      title: 'Are you sure?',
+                                      html: '<p>You are about to mark these payments as <div class="slds"><span class="slds-badge">To Be Refunded</span></div></p>',
+                                      type: 'question',
+                                      showCancelButton: true,
+                                      confirmButtonText: 'Yes'
+                                    }).then(function() {
+                                        $('#LightningLoading').show();
+                                        updateClaimed(selectedReceivedPaymentIds, 'to be refunded');
+                                    })
+                                }else{
+                                    swal(
+                                      'No Gifts Selected',
+                                      'please select gifts first and try again',
+                                      'warning'
+                                    );
+                                }
+                            }
+                        }
+                    ]
+                } );
+                // on order
+                receivedTable.on( 'order.dt', function () {
+                  indeterminateCheck = false;
+                } );
+                // on page
+                receivedTable.on( 'page.dt', function () {
+                  indeterminateCheck = false;
+                });
+
+
+                rejectedTable = $('[id$="rejectedTable"]').DataTable( {
+                    "ajax": "/apex/" + NamespacePrefix + "DataTableHelper?core.apexpages.devmode.url=0&q={!rejQuery}",
+                    "order": [[ 0, 'desc' ]],
+                    dom:
+                    "<'row'<'col-xs-6 text-left'l><'col-xs-6 text-right'p>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                    "columns":[
+                        {
+                            "title":"Claim Reference Number",
+                            "data":NamespacePrefix+"Claim_Reference_Number__c",
+                            "render": function(data, type, row, meta){
+                                if(data == null || data == '') {
+                                    return '';
+                                }
+                                return data;
+                            }
+                        },{
+                            "title":"Payment",
+                            "data":"Name",
+                            "render": function(data, type, row, meta){
+                                return $("<a />",{
+                                    "id":row.Id,
+                                    "href":"/"+row.Id,
+                                    "target": "_blank",
+                                    "text":row.Name
+                                }).prop('outerHTML')
+                            }
+                        },{
+                            "title":"Donor",
+                            "data":NamespacePrefix+"Donation__r."+NamespacePrefix+"Constituent__r.FirstName",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return $("<a />",{
+                                  "href":"/"+row.Id,
+                                  "target": "_blank",
+                                  "text": function (){
+                                    return eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'FirstName')
+                                      + " " + eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'LastName');
+                                  }
+                              }).prop('outerHTML')
+                            }
+                        },{
+                            "title":"Rejected Date",
+                            "data":NamespacePrefix+"Gift_Aid_Rejected_Date__c",
+                            "render": function(data, type, row, meta){
+                                if(data == null || data == '') {
+                                    return '';
+                                }
+                                return formatUkDate(data);
+                            }
+                        },{
+                            "title":"Gift Aid Amount",
+                            "data":NamespacePrefix+"Gift_Aid_Amount__c",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return '£'+parseFloat(data).toFixed(2)
+                            }
+                        },{
+                            "title":"Gift Aid Claim Status",
+                            "data":NamespacePrefix+"Gift_Aid_Claim_Status__c"
+                        },{
+                            "title":"Gift Aid Declaration",
+                            "data":NamespacePrefix+"Gift_Aid_Declaration__r.Name",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return $("<a />",{
+                                // "href":"/"+row.Gift_Aid_Declaration__c,
+                                "href":"/"+eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__c'),
+                                "target": "_blank",
+                                "text":eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__r.Name')
+                              }).prop('outerHTML')
+                            }
+                        }
+                    ]
+                } );
+
+                ToBeRefundedTable = $('[id$="ToBeRefundedTable"]').DataTable( {
+                    "ajax": "/apex/" + NamespacePrefix + "DataTableHelper?core.apexpages.devmode.url=0&q={!tbrQuery}",
+                    "order": [[ 1, 'desc' ]],
+                    rowId: 'Id',
+                    dom:
+                    "<'row'<'col-xs-4 text-left slds-m-bottom--medium'B><'#totalToBeRefundedSelected.col-xs-8 text-left slds-m-vertical--x-small slds-text-heading--small'>>" +
+                    "<'row'<'clearfix'>>" +
+                    "<'row'<'col-xs-6 text-left'l><'col-xs-6 text-right'p>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                    columnDefs: [{
+                      orderable: false,
+                      targets:   0
+                    }],
+                    "rowCallback": function( row, data, index ) {
+                      // get header checkbox
+                      var el = $('#ToBeRefundedTableSelectAll').get(0);
+
+                      el.indeterminate = indeterminateCheck;
+                      $('#ToBeRefundedTableSelectAll').prop("checked",indeterminateCheck);
+                      // if id in selected array
+                        if ( $.inArray(data.Id, selectedToBeRefundedPaymentIds) !== -1 ) {
+                        indeterminateCheck = true;
+                        // header checbox indeterminate
+                        el.indeterminate = indeterminateCheck;
+                        $('#ToBeRefundedTableSelectAll').prop("checked",indeterminateCheck);
+                        $('input[type="checkbox"]', row).prop('checked', indeterminateCheck);
+                        var $row = $('input[type="checkbox"]', row).closest("tr");
+                        $row.toggleClass('selected');
+                                }
+                            },
+                    "columns":[
+                      {
+                          "visible": true,
+                          "className": 'centerAlign',
+                          "render": function(data, type, row, meta){
+                              return $("<input />",{
+                                  "id":row.Id,
+                                  "value":row.Id,
+                                  "class": 'select',
+                                  "type":"checkbox"
+                              }).prop('outerHTML')
+                          }
+                      },
+                        {
+                            "data":NamespacePrefix+"Claim_Reference_Number__c",
+                            "render": function(data, type, row, meta){
+                                if(data == null || data == '') {
+                                    return '';
+                                }
+                                return data;
+                            }
+                        },{
+                            "data":"Name",
+                            "render": function(data, type, row, meta){
+                                return $("<a />",{
+                                    "id":row.Id,
+                                    "href":"/"+row.Id,
+                                    "target": "_blank",
+                                    "text":row.Name
+                                }).prop('outerHTML')
+                            }
+                        },{
+                            "data":NamespacePrefix+"Donation__r."+NamespacePrefix+"Constituent__r.FirstName",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return $("<a />",{
+                                  "href":"/"+row.Id,
+                                  "target": "_blank",
+                                  "text": function (){
+                                    return eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'FirstName')
+                                      + " " + eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'LastName');
+                                  }
+                              }).prop('outerHTML')
+                            }
+                        },{
+                          "data":NamespacePrefix+"Gift_Aid_Received_Date__c",
+                          "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return formatUkDate(data);
+                          }
+                        },{
+                          "className": 'amount',
+                          "data":NamespacePrefix+"Gift_Aid_Amount__c",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }
+                            return '£'+parseFloat(data).toFixed(2)
+                          }
+                        },{
+                            "data":NamespacePrefix+"Gift_Aid_Claim_Status__c"
+                        },{
+                            "data":NamespacePrefix+"Gift_Aid_Declaration__r.Name",
+                            "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }return $("<a />",{
+                                // "href":"/"+row.Gift_Aid_Declaration__c,
+                                "href":"/"+eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__c'),
+                                "target": "_blank",
+                                "text":eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__r.Name')
+                              }).prop('outerHTML')
+                            }
+                        }
+                    ],
+                    buttons: [
+                        {
+                            text: 'Mark as Refunded',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'none',
+                                    selected: true
+                                }
+                            },
+                            action: function ( e, dt, button, config ) {
+                                if(selectedToBeRefundedPaymentIds.length > 0){
+                                    swal({
+                                      title: 'Are you sure?',
+                                      html: '<p>You are about to mark these payments as <div class="slds"><span class="slds-badge">Refunded</span></div></p>',
+                                      type: 'question',
+                                      showCancelButton: true,
+                                      confirmButtonText: 'Yes'
+                                    }).then(function() {
+                                      $('#LightningLoading').show();
+                                      updateClaimed(selectedToBeRefundedPaymentIds, 'refunded');
+                                    })
+                                }else{
+                                    swal(
+                                      'No Gifts Selected',
+                                      'please select gifts first and try again',
+                                      'warning'
+                                    );
+                                }
+                            }
+                        }
+                    ]
+                } );
+                // on order
+                ToBeRefundedTable.on( 'order.dt', function () {
+                  indeterminateCheck = false;
+                } );
+                // on page
+                ToBeRefundedTable.on( 'page.dt', function () {
+                  indeterminateCheck = false;
+                });
+
+
+                refundedTable = $('[id$="refundedTable"]').DataTable( {
+                  "ajax": "/apex/" + NamespacePrefix + "DataTableHelper?core.apexpages.devmode.url=0&q={!refQuery}",
+                  "order": [[ 0, 'desc' ]],
+                  dom:
+                  "<'row'<'col-xs-6 text-left'l><'col-xs-6 text-right'p>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                  "columns":[
+                      {
+                          "title":"Claim Reference Number",
+                          "data":NamespacePrefix+"Claim_Reference_Number__c",
+                          "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return data;
+                          }
+                      },{
+                          "title":"Payment",
+                          "data":"Name",
+                          "render": function(data, type, row, meta){
+                              return $("<a />",{
+                                  "id":row.Id,
+                                  "href":"/"+row.Id,
+                                  "target": "_blank",
+                                  "text":row.Name
+                              }).prop('outerHTML')
+                          }
+                      },{
+                          "title":"Donor",
+                          "data":NamespacePrefix+"Donation__r."+NamespacePrefix+"Constituent__r.FirstName",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }return $("<a />",{
+                                "href":"/"+row.Id,
+                                "target": "_blank",
+                                "text": function (){
+                                  return eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'FirstName')
+                                    + " " + eval('row.' + NamespacePrefix + 'Donation__r' + '.' + NamespacePrefix + 'Constituent__r' + '.' + 'LastName');
+                                }
+                            }).prop('outerHTML')
+                          }
+                      },{
+                          "title":"Refunded Date",
+                          "data":NamespacePrefix+"Gift_Aid_Refunded_Date__c",
+                          "render": function(data, type, row, meta){
+                              if(data == null || data == '') {
+                                  return '';
+                              }
+                              return formatUkDate(data);
+                          }
+                      },{
+                          "title":"Gift Aid Amount",
+                          "data":NamespacePrefix+"Gift_Aid_Amount__c",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }
+                            return '£'+parseFloat(data).toFixed(2)
+                          }
+                      },{
+                          "title":"Gift Aid Claim Status",
+                          "data":NamespacePrefix+"Gift_Aid_Claim_Status__c"
+                      },{
+                          "title":"Gift Aid Declaration",
+                          "data":NamespacePrefix+"Gift_Aid_Declaration__r.Name",
+                          "render": function(data, type, row, meta){
+                            if(data == null || data == '') {
+                                return '';
+                            }return $("<a />",{
+                              // "href":"/"+row.Gift_Aid_Declaration__c,
+                              "href":"/"+eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__c'),
+                              "target": "_blank",
+                              "text":eval('row.'+NamespacePrefix+'Gift_Aid_Declaration__r.Name')
+                            }).prop('outerHTML')
+                          }
+                      }
+                  ]
+                });
+            }
+            // set default setting for DataTables
+            function setDataTableDefaults(){
+                $.extend( true, $.fn.dataTable.defaults, {
+                    "destroy": true,
+                    "processing": true,
+                    "serverSide": true,
+                    deferRender: true,
+                    "lengthMenu": [ 10, 25, 50, 75, 100, 200, 250 ]
+                });
+            }
+
+            // REF: https://web-design-weekly.com/snippets/scroll-to-position-with-jquery/
+            // SCROLL TO POSITION
+            $.fn.scrollView = function () {
+                return this.each(function () {
+                    $('html, body').animate({
+                        scrollTop: $(this).offset().top
+                    }, 1000);
+                });
+            }
+
+            function processGiftAid(e, dt, button, config) {
+                // check if there are ids is selectedNotClaimedPaymentIds list
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.GiftAidController.UpdateNotClaimed}',
+                    selectedNotClaimedPaymentIds,
+                    function(result, event){
+                        if (event.status) {
+                            // rerender table, making sure it requeries
+                            // if ($.fn.dataTable.ext.buttons.csvHtml5.available( dt, config )) {
+                            //     $.fn.dataTable.ext.buttons.csvHtml5.action(e, dt, button, config);
+                            // }
+                            // else {
+                            //     $.fn.dataTable.ext.buttons.csvFlash.action(e, dt, button, config);
+                            // }
+                            $('#LightningLoading').hide();
+                            if (result != null) {
+                              if (result.status == 'SUCCESS') {
+                                swal({
+                                  title: 'Processing Complete',
+                                  html: 'The selected payments have been updated. Your Claim Reference number is <b>'+result.data[1]+'</b>. A copy of the claim file has been sent to your email. You may also download the file using the button below',
+                                  type: 'success',
+                                  showCancelButton: true,
+                                  confirmButtonText: 'Okay',
+                                  cancelButtonText: 'Download CSV'
+                                }).then(function () {
+                                  // window.location.reload(true);
+                                  reloadToTab('claimed');
+                                }, function (dismiss) {
+                                  // dismiss can be 'cancel', 'overlay',
+                                  // 'close', and 'timer'
+                                  if (dismiss === 'cancel') {
+                                    CreateCsvFile(result.data[0], "Claimed");
+                                    swal({
+                                      title: 'Claim Downloaded',
+                                      text: 'Click okay to continue.',
+                                      type: 'success',
+                                      confirmButtonText: 'Ok',
+                                      allowEscapeKey: false,
+                                      allowOutsideClick: false
+                                    }).then(function() {
+                                      // Reload the current page, without using the cache
+                                      reloadToTab('claimed');
+                                    })
+                                  }
+                                })
+                              } else {
+                                swal({
+                                  title: 'Error',
+                                  text: 'Error While Processing',
+                                  type: 'An unexpected error has occured while claiming. Please try again and if it continues contact support.',
+                                  confirmButtonText: 'Ok',
+                                  allowEscapeKey: false,
+                                  allowOutsideClick: false
+                                }).then(function() {
+                                  reloadToTab('not claimed');
+                                })
+                              }
+                            }else{
+                              $('#LightningLoading').hide();
+                            }
+                        } else if (event.type === 'exception') {
+                          $('#LightningLoading').hide();
+                          swal(
+                            'Error',
+                            'processGiftAid | event.type === exception | An error has occured while processing payments.',
+                            'error'
+                          );
+                        } else {
+                          $('#LightningLoading').hide();
+                        }
+                    },
+                    {escape: true}
+                );
+            }
+
+            function reloadToTab(markAs){
+              if(markAs == 'not claimed'){
+                location.search = notClaimedTab;
+              }
+              if(markAs == 'claimed'){
+                location.search = claimedTab;
+              }
+              if(markAs == 'received'){
+                location.search = receivedTab;
+              }
+              if(markAs == 'rejected'){
+                location.search = rejectedTab;
+              }
+              if(markAs == 'to be refunded'){
+                location.search = teBeRefundedTab;
+              }
+              if(markAs == 'refunded'){
+                location.search = refundedTab;
+              }
+            }
+
+            function updateClaimed(selectedPaymentIds, markAs) {
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.GiftAidController.UpdateClaimed}',
+                    selectedPaymentIds,
+                    markAs,
+                    function(result, event){
+                        if (event.status) {
+                          $('#LightningLoading').hide();
+                          if (result != null) {
+                            if (result.status == 'SUCCESS') {
+                              swal({
+                                title: 'Payments Updated',
+                                text: 'The payments you have selected have been updated to ' + markAs.capitalize(),
+                                type: 'success',
+                                showCancelButton: true,
+                                confirmButtonText: 'Okay',
+                                cancelButtonText: 'Download CSV'
+                              }).then(function () {
+                                // window.location.reload(true);
+                                reloadToTab(markAs);
+                              }, function (dismiss) {
+                                // dismiss can be 'cancel', 'overlay',
+                                // 'close', and 'timer'
+                                if (dismiss === 'cancel') {
+                                  CreateCsvFile(result.data[0], markAs.capitalize());
+                                  swal({
+                                    title: 'Claim Downloaded',
+                                    text: 'Click okay to continue.',
+                                    type: 'success',
+                                    confirmButtonText: 'Ok',
+                                    allowEscapeKey: false,
+                                    allowOutsideClick: false
+                                  }).then(function() {
+                                    // Reload the current page, without using the cache
+                                    reloadToTab(markAs);
+                                  })
+                                }
+                              })
+                            } else {
+                              swal({
+                                title: 'Error',
+                                html: result,
+                                type: 'error',
+                                confirmButtonText: 'Ok',
+                                allowEscapeKey: false,
+                                allowOutsideClick: false
+                              }).then(function() {
+                                window.location.reload(true);
+                              })
+                            }
+                          }else{
+                            $('#LightningLoading').hide();
+                            swal({
+                              title: 'Error',
+                              text: 'An error has occured while processing, please click Ok to refresh the page and try again',
+                              type: 'error',
+                              confirmButtonText: 'Ok',
+                              allowEscapeKey: false,
+                              allowOutsideClick: false
+                            }).then(function() {
+                              window.location.reload(true);
+                            })
+                          }
+                        } else if (event.type === 'exception') {
+                          $('#LightningLoading').hide();
+                          swal(
+                            'Error',
+                            'updateClaimed | event.type === exception | An error has occured, please contact support to resolve this issue.',
+                            'error'
+                          );
+                        } else {
+                          $('#LightningLoading').hide();
+                        }
+                    },
+                    {escape: true}
+                );
+            }
+
+            function formatUkDate(oldDate) {
+                return moment(oldDate).format('DD-MM-YYYY');
+            }
+
+            function showLimitError(){
+                swal(
+                  'Maximum Number of Gifts Reached',
+                  'You can only select up to a max of 1,000 gifts at a time. You must claim the selected gifts first to continue.',
+                  'warning'
+                );
+            }
+
+            var getUrlParameter = function getUrlParameter(sParam) {
+                var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : sParameterName[1];
+                    }
+                }
+            }
+
+            String.prototype.capitalize = function() {
+                return this.charAt(0).toUpperCase() + this.slice(1);
+            }
+
+            function CreateCsvFile(data, type) {
+                var encodedUri = encodeURIComponent(htmlDecode(data));
+
+                var link = document.createElement("a");
+                link.href = "data:text/csv;charset=utf8," + encodedUri;
+                link.target = "_blank";
+                link.download = "GiftAid_" + type + ".csv";
+
+                document.body.appendChild(link);
+
+                link.click();
+            }
+
+            function htmlDecode(value){
+              return $('<div/>').html(value).text();
+            }
+        </script>
+        <!-- / JAVASCRIPT -->
+    </body>
+
+    </html>
+</apex:page>

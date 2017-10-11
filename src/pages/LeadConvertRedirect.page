@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Lead" extensions="LeadConvertRedirectController" id="LeadConvertRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

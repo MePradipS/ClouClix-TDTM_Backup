@@ -1,0 +1,277 @@
+<apex:page Controller="SummaryViewController" showHeader="false" applyHtmlTag="false" applyBodyTag="false"  renderAs="pdf">
+    <html>
+        <head>
+            <style>
+                @page {
+                    margin-top: 1cm;
+                    margin-bottom:2cm;
+                    margin-left: 2cm;
+                    margin-right: 2cm;
+
+                @top-center {
+
+                }
+                @bottom-center {
+                    padding-right: 2cm;
+                    content: element(footerCenter);
+                }
+                @bottom-left {
+                    padding-left: 1cm;
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+                @bottom-right {
+                    content: element(footerRight);
+                }
+                }
+                .NoBreak {
+                    page-break-inside: avoid;
+                }
+                body {
+                    font-family: Arial Unicode MS;
+                }
+                .pbBody table.list tr.dataRow td{
+                    padding:1px;
+                }
+                .label{
+                    display: inline-block;
+                    float: left;
+                    clear: left;
+                    text-align: left;
+                    width : 30%;
+                    margin-left:10%
+                    word-wrap: break-word;
+                    margin-left : 10%;
+                    font-weight:bold;
+                    font-family: Arial, Helvetica, sans-serif;
+                }
+                .input{
+                    display: inline-block;
+                    float: left;
+                    width : 60%;
+                    word-wrap: break-word;
+                    font-family: Arial, Helvetica, sans-serif;
+                }
+                .col{
+                    border-collapse: collapse;
+                    font-family: Arial, Helvetica, sans-serif;
+                    font-size:14px;
+                }
+                .col2{
+                    font-weight:bold;
+                    font-size:14px;
+                }
+                .fontStyle{
+                    text-align: center;
+                    font-family: Arial, Helvetica, sans-serif;
+                }
+                .fontStyleList{
+                    text-align: left;
+                    font-family: Arial, Helvetica, sans-serif;
+                    font-size:14px;
+                }
+
+                .header {
+                    font-family: Arial, Helvetica, sans-serif;
+                    margin: 0;
+
+                    background-color:#baddf1;
+                    font-size: 18px;
+                    width : 100%;
+                }
+
+                .content {
+                    font-family: Arial, Helvetica, sans-serif;
+                    text-align: center;
+                    margin: 0;
+                    font-weight: normal;
+                    font-size: 14px;
+                }
+                .barColorLabel{
+                    text-align: center;
+                    width:10px;
+                    height:8px;
+                }
+                .barClrLblContnr{
+                    font-family: Arial, Helvetica, sans-serif;
+                    margin: 0;
+                    font-weight: bold;
+                    font-size: 14px;
+                    text-align: center;
+                }
+                div.footerRight{
+                    display: block;
+                    position: running(footerRight);
+                }
+                div.footerCenter{
+                    display: block;
+                    position: running(footerCenter);
+                }
+                .alignleft {
+                    float: left;
+                    width:33.33333%;
+                    text-align:left;
+                    height: 0px;
+                }
+                .aligncenter {
+                    float: left;
+                    width:33.33333%;
+                    text-align:center;
+                    height: 0px;
+                }
+                .foo {
+                      width: 15px;
+                      height: 15px;
+
+
+                }
+                #serviceBox
+                {
+                    margin: 0 auto;
+                    margin-top:3px;
+                    font-size:12px;
+                }
+                .serviceBox1, .serviceBox2, .serviceBox3, .serviceBox4 {
+                    float:left;
+                }
+                #textbox1{
+                    padding-bottom: 50px;
+                }
+            </style>
+        </head>
+        <apex:form >
+
+            <div class="footerRight">
+                <apex:outputPanel style="text-align: center;" rendered="{!myimageurl != null}" >
+                    Powered By
+                    <apex:image url="{!myimageurl}" width="90%" height="50%"/>
+                </apex:outputPanel>
+            </div>
+            <div class="footerCenter" style="text-align: center;">
+                <p>Confidential<br />For internal use only</p>
+            </div>
+            <apex:outputPanel rendered="{!if(indivOrOrgan == 'Contact',true,false)}">
+            <p class="fontStyle">
+                <div id="textbox1">
+                    <p class="alignleft">{!$Organization.Name}</p>
+                    <p class="aligncenter"><apex:outputLabel value=" Individual Summary" style="font-size:18px;font-weight:bold;"  /><br /></p>
+                </div>
+                <div style="clear: both;"></div>
+                </p>
+
+                <p class="header" style="text-align: center;">
+                    <apex:outputLabel value="{!c.Name}"   />
+                </p>
+                <p class="content">
+                    <apex:outputText value="{!c.MailingStreet}, " rendered="{!c.MailingStreet !=null}"   />
+                    <apex:outputText value="{!c.MailingCity}, " rendered="{!c.MailingCity !=null}" /><br />
+                    <apex:outputText value="{!c.MailingState}, " rendered="{!c.MailingState !=null}" />
+                    <apex:outputText value="{!c.MailingCountry}, " rendered="{!c.MailingCountry !=null}" />
+                    <apex:outputText value="{!c.MailingPostalcode}, " rendered="{!c.MailingPostalcode !=null}" /><br />
+                    <apex:outputText value="{!c.phone} {!c.Email}"  />
+                </p>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!if(indivOrOrgan == 'Account',true,false)}">
+                <p class="fontStyle">
+                    <div id="textbox2">
+                        <p class="alignleft">{!$Organization.Name}</p>
+                        <p class="aligncenter">
+                            <apex:outputLabel value=" Organization Summary" style="font-size:18px;font-weight:bold;" rendered="{!recordType != 'Household'}" />
+                            <apex:outputLabel value=" Household Summary" style="font-size:18px;font-weight:bold;" rendered="{!recordType == 'Household'}" /><br />
+                        </p>
+                </div>
+                <div style="clear: both;"></div>​
+            </p>
+            <p class="header" style="text-align: center;">
+                <apex:outputLabel value="{!a.Name}"   />
+            </p>
+            <p class="content">
+                <apex:outputText value="{!a.BillingStreet}, " rendered="{!a.BillingStreet !=null}"  />
+                <apex:outputText value="{!a.BillingCity}, " rendered="{!a.BillingCity !=null}" /><br />
+                <apex:outputText value="{!a.BillingState}, " rendered="{!a.BillingState !=null}" />
+                <apex:outputText value="{!a.BillingCountry}, " rendered="{!a.BillingCountry !=null}" />
+                <apex:outputText value="{!a.BillingPostalcode}, " rendered="{!a.BillingPostalcode !=null}" /><br />
+                <apex:outputText value="{!a.phone} {!a.Email__c}"  />
+            </p>
+        </apex:outputPanel>
+
+        <br />
+        <apex:pageBlock >
+            <p class="header">
+                <apex:outputLabel value="Giving Profile"  />
+            </p>
+            <apex:pageBlockTable value="{!givingProfWrapList}" var="gP"  width="100%"  style="border-collapse: collapse;">
+                <apex:column value="{!gP.column1Label}" width="25%" styleClass="col col2" />
+                <apex:column value="{!gP.column1Value}" width="25%"  styleClass="col"/>
+                <apex:column value="{!gP.column2Label}" width="25%"  styleClass="col col2"/>
+                <apex:column value="{!gP.column2Value}" width="25%"  styleClass="col"/>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+
+        <div  class="NoBreak">
+            <apex:outputPanel layout="none" rendered="{!hasdata1}" styleClass="fontStyle" style="">
+                <center>
+                    <p class="fontStyle" style="font-size:18px">Donation Volume Per Year</p>
+                    <apex:image url="{!googleChartBarURL}" style="margin-left: 3cm;"/>
+                </center>
+                <div id="textbox3">
+                    <p class="alignleft" style="background:white;color:white;font-size:1px">invisible Text</p><!-- for alignment-->
+                    <div id="serviceBox" class="aligncenter">
+                        <div class="foo blue serviceBox1" style="background:#6fb6ff"></div>
+                        <div class="serviceBox2">&nbsp;Total Giving&nbsp;&nbsp;&nbsp;</div>
+                        <div class="foo purple serviceBox3" style="background:#d8d8d8"></div>
+                        <div class="serviceBox4">&nbsp;Soft Credits</div>
+                    </div>
+                </div>
+                <div style="clear: both;"></div>
+
+            </apex:outputPanel>
+        </div>
+
+        <br />
+        <div  class="NoBreak">
+            <apex:pageBlock rendered="{!giftlist.size>0}" >
+                <p class="header">
+                    <apex:outputLabel value="Recent Transaction"  />
+                </p>
+                <apex:pageBlockTable value="{!giftlist}" var="g"  width="100%" styleClass="fontStyleList">
+                    <apex:column value="{!g.Gift_Date__c}" width="35%"/>
+                    <apex:column value="{!g.Amount__c}" width="35%"/>
+                    <apex:column value="{!g.Gift_Type__c}" width="35%"/>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+        </div>
+
+        <br />
+        <div  class="NoBreak">
+            <apex:pageBlock rendered="{!eventlist.size>0}">
+                <p class="header">
+                    <apex:outputLabel value="Recent Events"  />
+                </p>
+                <apex:pageBlockTable value="{!eventlist }" var="e"  width="100%" styleClass="fontStyleList">
+                    <apex:column value="{!e.name}" width="35%"/>
+                    <apex:column value="{!e.Status}" width="35%"/>
+                    <apex:column value="{!e.Event_Start_Time__c}" width="35%"/>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+        </div>
+        <br />
+        <div  class="NoBreak">
+            <apex:pageBlock rendered="{!taskactivitylist.size>0}">
+                <p class="header">
+                    <apex:outputLabel value="Activity History"  />
+                </p>
+                <apex:pageBlockTable value="{!taskactivitylist }" var="t"  width="100%" styleClass="fontStyleList">
+                    <apex:column value="{!t.Subject}" width="35%"/>
+                    <apex:column value="{!t.type}" width="35%"/>
+                    <apex:column width="35%">
+                        <apex:outputText value="{0,date,dd'/'MM'/'yyyy}" >
+                            <apex:param value="{!t.CreatedDate }"/>
+                        </apex:outputText>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+        </div>
+    </apex:form>
+</html>
+</apex:page>

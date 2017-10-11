@@ -1,0 +1,170 @@
+<apex:page controller="CustomContactLookupController"
+  title="Search" 
+  showHeader="false" 
+  sideBar="false" 
+  tabStyle="Fund__c" 
+  id="pg">
+  <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/> 
+<script type='text/javascript'>
+   /*function onClose() {                
+        var winMain = window.opener;
+        if (null == winMain) {
+            winMain = window.parent.opener;
+        }
+        winMain.closeLookupPopup('{!JSENCODE(objName)}');               
+    } */
+     function onSelect(value, ids, Fname, Lname) {
+                var winMain1 = window.opener;
+                var fName=Fname;
+                var lName=Lname;
+                if (null == winMain1) {
+                    winMain1 = window.parent.opener;
+                }
+                var elem = winMain1.document.getElementById('thePage:theForm:newcontact:thenewcontact:searchStr');
+                elem.value = value;
+                var elemFN = winMain1.document.getElementById('thePage:theForm:newcontact:thenewcontact:firstNameid');
+                elemFN.value=fName;
+                elemFN.disabled='True';
+                var elemLN = winMain1.document.getElementById('thePage:theForm:newcontact:thenewcontact:lastNameid');
+                elemLN.value=Lname;
+                elemLN.disabled='True';
+                var elemID = winMain1.document.getElementById('thePage:theForm:newcontact:thenewcontact:hiddenInputId');
+                elemID.value=ids;
+                var elemName = winMain1.document.getElementById('thePage:theForm:newcontact:thenewcontact:hiddenInputName');
+                elemName.value=value;
+                var elemBtn = winMain1.document.getElementById('thePage:theForm:newcontact:savecontactBtn');
+                elemBtn.disabled='true';
+                var winMain = window.opener;
+                if (null == winMain) {
+                    winMain = window.parent.opener;
+                }                
+                winMain.closeLookupPopup('{!JSENCODE(objName)}');
+            }
+     
+     function onSelect1(value,fundId,Fname, ltrId, lName ,Ids) {
+              
+              var winMain1 = window.opener;
+
+                if (null == winMain1) {
+                    winMain1 = window.parent.opener;
+                }
+         
+                 var elem = winMain1.document.getElementById("{!nodeId}");
+                 elem.value = value;
+                 
+                 var fundComp = '{!JSENCODE(nodeId)}'.split("alcAppeal");
+                 var fId=fundComp[0];
+                 fId+='alcFund_lkid';
+                 
+                 var elem_IDS = winMain1.document.getElementById(fId);
+                elem_IDS.value = fundId;
+                
+                var fName=fundComp[0];
+                 fName+='alcFund_lkold';
+                
+                var elem_IDS1 = winMain1.document.getElementById(fName);
+                elem_IDS1.value = Fname;
+                
+                fName=fundComp[0]+'alcFund';
+                elem_IDS1 = winMain1.document.getElementById(fName);
+                elem_IDS1.value = Fname;                
+                
+                var letterComp =winMain1.document.getElementById('thePage:theForm:theTransBlock:theTransSection:letter');
+                letterComp.value=lName;
+                
+                letterComp =winMain1.document.getElementById('thePage:theForm:theTransBlock:theTransSection:letter_lkid');
+                letterComp.value=ltrId;
+                
+                letterComp =winMain1.document.getElementById('thePage:theForm:theTransBlock:theTransSection:letter_lkold');
+                letterComp.value=lName;
+                
+                var appealname = fundComp[0] +'hiddenAppeal' ;
+                var Appealcmp = winMain1.document.getElementById(appealname); 
+                Appealcmp.value= Ids;
+                 
+                var winMain = window.opener;
+                if (null == winMain) {
+                    winMain = window.parent.opener;
+                }                
+                winMain.closeLookupPopup('{!JSENCODE(objName)}');
+     
+     }
+     
+     
+     
+     
+    </script>
+
+  <apex:form style="font-size:12px">
+  
+          <apex:actionFunction name="Search" action="{!Search}" />          
+                    
+  <apex:outputPanel id="page" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+    <apex:tabPanel switchType="client" selectedTab="name1" id="tabbedPanel" >
+ 
+      <!-- SEARCH TAB -->
+      <apex:tab label="Search" name="tab1" id="tabOne" style="font-size:12px">         
+          <apex:facet name="label">
+            <apex:outputPanel style="font-weight:bold;">Search</apex:outputPanel>
+          </apex:facet>
+         <apex:actionFunction name="Search" action="{!Search}" />
+        <apex:actionRegion >  
+
+          <!-- Contact -->
+        <apex:pageBlock id="searchResults" title="Contact Lookup" rendered="{!contactResults != null}"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" />
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!Search}" rerender="searchResults"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+             <apex:pageBlockTable value="{!contactsWrapper}" var="a" id="tblResults">
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Name</apex:outputPanel>
+                  </apex:facet>
+                   <apex:outputLink onclick="onSelect('{!JSENCODE(HTMLENCODE(a.contacts.Name))}','{!JSENCODE(HTMLENCODE(a.contacts.Id))}','{!JSENCODE(HTMLENCODE(a.contacts.FirstName))}','{!JSENCODE(HTMLENCODE(a.contacts.lastName))}');">{!a.contacts.Name}</apex:outputlink>
+                   <apex:outputText value="{!a.affiliations.Name}" rendered="{!NOT(ISNULL(a.affiliations.Id))}" />     
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Affiliation Contact Name</apex:outputPanel>
+                  </apex:facet>                   
+                   <apex:outputLink onclick="onSelect('{!JSENCODE(HTMLENCODE(a.affiliations.hed__Contact__r.Name))}','{!JSENCODE(HTMLENCODE(a.affiliations.hed__Contact__r.Id))}','{!JSENCODE(HTMLENCODE(a.affiliations.hed__Contact__r.FirstName))}','{!JSENCODE(HTMLENCODE(a.affiliations.hed__Contact__r.LastName))}');">{!a.affiliations.hed__Contact__r.Name}</apex:outputlink>     
+                </apex:column>                     
+              </apex:pageBlockTable>          </apex:outputPanel>
+        </apex:pageBlock> 
+        
+        
+         <!----Campagin -->
+         
+         <apex:pageBlock id="searchResultsCampaign" title="Campaign Lookup" rendered="{!CampaignResults != null}"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" />
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!Search}" rerender="searchResultsCampaign"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults1" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+             <apex:pageBlockTable value="{!CampaignWrapper}" var="a" id="tblResults1">
+               <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Name</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputLink onclick="onSelect1('{!JSENCODE(HTMLENCODE(a.campaigns.Name))}','{!JSENCODE(HTMLENCODE(a.campaigns.Fund__c))}','{!JSENCODE(HTMLENCODE(a.campaigns.Fund__r.Name))}', '{!JSENCODE(HTMLENCODE(a.campaigns.Letter__c))}', '{!JSENCODE(HTMLENCODE(a.campaigns.Letter__r.Name))}', '{!JSENCODE(HTMLENCODE(a.campaigns.Id))}');">{!JSENCODE(HTMLENCODE(a.campaigns.Name))}</apex:outputlink>
+               
+                </apex:column>
+              </apex:pageBlockTable>          
+              </apex:outputPanel>
+        </apex:pageBlock> 
+        </apex:actionRegion>
+      </apex:tab>
+ 
+   
+    </apex:tabPanel>
+  </apex:outputPanel>
+  </apex:form>
+</apex:page>

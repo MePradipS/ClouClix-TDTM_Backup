@@ -1,0 +1,144 @@
+<apex:page controller="CustomAccountContactLookupController"
+  title="Search" 
+  showHeader="false" 
+  sideBar="false" 
+  tabStyle="Fund__c" 
+  id="pg">
+<script type='text/javascript'>
+    function searchFund(ev)  {
+        if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+            Search();
+            return false;
+         } else {
+              return true;
+         }
+     }
+     
+     function fillIn(name, id)
+   {
+      var winMain=window.opener;
+      if (null==winMain)
+      {
+         winMain=window.parent.opener;
+      }
+      var ele=winMain.document.getElementById('{!JSENCODE($CurrentPage.parameters.idfield)}');
+      ele.value=id;
+      ele=winMain.document.getElementById('{!JSENCODE($CurrentPage.parameters.namefield)}');    //+ '_lkold'
+      ele.value=name;
+    try{
+      //Populate Lookup Field in Gift Batch Item Interface.
+      top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}',id,name, false);
+    }
+    catch(err){
+    
+    }
+      CloseWindow();
+   }
+ 
+   function CloseWindow()
+   {
+      var winMain=window.opener;
+      if (null==winMain)
+      {
+         winMain=window.parent.opener;
+      }
+      window.close();
+      winMain.closeLookupPopup();
+   }
+</script>
+
+  <apex:form style="font-size:12px">
+  <apex:outputPanel id="page" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+    <apex:tabPanel switchType="client" selectedTab="name1" id="tabbedPanel" >
+ 
+      <!-- SEARCH TAB -->
+      <apex:tab label="Search" name="tab1" id="tabOne" style="font-size:12px">         
+          <apex:facet name="label">
+            <apex:outputPanel style="font-weight:bold;">Search</apex:outputPanel>
+          </apex:facet>
+         <apex:actionFunction name="Search" action="{!searchAccountContact}" />
+        <apex:actionRegion >  
+
+      <!-- Account/Contact lookup on fullfill installment page-->
+        <apex:pageBlock id="accountSearchResults" title="Contact/Account Lookup"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" onkeypress="return searchFund(event);"/>
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!searchAccountContact}" rerender="accountSearchResults"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+              <apex:pageBlockTable value="{!accountLookupResult}" var="a" id="tblResults">
+                
+                 <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Account.fields.Organization_ID__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Organization_ID__c}"/>
+                </apex:column>
+                
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Organization Name</apex:outputPanel>
+                  </apex:facet>
+                     <apex:outputLink value="#" onclick="fillIn('{!JSENCODE(HTMLENCODE(a.AccountNumber))}', '{!a.id}')">{!a.Name}</apex:outputLink>       
+                </apex:column>
+                
+                
+                
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Account.fields.Email__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Email__c}"/>
+                </apex:column>
+                <apex:column value="{!a.Phone}"/>
+                <apex:column value="{!a.BillingCity}"/>
+                <apex:column value="{!a.BillingState}"/>
+                <apex:column value="{!a.BillingPostalCode}"/>
+                
+              </apex:pageBlockTable>
+              <apex:pageBlockTable value="{!contactLookupResults}" var="a" id="tb2Results">
+                
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Contact.fields.Constituent_ID__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Constituent_ID__c}"/>
+                </apex:column>
+                
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Individual Name</apex:outputPanel>
+                  </apex:facet>
+                    <apex:outputLink value="#" onclick="fillIn('{!JSENCODE(HTMLENCODE(a.AssistantName))}', '{!a.id}')">{!a.Name}</apex:outputLink> 
+                        
+                </apex:column>
+               
+                <apex:column value="{!a.FirstName}"/>
+                <apex:column value="{!a.LastName}"/>
+                
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Contact.fields.Email.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Email}"/>
+                </apex:column>
+                
+                <apex:column value="{!a.Phone}"/>
+                <apex:column value="{!a.MailingCity}"/>
+                <apex:column value="{!a.MailingState}"/>
+                <apex:column value="{!a.MailingPostalCode}"/>
+                
+              </apex:pageBlockTable>
+          </apex:outputPanel>
+        </apex:pageBlock> 
+
+        </apex:actionRegion>
+      </apex:tab>
+ 
+   
+    </apex:tabPanel>
+  </apex:outputPanel>
+  </apex:form>
+</apex:page>

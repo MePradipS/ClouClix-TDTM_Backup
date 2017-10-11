@@ -1,0 +1,44 @@
+<apex:component controller="BatchTransactionListController">
+    <apex:attribute name="batchId" required="true" type="string" description="" assignTo="{!batchId}" />
+    <apex:attribute name="isBatchOpen" required="true" type="boolean" description="" assignTo="{!isBatchOpen}" />
+    <apex:attribute name="editFunction" required="true" type="string" description="" />
+    <apex:attribute name="value" type="GiftBatchWrapper[]" description="" assignTo="{!giftItems}"/>
+    <apex:pageBlock title="Batch Items" id="gifts">
+        <apex:pageBlockButtons location="top">
+            <apex:selectList size="1" value="{!selectedView}">
+                <apex:selectOption itemLabel="All Gifts" itemValue="All" />
+                <apex:selectOption itemLabel="Pending Credit Card Transactions" itemValue="Pending" />
+                <apex:selectOption itemLabel="Failed Transactions" itemValue="Failed" />
+                <apex:actionSupport action="{!refreshGifts}" event="onchange" reRender="gifts" />
+            </apex:selectList>
+        </apex:pageBlockButtons>
+        <apex:outputLabel value="No records to display" rendered="{!NOT(hasGifts)}" />
+        <apex:pageBlockTable value="{!batchGifts}" var="rowItem" rendered="{!hasGifts}">
+            <apex:column headerValue="Action" rendered="{!hasGifts}"> 
+                <apex:outputPanel rendered="{!AND(rowItem.gift.Batch_Status__c != 'Committed',rowItem.gift.Batch_Status__c != 'Receipted')}">
+                   <a href="javascript:void(0);" onclick="{!JSENCODE(editFunction)}('{!JSENCODE(rowItem.gift.Id)}');" title="Edit">Edit</a>
+                </apex:outputPanel>
+            </apex:column>
+            <apex:column headerValue="Donor">
+              <apex:outputLabel value="{!rowItem.constituent.Name} ({!rowItem.constituent.Constituent_ID__c})" rendered="{!rowItem.isIndividualGift}"></apex:outputLabel>
+              <apex:outputLabel value="{!rowItem.gift.Organization__r.Name} ({!rowItem.account.Organization_ID__c})" rendered="{!NOT(rowItem.isIndividualGift)}"></apex:outputLabel>
+            </apex:column>
+            <apex:column value="{!rowItem.gift.Gift_Type__c}" />
+            <apex:column value="{!rowItem.gift.Amount__c}" />
+            <apex:column value="{!rowItem.gift.Expected_Amount__c}" />
+            
+            <apex:column headerValue="Credit Card" rendered="{!selectedView='Pending'}">
+                <apex:outputLabel value="{!rowItem.CCNumber}"></apex:outputLabel>
+            </apex:column>
+            <apex:column headerValue="Expiry Date" rendered="{!selectedView='Pending'}">
+                <apex:outputLabel value="{!rowItem.ExpirationDate}"></apex:outputLabel>
+            </apex:column>
+            
+            <apex:column value="{!rowItem.payment.Payment_Type__c}" rendered="{!selectedView='All'}"/>
+            <apex:column value="{!rowItem.gift.Batch_Status__c}" rendered="{!OR(selectedView='All',selectedView='Failed')}"/>
+            <apex:column value="{!rowItem.payment.Status__c}" headerValue="Payment Status" rendered="{!OR(selectedView='All',selectedView='Failed')}"/>
+            <apex:column value="{!rowItem.payment.StatusComment__c}" rendered="{!selectedView='Failed'}"/>
+                    
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:component>

@@ -1,0 +1,299 @@
+<apex:page standardcontroller="Recurring_Donation__c" extensions="ChargeATokenExtension" id="chargeAToken" action="{!redirect}"
+    showheader="true" standardstylesheets="false" sidebar="true" applyhtmltag="true" applybodytag="false" doctype="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <head>
+        <title>Recover Payments</title> 
+        
+        <!-- SweetAlert:http://t4t5.github.io/sweetalert/ -->
+        <apex:includescript value="{!$Resource.sweetalert113js}" />
+        
+        <apex:includescript value="{!$Resource.jQuery172}" />
+       
+        <apex:includescript value="{!URLFOR($Resource.recurringGiftManagementScripts)}" />
+        
+        <!-- jQuery & ALJS Init -->
+        <apex:includescript value="{!URLFOR($Resource.ALJS200, 'jquery.aljs-init.min.js')}"/ >
+        
+        <!-- Lightning Design System -->
+        <apex:stylesheet value="{!URLFOR($Resource.SLDS203, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        
+        <!-- Recurring Gift Management -->
+        <apex:stylesheet value="{!URLFOR($Resource.recurringGiftManagementStyle)}" />
+        
+        <!-- SweetAlert:http://t4t5.github.io/sweetalert/ -->
+        <apex:stylesheet value="{!$Resource.sweetalert113css}" />     
+        
+        <script>   
+            var success = '{!Success}';
+            var areThereDeclinedPayments = '{!AreThereDeclinedPayments}';
+            var submitComplete = false;
+            
+            j$ = jQuery.noConflict();
+            j$(document).ready(function() {
+                disableSubmitButton();
+                var isReferenceNumberIats = '{!IsReferenceNumberIats}';         
+                if (isReferenceNumberIats == 'false') {
+                    swal({
+                        title: "Note",
+                        text: "This functionality is only available with iATS Payments" +
+                        "<br /><br />Click OK to return to the recurring gift.",
+                        html: true,
+                        imageUrl: 'http://www.causeview.com/-/media/60x60.jpg'
+                    },
+                    function () {
+                        window.location.href = GetRecurringGiftUrl();
+                    });
+                } else {
+                    processSuccess();
+                }
+            }); 
+            
+            function GetRecurringGiftUrl() {
+                return '/' + '{!recurringGiftId}';
+            }    
+            
+            function GetPaymentIds() {
+                var paymentIds = [];        
+                j$(".declinedCheckboxes").each(function(k) {
+                    if (j$(this).prop("checked")) {
+                        paymentIds.push(j$(this).val());
+                    }
+                });
+                return paymentIds;
+            }
+            
+            function SubmitPayments() {
+                var paymentIds = GetPaymentIds();
+                var text = "Are you sure you want to recover ";
+                
+                if (paymentIds.length > 1) {
+                    text += paymentIds.length + " payments?";
+                } else {
+                    text += "1 payment?";
+                }  
+
+                swal({
+                      title: "Confirm Recover Payments",
+                      text: text,
+                      type: "warning",
+                      confirmButtonColor: '#66ff33',
+                      confirmButtonText: "Confirm",
+                      showLoaderOnConfirm: true,
+                      showCancelButton: true,
+                      closeOnConfirm: false,
+                      closeOnCancel: true
+                 },
+                 function (isConfirm) {
+                     if (isConfirm) { 
+                         j$('.sweet-alert p').text('Processing... please wait.');
+                         setTimeout(function () {
+                               if (!submitComplete) {
+	                               swal({
+	                                   title: "Error:",
+	                                   text: "The request has timed out, please contact your system administrator...",
+	                                   type: "error"
+	                               });
+                               }
+                         }, 120000);
+                         ChargePayments(paymentIds.toString());
+                     }
+                 });
+                 return false;
+            }
+            
+            function showErrorMessage(message) {
+                swal("Error:", message, "error");
+            }
+            
+            function enabledSubmitButton() {
+                setProperty("{!$Component.chargeAToken.chargePaymentsForm.submitButton}", "disabled", false);
+            }
+            
+            function disableSubmitButton() {
+                setProperty("{!$Component.chargeAToken.chargePaymentsForm.submitButton}", "disabled", true);
+            }
+        </script>   
+    </head>
+    <body ng-app="myApp" ng-controller="MainCtrl as main">
+        <div class="cv">
+            <div class="myapp">
+                <h2 class="slds-section-title--divider" >
+                    <div class="slds-text-heading--medium" >Recover Payments</div>
+                    <div class="slds-text-body--small" >
+                        <a href="/{!recurringGiftId}">Go back to {!recurringGiftName}</a>
+                    </div> 
+                </h2>
+                <div class="slds-container--center slds-container--medium" >                
+                    <apex:form id="chargePaymentsForm" styleclass="slds-form--stacked slds-grid slds-wrap">
+                    
+                        <apex:actionFunction action="{!ChargePayments}" name="ChargePayments" oncomplete="return processSuccess();" rerender="scriptPanel, paymentsContainer">
+                            <apex:param id="PaymentsToCharge" name="PaymentsToCharge" assignTo="{!PaymentsToCharge}" value="" />
+                        </apex:actionFunction> 
+                        
+                        <apex:outputPanel id="scriptPanel" layout="block">
+                            <script>
+                                success = '{!Success}';
+                                submitComplete = true; 
+                                
+                                j$ = jQuery.noConflict();
+                                j$(document).ready(function() {
+                                
+	                                j$("#selectAlldeclinedPayment").click(function() {					                    
+					                    var numberOfDeclinedPayments = j$(".declinedCheckboxes").length;
+					                    j$(".declinedCheckboxes").prop("checked", j$(this).prop("checked"));
+					                    if (j$(this).prop("checked") && numberOfDeclinedPayments > 0) {
+					                        enabledSubmitButton();
+					                    } else {
+					                        disableSubmitButton();
+					                    }
+					                }); 
+					                
+					                j$(".declinedCheckboxes").change(function(e) {
+					                    var checked = false;
+					                    
+					                    j$(".declinedCheckboxes").each(function(k) {
+					                        if (j$(this).prop("checked")) {
+					                            checked = true;
+					                        }
+					                    });
+					                
+					                    if (checked) {
+					                        enabledSubmitButton();
+					                    } else {
+					                        disableSubmitButton();
+					                        j$("#selectAlldeclinedPayment").removeProp("checked");
+					                    }
+					                });
+                                });
+                                
+                                function processErrors() {
+                                   var errors = new Array();
+                                   <apex:repeat value="{!errors}" var="error">
+                                       errors.push("{!error}");
+                                   </apex:repeat>
+                    
+                                   var message = "";
+                                   if (errors != null && errors.length > 0) {
+                                       for (var index = 0; index < errors.length; index++) {
+                                           message += errors[index] + "\n";
+                                       };
+                                       showErrorMessage(message);
+                                   }
+                                }
+                                
+                                function processSuccess() {                                 
+                                    if (success == 'false') {
+                                        processErrors();
+                                    } else {
+                                        var insertedPaymentsHtml = "</br>";
+                                        var numberOfPaymentsInserted = "";
+                                        
+                                        <apex:repeat value="{!PaymentsInserted}" var="payment">
+                                            insertedPaymentsHtml += "<a href='/{!payment.Id}' target='_blank'>{!payment.Name}</a></br>";
+                                            numberOfPaymentsInserted++;
+                                        </apex:repeat>
+                                        
+                                        var message = "The payment";
+                                        if (numberOfPaymentsInserted > 1) {
+                                            message += "'s"
+                                        }
+                                        message += " has been recovered.</br>";
+                                        message += insertedPaymentsHtml;
+                                        
+                                        swal({
+                                            title: "Success!",
+                                            text: message,
+                                            type: "success",
+                                            html: true
+                                        });
+                                    }
+                                    
+                                    disableSubmitButton();
+                                    return false;
+                                }
+                            </script>
+                        </apex:outputPanel>
+                            <div class="slds-col--padded slds-size--1-of-1 headerContainer" >
+                                <div class="slds-text-heading--medium">Declined Payments</div>
+                            </div>
+                            <div class="slds-col--padded slds-size--1-of-1" >
+                                <article class="slds-card">
+                                  <header class="slds-card__header slds-grid">
+                                    <div class="slds-media slds-media--left slds-has-flexi-truncate">
+                                      <div class="slds-media__figure">
+                                        <svg aria-hidden="true" class="slds-icon slds-icon-standard-contact slds-icon--small">
+                                          <use xlink:href="{!URLFOR($Resource.SLDS203, '/assets/icons/standard-sprite/svg/symbols.svg#contact')}"></use>
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </header>
+                                  <apex:outputPanel id="paymentsContainer" layout="block">
+                                      <div class="slds-card__body">
+                                        <table class="slds-table slds-table--bordered slds-no-row-hover slds-table--cell-buffer">
+                                          <thead>
+                                            <tr class="slds-text-heading--label">
+                                              <th scope="col">
+                                                <div class="slds-truncate">
+                                                    <input type="checkbox" id="selectAlldeclinedPayment"></input>                                           
+                                                </div>
+                                              </th>
+                                              <th scope="col">
+                                                <div class="slds-truncate" title="Payment No">Payment No</div>
+                                              </th>
+                                              <th scope="col">
+                                                <div class="slds-truncate" title="Payment Type">Payment Type</div>
+                                              </th>
+                                              <th scope="col">
+                                                <div class="slds-truncate" title="Payment Date">Payment Date</div>
+                                              </th>
+                                              <th scope="col">
+                                                <div class="slds-truncate" title="Amount">Amount</div>
+                                              </th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <apex:repeat value="{!DeclinedPayments}" var="payment">
+                                            <tr>
+                                              <td>
+                                                <div class="slds-truncate">
+                                                    <input type="checkbox" id="declinedPayment{!payment.Id}" value="{!payment.Id}" class="declinedCheckboxes" checked=""></input>
+                                                </div>
+                                              </td>
+                                              <td>
+                                                <div class="slds-truncate"><a href="/{!payment.Id}" target="_blank">{!payment.Name}</a></div>
+                                              </td>
+                                              <td>
+                                                <div class="slds-truncate">{!payment.Payment_Type__c}</div>
+                                              </td>
+                                              <td>
+                                                <div class="slds-truncate">
+                                                    <apex:outputText value="{0,date,short}">
+                                                        <apex:param value="{!payment.Date__c}"/>
+                                                    </apex:outputText>
+                                                </div>
+                                              </td>
+                                              <td>
+                                                <div class="slds-truncate">{!payment.Amount__c}</div>
+                                              </td>
+                                            </tr>
+                                            </apex:repeat>
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                  </apex:outputPanel>                                 
+                                </article>  
+                            </div>
+                        <div class="slds-col--padded buttonContainer slds-p-bottom--large" >
+                            <div class="slds-col--padded slds-size--1-of-1 center">
+                                <apex:commandButton value="Back" id="cancelButton" styleclass="slds-button slds-button--neutral slds-button--small slds-button--brand" action="{!Back}" />
+                                <apex:commandbutton value="Submit" id="submitButton" styleclass="slds-button slds-button--neutral slds-button--small slds-button--brand" 
+                                    onclick="return SubmitPayments();" />                     
+                            </div>
+                        </div>
+                    </apex:form>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+</apex:page>

@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Receipt__c" extensions="ReceiptVoidController" id="ReceiptVoidRedirect" showHeader="true" sidebar="true" action="{!Reload}">
+</apex:page>

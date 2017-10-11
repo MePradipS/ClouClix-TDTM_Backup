@@ -1,0 +1,42 @@
+<apex:page controller="recurringMaintController" tabStyle="Recurring_Donation__c" action="{!init}"> 
+  <apex:sectionHeader title="{!$ObjectType.Recurring_Donation__c.Label}" subtitle="{!recurringDonation.Name}"/>
+  <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.crossdomain)}"/>
+  <apex:outputPanel rendered="{!OR(wizardStep==1,wizardStep==3)}" layout="none">
+  <script>
+   $(function(){
+      var accountId = '{!URLENCODE(settings.CV_Account_Id__c)}';
+      var url = '{!URLENCODE(settings.Stock_Form_URL__c)}?callback=?';
+      var errorMessage = "Could not retrive your organization form configuration, please contact the administrator";
+      //alert(decodeURIComponent(url));
+      $.getJSON(decodeURIComponent(url), { type:"{!URLENCODE(recurringAction)}",accountId:accountId,txtype:"{!URLENCODE(recurringDonation.Type__c)}" }, function(result) {
+         if ($.isEmptyObject(result)) {
+           window.alert(errorMessage + ' Empty');
+           return;
+         }
+         if (!result.hasOwnProperty("FormId") || !result.FormId) {
+           window.alert(errorMessage + ' Could not find FormId');
+           return;
+        }
+         var src = result.Domain + '/' + result.FormUrl + "?accountid=" + accountId + "&encryptedRecurringId=" + '{!URLENCODE(recurringDonation.Encrypted_Key__c)}' + "&RecurringId=" +  '{!URLENCODE(recurringDonation.Id)}';
+         //alert(src);
+         //alert (result.Domain);
+         var frameHeight = (result.FrameHeight)? result.FrameHeight+"px":"250px";
+         $("#causeview_iframe").loadCauseViewForm({src:src, api:result.Domain, frame_height:frameHeight, applyQueryStrings:true });  
+        
+      }).error(function(xhr, ajaxOptions, thrownError)
+      {
+        alert(xhr.statusText + ' : ' + thrownError);
+      }).success(function() {  });
+      
+   });
+  </script>
+  </apex:outputPanel>
+  <apex:form >
+     <apex:pagemessages ></apex:pagemessages>
+     <apex:commandLink value="Go back to {!recurringDonation.Name}" action="{!cancel}" style="padding-bottom:10px; display:block;"/>
+     <apex:pageBlock title="Recurring:{!IF(wizardStep=1,'Update Payment Information','Cancel Recurring Gift')}" mode="edit" rendered="{!OR(wizardStep==1,wizardStep==3)}">
+        <div id="causeview_iframe" class="causeviewContainer"></div>
+     </apex:pageBlock>
+  </apex:form>
+</apex:page>
