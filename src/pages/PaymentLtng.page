@@ -1,0 +1,704 @@
+<apex:page standardController="Payment__c" extensions="Payment,RemoteQueryBuilder" sidebar="false" showHeader="true" action="{!RedirectByTheme}">
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+    <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+    <script src="{!URLFOR($Resource.aljsTest3)}"></script>
+    <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+    <head>
+        <apex:slds />
+    </head>
+
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+        <apex:form styleclass="slds-scope">
+        	<apex:actionfunction name="reRenderPaymentSection" action="{!createPaymentFieldsToRender}" status="statusId1" rerender="paymentSectionOPId" oncomplete="oncompleteCall();" />
+        	<apex:actionStatus id="statusId1" onstart="showStatus1()" onstop="hideStatus1()" />
+        	<apex:actionfunction name="addNewAllocation" action="{!newAllocation}" reRender="gifts1" status="statusId2" oncomplete="oncompleteCall();" />
+        	<apex:actionStatus id="statusId2" onstart="showStatus()" onstop="hideStatus()" />
+
+        	<apex:actionfunction name="submit" action="{!saveAll2}" reRender="page" status="statusId2" oncomplete="oncompleteCall();" />
+
+          <apex:actionfunction name="cancel" action="{!cancelAll}" reRender="page" status="statusId2" immediate="true" oncomplete="oncompleteCall();" />
+
+        	<div class="slds-page-header">
+		    	<div class="slds-grid">
+		        	<div class="slds-col slds-has-flexi-truncate">
+		          		<div class="slds-media slds-no-space slds-grow">
+		            		<div class="slds-media__figure">
+		            			<svg class="slds-icon slds-icon-standard-user" aria-hidden="true">
+	                				<use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#user"></use>
+	              				</svg>
+		            		</div>
+		            		<div class="slds-media__body">
+		              			<p class="slds-text-title--caps slds-line-height--reset"></p>
+		              			<h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" >Payment</h1>
+		            		</div>
+		       			</div>
+		       		</div>
+		   		</div>
+		    </div>
+        	<apex:outputpanel layout="block" id="page" rendered="{!not(shouldSubmit)}" styleClass="slds-box slds-theme--default slds-container fieldSetCustomCls">
+	        	<div id="reviewTheErrorOnNewGiftBatchOP" class="slds-notify_container slds-notify_container--inline" style="position: inherit;margin-bottom: 1%;display:none;">
+		            <div class="slds-notify slds-notify--alert slds-theme--error slds-theme--alert-texture slds-banner" role="alert">
+		                <span class="slds-assistive-text">Error</span>
+		                <span>
+		                    <span aria-hidden="true" class="slds-icon icon-text-email slds-icon--x-small slds-m-right--x-small">
+		                        <img src="{!$Resource.SLDS0122}/assets/icons/utility/error_60.png" style="width:2%"></img>
+		                    </span>
+		                    <label id="reviewTheErrorOnNewGiftBatchMsgLblId">Review the errors on this page.</label>
+		                </span>
+		            </div>
+		        </div>
+
+		        <apex:outputpanel rendered="{!convertOppSubmitErrorMsg != '' && convertOppSubmitErrorMsg != null}" layout="block" styleclass="slds-notify_container slds-notify_container--inline" style="position: inherit;">
+		            <apex:outputpanel layout="block" styleclass="slds-notify slds-notify--alert slds-theme--error slds-theme--alert-texture slds-banner" html-role="alert">
+		                <span class="slds-assistive-text">Error</span>
+		                <span>
+		                    <span aria-hidden="true" class="slds-icon icon-text-email slds-icon--x-small slds-m-right--x-small">
+		                        <img src="{!$Resource.SLDS0122}/assets/icons/utility/error_60.png" style="width:2%"></img>
+		                    </span>
+		                    <label id="convertOppSubmitErrorMsgLblId">{!convertOppSubmitErrorMsg}</label>
+		                </span>
+		            </apex:outputpanel>
+		        </apex:outputpanel>
+
+
+	        	<apex:outputpanel layout="block" styleClass="slds-box slds-theme--default slds-container" style="position:relative">
+	        		<div role="status" class="slds-spinner slds-spinner--medium" id="statusIndicatorDivId_1" style="display:none;z-index: 1000;">
+			  			<span class="slds-assistive-text">Loading</span>
+			  			<div class="slds-spinner__dot-a"></div>
+			  			<div class="slds-spinner__dot-b"></div>
+					</div>
+					<apex:repeat value="{!paymentFieldListOfList1}" var="paymentFieldListTemp">
+						<div class="slds-form--compound">
+							<div class="slds-form-element__group">
+								<div class="slds-form-element__row">
+									<apex:repeat value="{!paymentFieldListTemp}" var="paymentFieldItem">
+										<apex:outputpanel layout="block" styleClass="slds-form-element" rendered="true">
+	                   						<label class="slds-form-element__label" for="text-input-01">
+	                        					{!$ObjectType['Payment__c'].fields[paymentFieldItem].label}
+	                        				</label>
+	                   						<div class="slds-form-element__control slds-has-divider--bottom">
+	                                        	<span class="slds-form-element__static">
+	                                            	<apex:outputField value="{!Payment[paymentFieldItem]}"/>
+	                                         	</span>
+	                                     	</div>
+	                   					</apex:outputpanel>
+	                   					<apex:outputpanel layout="block" styleclass="slds-form-element" rendered="{!paymentFieldListTemp.size == 1}">
+                               			</apex:outputpanel>
+									</apex:repeat>
+								</div>
+							</div>
+						</div>
+					</apex:repeat>
+					<apex:outputPanel id="paymentSectionOPId">
+						<apex:repeat value="{!paymentFieldListOfList2}" var="paymentFieldListTemp">
+							<div class="slds-form--compound">
+								<div class="slds-form-element__group">
+									<div class="slds-form-element__row">
+										<apex:repeat value="{!paymentFieldListTemp}" var="paymentFieldItem">
+											<apex:outputpanel layout="block" styleClass="slds-form-element" rendered="{!(paymentFieldItem != 'Credit Card Expiry' && paymentFieldItem != 'CVV')}">
+		                   						<label class="slds-form-element__label" for="text-input-01">
+		                           					<span class="slds-required" title="required" style="display:{!IF(OR($ObjectType['Payment__c'].fields[paymentFieldItem].label == 'Transit Number',$ObjectType['Payment__c'].fields[paymentFieldItem].label == 'Description',$ObjectType['Payment__c'].fields[paymentFieldItem].label == 'Credit Card Expiry',$ObjectType['Payment__c'].fields[paymentFieldItem].label == 'CVV'),'none','')}">* </span>
+		                           					{!$ObjectType['Payment__c'].fields[paymentFieldItem].label} <!-- - {!$ObjectType['Payment__c'].fields[paymentFieldItem].type} -->
+		                           				</label>
+		                   						<div class="slds-form-element__control">
+		                                        	<apex:inputField value="{!Payment[paymentFieldItem]}" required="false" rendered="{!$ObjectType['Payment__c'].fields[paymentFieldItem].type == 'string' || $ObjectType['Payment__c'].fields[paymentFieldItem].type == 'phone' || $ObjectType['Payment__c'].fields[paymentFieldItem].type == 'currency'}" styleClass="slds-input {!IF(OR($ObjectType['Payment__c'].fields[paymentFieldItem].label == 'Transit Number',$ObjectType['Payment__c'].fields[paymentFieldItem].label == 'Description',$ObjectType['Payment__c'].fields[paymentFieldItem].label == 'Credit Card Expiry',$ObjectType['Payment__c'].fields[paymentFieldItem].label == 'CVV'),'','customRequiredFieldCls')}" />
+		                                        	<apex:inputField value="{!Payment[paymentFieldItem]}" required="false" rendered="{!$ObjectType['Payment__c'].fields[paymentFieldItem].type == 'textarea'}" styleClass="slds-textarea" />
+		                                        	<apex:outputpanel rendered="{!$ObjectType['Payment__c'].fields[paymentFieldItem].type == 'date'}">
+		                              					<div class="slds-input-has-icon slds-input-has-icon--right dateIconCls">
+												            <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+												                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+												            </svg>
+												            <apex:inputText value="{!Payment[paymentFieldItem]}" styleclass="slds-input datePickerInputCls customRequiredFieldCls" html-placeholder="Pick a Date" />
+												            <span class="datePickerOutputFieldCls" style="display:none;"><apex:outputField value="{!Payment[paymentFieldItem]}"/></span>
+												        </div>
+			                             			</apex:outputpanel>
+		                                     		<apex:outputpanel rendered="{!$ObjectType['Payment__c'].fields[paymentFieldItem].type == 'picklist'}">
+		                              					<div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 100%;">
+			                                                <div class="slds-form-element" onclick="processPicklist(this);">
+			                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+			                                                        <apex:inputText style="cursor: pointer;" value="{!Payment[paymentFieldItem]}" id="text-input-01" styleclass="slds-lookup__search-input slds-input customRequiredFieldCls" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+			                                                        <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+			                                                            <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+			                                                        </span>
+			                                                    </div>
+			                                                    <div class="requiredFieldCustomErrorMsgCls"  style="display:none;">Complete this field</div>
+			                                                </div>
+			                                                <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+			                                                    <ul id="option-list-01" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+			                                                        <apex:repeat value="{!schemaDesc[$ObjectType['Payment__c'].Name].describe.fields.map[$ObjectType['Payment__c'].fields[paymentFieldItem].name].describe.picklistValues}" var="item">
+			                                                            <li role="presentation" onclick="processPickValue(this);reRenderPaymentSection();" data-pickValue="{!IF(item.label == 'Check' && paymentFieldItem == 'Payment_Type__c' && user_locale =='en_GB','Cheque',item.label)}" data-toProcessOnServer="true">
+			                                                                <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+			                                                                    <span style="width: 10%;">
+			                                                                     <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(Payment[paymentFieldItem] == item.label,'block','none')};opacity: 1;"></img>
+			                                                                    </span>
+			                                                                    <span class="slds-truncate">{!IF(item.label == 'Check' && paymentFieldItem == 'Payment_Type__c' && user_locale =='en_GB','Cheque',item.label)}</span>
+			                                                                </span>
+			                                                            </li>
+			                                                        </apex:repeat>
+			                                                    </ul>
+			                                                </div>
+			                                            </div>
+		                              				</apex:outputpanel>
+		                                     	</div>
+		                   						<div class="requiredFieldCustomErrorMsgCls"  style="display:none;">Complete this field</div>
+		                   					</apex:outputpanel>
+		                   					<apex:outputpanel layout="block" styleClass="slds-form-element" rendered="{!(paymentFieldItem == 'Credit Card Expiry' || paymentFieldItem == 'CVV')}">
+		                   						<label class="slds-form-element__label" for="text-input-01">
+		                           					<span class="slds-required" title="required" style="display:{!IF(OR(paymentFieldItem == 'Credit Card Expiry',paymentFieldItem == 'CVV'),'none','')}">* </span>
+		                           					{!paymentFieldItem}
+		                           				</label>
+		                   						<apex:outputpanel layout="block" styleclass="slds-form-element__control" rendered="{!paymentFieldItem == 'Credit Card Expiry'}">
+		                              					<div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 49%;">
+			                                                <div class="slds-form-element" onclick="processPicklist(this);">
+			                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+			                                                        <apex:inputText style="cursor: pointer;" value="{!ccExpM}" styleclass="slds-lookup__search-input slds-input customRequiredFieldCls" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+			                                                        <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+			                                                            <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+			                                                        </span>
+			                                                    </div>
+			                                                    <div class="requiredFieldCustomErrorMsgCls" style="display:none;">Complete this field</div>
+			                                                </div>
+			                                                <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+			                                                    <ul class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+			                                                        <apex:repeat value="{!months}" var="item">
+			                                                            <li role="presentation" onclick="processPickValue(this);" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+			                                                                <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+			                                                                    <span style="width: 10%;">
+			                                                                     <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(ccExpM == item.label,'block','none')};opacity: 1;"></img>
+			                                                                    </span>
+			                                                                    <span class="slds-truncate">{!item.label}</span>
+			                                                                </span>
+			                                                            </li>
+			                                                        </apex:repeat>
+			                                                    </ul>
+			                                                </div>
+			                                            </div>
+
+			                                            <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 49%;margin-left: 1%;">
+			                                                <div class="slds-form-element" onclick="processPicklist(this);">
+			                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+			                                                        <apex:inputText style="cursor: pointer;" value="{!ccExpY}" styleclass="slds-lookup__search-input slds-input customRequiredFieldCls" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+			                                                        <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+			                                                            <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+			                                                        </span>
+			                                                    </div>
+			                                                    <div class="requiredFieldCustomErrorMsgCls"  style="display:none;">Complete this field</div>
+			                                                </div>
+			                                                <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+			                                                    <ul class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+			                                                        <apex:repeat value="{!years}" var="item">
+			                                                            <li role="presentation" onclick="processPickValue(this);" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+			                                                                <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+			                                                                    <span style="width: 10%;">
+			                                                                     <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(ccExpY == item.label,'block','none')};opacity: 1;"></img>
+			                                                                    </span>
+			                                                                    <span class="slds-truncate">{!item.label}</span>
+			                                                                </span>
+			                                                            </li>
+			                                                        </apex:repeat>
+			                                                    </ul>
+			                                                </div>
+			                                            </div>
+
+
+		                                     	</apex:outputpanel>
+		                                     	<apex:outputpanel layout="block" styleclass="slds-form-element__control" rendered="{!paymentFieldItem == 'CVV'}">
+		                                     		<apex:inputText id="ccCVV" value="{!ccCVV}" styleClass="slds-input"/>
+		                                     	</apex:outputpanel>
+		                   					</apex:outputpanel>
+											<apex:outputpanel layout="block" styleclass="slds-form-element" rendered="{!paymentFieldListTemp.size == 1}">
+	                               			</apex:outputpanel>
+										</apex:repeat>
+									</div>
+								</div>
+							</div>
+						</apex:repeat>
+					</apex:outputPanel>
+				</apex:outputpanel>
+
+				<div class="slds-card" style="position:relative;margin-top: 1%">
+        			<div role="status" class="slds-spinner slds-spinner--medium" id="statusIndicatorDivId2" style="display:none;z-index: 1000;">
+						<span class="slds-assistive-text">Loading</span>
+						<div class="slds-spinner__dot-a"></div>
+						<div class="slds-spinner__dot-b"></div>
+					</div>
+					<div class="slds-card__header slds-grid">
+						<div class="slds-media slds-media--center slds-has-flexi-truncate">
+							<div class="slds-media__figure">
+								<span class="slds-icon_container slds-icon-standard-contact"
+									title="description of icon when needed">
+									<svg class="slds-icon slds-icon--small" aria-hidden="true">
+										<use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#contact"></use>
+									</svg>
+								</span>
+							</div>
+							<div class="slds-media__body">
+								<h2>
+									<apex:outputpanel id="batchTransactionListTitleOP" styleclass="slds-text-heading--small">Allocations</apex:outputpanel>
+								</h2>
+							</div>
+						</div>
+					</div>
+					<div class="slds-card__body">
+						<apex:outputPanel layout="block" id="gifts1" style="/* width: 950px;height: 300px;overflow-x: auto; */">
+							<!-- <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-no-row-hover"> -->
+							<table class="tableCls1 slds-table--bordered slds-no-row-hover">
+								<thead>
+									<tr class="slds-text-title--caps">
+										<th scope="col">
+							                <div class="slds-truncate">
+							                	<span class="slds-required" title="required" style="display:''">* </span>Allocated Amount
+							                </div>
+						              	</th>
+						              	<th scope="col">
+							                <div class="slds-truncate">
+							                	<span class="slds-required" title="required" style="display:''">* </span>Allocation Date
+							                </div>
+						              	</th>
+						              	<th scope="col">
+							                <div class="slds-truncate">
+							                	<span class="slds-required" title="required" style="display:''">* </span>Appeal
+							                </div>
+						              	</th>
+						              	<th scope="col">
+							                <div class="slds-truncate">
+							                	<span class="slds-required" title="required" style="display:''">* </span>Fund
+							                </div>
+						              	</th>
+									</tr>
+								</thead>
+								<tbody>
+									<apex:variable var="count" value="{!0}"/>
+									<apex:repeat value="{!AllocationList}" var="item">
+										<apex:variable var="amountKey" value="{!count}Amount"/>
+										<apex:variable var="dateKey" value="{!count}Date"/>
+										<apex:variable var="appealKey" value="{!count}Appeal"/>
+										<apex:variable var="fundKey" value="{!count}Fund"/>
+										<tr id="row-{!count}">
+											<td>
+												<div class="slds-form-element">
+													<div class="slds-form-element__control">
+														<apex:inputField required="false" id="alcAmount" value="{!item.Amount__c}" styleClass="slds-input {!IF(allocationShowHideRequiredFieldMap[amountKey],'slds-has-error','')}"/>
+													</div>
+													<div class="requiredFieldCustomErrorMsgCls" style="display:{!IF(allocationShowHideRequiredFieldMap[amountKey],'block','none')};" id="">Complete this field</div>
+												</div>
+											</td>
+											<td>
+												<div>
+													<div class="slds-form-element">
+														<div class="slds-form-element__control">
+															<apex:outputpanel >
+					                             				<div class="slds-input-has-icon slds-input-has-icon--right dateIconCls">
+														            <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+														                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+														            </svg>
+														            <apex:inputText value="{!item.Allocation_Date__c}" styleclass="slds-input datePickerInputCls {!IF(allocationShowHideRequiredFieldMap[dateKey],'slds-has-error','')}" html-placeholder="Pick a Date" />
+														            <span class="datePickerOutputFieldCls" style="display:none;"><apex:outputField value="{!item.Allocation_Date__c}"/></span>
+														        </div>
+													        </apex:outputpanel>
+												        </div>
+												        <div class="requiredFieldCustomErrorMsgCls" style="display:{!IF(allocationShowHideRequiredFieldMap[dateKey],'block','none')};" id="">Complete this field</div>
+											        </div>
+												</div>
+											</td>
+											<td>
+												<div class="slds-form-element">
+													<div class="slds-form-element__control">
+                                 						<apex:outputpanel layout="block">
+				                                            <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+				                                                <div class="slds-form-element">
+				                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+				                                                        <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+				                                                        	<img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+				                                                        </span>
+				                                                    <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+				                                                    <apex:inputText value="{!item.New_Campaign__c}" styleClass="newAllocationLookUpClsHidden" style="display:none;"/>
+
+				                                                    <input value="{!item.New_Campaign__c}" data-isRequired="true" data-requiredFieldName="" class="slds-input newAllocationLookUpCls lookUpCls allocationSectionCls {!IF(allocationShowHideRequiredFieldMap[appealKey],'slds-has-error','')}" type="text" placeholder="Search Records" data-populateFund="true" data-lookUpTo="{!$ObjectType['Gift_Detail__c'].fields['New_Campaign__c'].referenceTo[0]}" onkeyup="onkeyUpInvoke(j$(this),'{!$ObjectType['Gift_Detail__c'].fields['New_Campaign__c'].referenceTo[0]}','{!$ObjectType['Gift_Detail__c'].fields['New_Campaign__c'].label}')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn" />
+				                                                    <span class="lookUpOutputFieldCls" style="display:none"><apex:outputField value="{!item.New_Campaign__c}"/></span>
+
+				                                                </div>
+				                                                <div class="requiredFieldCustomErrorMsgCls" style="display:{!IF(allocationShowHideRequiredFieldMap[appealKey],'block','none')};" id="">Complete this field</div>
+				                                             </div>
+
+				                                            <div class="slds-lookup__menu" role="listbox" style="display:none;">
+				                                                <div class="slds-lookup__item">
+				                                                    <span class="lookUpSearchTextCls"></span>
+				                                                </div>
+				                                             <!--Search Results UL-->
+				                                             <ul class="slds-lookup__list" role="presentation" style="max-height: 240px;">
+				                                             </ul>
+
+				                                            </div>
+				                                          </div>
+				                                        </apex:outputpanel>
+													</div>
+												</div>
+											</td>
+											<td>
+												<div class="slds-form-element">
+													<div class="slds-form-element__control">
+														<apex:outputpanel layout="block">
+				                                            <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+				                                                <div class="slds-form-element">
+				                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+				                                                        <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+				                                                        	<img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+				                                                        </span>
+				                                                    <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+				                                                    <apex:inputText value="{!item.Fund__c}" styleClass="newAllocationLookUpClsHidden" style="display:none;"/>
+
+				                                                    <input value="{!item.Fund__c}" data-isRequired="true" data-requiredFieldName="" class="slds-input newAllocationLookUpCls lookUpCls allocationSectionCls {!IF(allocationShowHideRequiredFieldMap[fundKey],'slds-has-error','')}" type="text" placeholder="Search Records" data-populateFund="true" data-lookUpTo="{!$ObjectType['Gift_Detail__c'].fields['Fund__c'].referenceTo[0]}" onkeyup="onkeyUpInvoke(j$(this),'{!$ObjectType['Gift_Detail__c'].fields['Fund__c'].referenceTo[0]}','{!$ObjectType['Gift_Detail__c'].fields['Fund__c'].label}')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn" />
+				                                                    <span class="lookUpOutputFieldCls" style="display:none"><apex:outputField value="{!item.Fund__c}"/></span>
+
+				                                                </div>
+				                                                <div class="requiredFieldCustomErrorMsgCls" style="display:{!IF(allocationShowHideRequiredFieldMap[fundKey],'block','none')};" id="">Complete this field</div>
+				                                             </div>
+
+				                                            <div class="slds-lookup__menu" role="listbox" style="display:none;">
+				                                                <div class="slds-lookup__item">
+				                                                    <span class="lookUpSearchTextCls"></span>
+				                                                </div>
+				                                             <!--Search Results UL-->
+				                                             <ul class="slds-lookup__list" role="presentation" style="max-height: 240px;">
+				                                             </ul>
+
+				                                            </div>
+				                                          </div>
+				                                        </apex:outputpanel>
+													</div>
+												</div>
+											</td>
+										</tr>
+										<apex:variable var="count" value="{!count+1}"/>
+									</apex:repeat>
+								</tbody>
+							</table>
+							<table class="tableCls1" style="background-color: transparent;">
+								<tbody>
+									<tr>
+										<td colspan="4">
+											<button type='button' onclick="addNewAllocation();" class="slds-button slds-button--neutral">+ Add New Allocation</button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</apex:outputPanel>
+						<!-- <button type='button' onclick="addNewAllocation();" class="slds-button slds-button--neutral" style="margin: 1% 0% 0% 2%;">+ Add New Allocation</button> -->
+					</div>
+        		</div>
+
+				<apex:outputpanel layout="block" styleclass="slds-button-group slds-align--absolute-center" html-role="group" style="margin-top: 1%;">
+                    <button type='button' onclick="cancel();" class="slds-button slds-button--neutral" style="">Cancel</button>
+                    <!-- <button type='button' onclick="if(pageValidationForNewGiftBatch()){submit();}" class="slds-button slds-button--brand" style="">Submit</button> -->
+                    <button type='button' onclick="pageValidationForNewGiftBatch();" class="slds-button slds-button--brand" style="">Submit</button>
+                </apex:outputpanel>
+			</apex:outputpanel>
+        </apex:form>
+    </html>
+    <script>
+    	var j$ = jQuery.noConflict();
+    	sforce.connection.sessionId='{!GETSESSIONID()}';
+
+    	j$(document).on("click", function(event){
+	        var dropdownObjs = j$(".slds-dropdown");
+	        if(dropdownObjs !== event.target && !dropdownObjs.has(event.target).length){
+	            if(!isPicklistClicked){
+		            j$(".pickListFieldCustomCls").removeClass("slds-is-open");
+	            }
+	            isPicklistClicked = false;
+	        }
+	    });
+
+
+    	j$(document).ready(function()
+		  {
+		  	  var assetsLocation = '{!URLFOR($Asset.SLDS)}';
+	          j$.aljsInit({
+	                assetsLocation: assetsLocation,
+	                scoped: true
+	          });
+			  init();
+		});
+
+		function init(){
+			initDatePicker();
+			setDateFormat();
+			setLookUpFormat();
+		}
+
+		function initDatePicker(){
+			j$('.datePickerInputCls').datepicker(
+			    	{
+			    		//format: 'DD/MM/YYYY',
+			    		format: '{!localeDateFormatVal}'.toUpperCase(),
+			    	}
+			  );
+		}
+
+		function oncompleteCall(){
+    		insertSVGTag();
+    		init();
+    	}
+
+    	function insertSVGTag(){
+			var sldsBaseUrl= '{!$Asset.SLDS}';
+			var svgHtml_DateIcon =   '<svg class="slds-input__icon slds-icon-text-default" aria-hidden="true">'+
+									'<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="'+sldsBaseUrl+'/assets/icons/utility-sprite/svg/symbols.svg#event"></use>'+
+								 '</svg>';
+			j$('.dateIconCls').prepend(svgHtml_DateIcon);
+
+		}
+
+		var isPicklistClicked = false;
+		function processPicklist(obj){
+			isPicklistClicked = true;
+			j$(obj).parent().toggleClass("slds-is-open");
+		}
+
+		var pickedElement;
+		var frequencyVal;
+
+		function processPickValue(obj){
+			pickedElement = obj;
+			var currentpicklistObj = j$(pickedElement).closest('.pickListFieldCustomCls');
+			var pickvalue = j$(pickedElement).attr("data-pickValue");
+
+			var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+			j$(pickedElement).parent().find("img").hide();
+			j$(pickedElement).find("img").show();
+			//j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+			j$(currentpicklistObj).toggleClass("slds-is-open");
+			j$(currentpicklistObj).find("input").val(pickvalue);
+
+		}
+
+		function setDateFormat(){
+			var allDateFields = j$('.datePickerInputCls');
+			j$(allDateFields).each(function() {
+				var nextSpanElement = j$(this).next();
+				if(j$(nextSpanElement).hasClass('datePickerOutputFieldCls') && j$(nextSpanElement).find('span').first().text().trim() != ''){
+					j$(this).val(j$(nextSpanElement).find('span').first().text());
+				}
+			});
+			//if any script html then clear()
+		}
+
+		function setLookUpFormat(){
+			var allLookUpFields = j$('.lookUpCls');
+			j$(allLookUpFields).each(function() {
+				var nextSpanElement = j$(this).next();
+				if(j$(nextSpanElement).hasClass('lookUpOutputFieldCls')){
+					j$(this).val(j$(nextSpanElement).children().first().children().first().html());
+				}
+			});
+		}
+
+
+		function searchRecords(inputObj,objectName,objectLabel){
+			var lookUpPanelObj = j$(inputObj).closest('.slds-lookup');
+			var searchKey = j$(inputObj).val();
+        	if(!searchKey.trim()){
+        		j$(lookUpPanelObj).find('.slds-lookup__menu').hide();
+        		return;
+        	}
+
+        	if(!timeUp) return;
+        	var relationshipName;
+          var fields = "";
+          var clause = "";
+
+            j$(lookUpPanelObj).find('.lookUpSearchTextCls').text('\"'+searchKey+'\" In '+objectLabel);
+
+            if(objectName.endsWith("Fund__c") && objectLabel == 'Fund'){
+            	var fundName = '{!$ObjectType['Fund__c'].fields['Fund_Name__c'].Name}';
+            	var inactiveFieldName = '{!$ObjectType['Fund__c'].fields['Inactive__c'].Name}';
+
+              fields = "Id, Name, "+fundName;
+              clause = inactiveFieldName+" = false AND (Name LIKE '"+searchKey+"%' OR "+fundName+" LIKE '"+searchKey+"%' ) LIMIT 10";
+
+              RemoteQueryBuilder.ListQueryBuilderWhere(
+                objectName, fields, clause,
+                function(result, event){
+                  processSearchedRecords(inputObj,objectName,objectLabel,result,relationshipName,lookUpPanelObj);
+                }
+              );
+            }else{
+            	if(objectName.endsWith("Campaign")){
+
+                RemoteQueryBuilder.CampaignAndFundQuery(
+                  'Appeal',searchKey,
+                  function(result, event){
+                    processSearchedRecords(inputObj,objectName,objectLabel,result,relationshipName,lookUpPanelObj);
+                  }
+                );
+            	}else{
+                fields = "Id,Name";
+                clause = "Name LIKE '"+searchKey+"%' LIMIT 10";
+
+                RemoteQueryBuilder.ListQueryBuilderWhere(
+                  objectName, fields, clause,
+                  function(result, event){
+                    processSearchedRecords(inputObj,objectName,objectLabel,result,relationshipName,lookUpPanelObj);
+                  }
+                );
+            	}
+            }
+        }
+
+        function processSearchedRecords(inputObj,objectName,objectLabel,records,relationshipName,lookUpPanelObj){
+          var searchResultHtml ="";
+
+          //Creating List Elements Based on Query Results
+          if(objectName.endsWith("Fund__c") && objectLabel == 'Fund'){
+            if(records.length > 0){
+              searchResultHtml = '<table class="slds-table slds-table--bordered slds-table--cell-buffer"><thead><tr class="slds-text-title--caps"><th>Fund Id</th><th>Fund Name</th></tr></thead><tbody>';
+                for(var i=0; i<records.length; i++){
+                    //List Elements With Onclick and ID Attributes
+                    searchResultHtml +=  '<tr style="cursor:pointer" onclick="recordInfo(\''+records[i].Name+'\',\''+records[i].Id+'\',this);"><td style="color: #16325c;">'+records[i].Name+'</td><td style="color: #16325c;">'+records[i][fundName]+'</td></tr>';
+                }
+                searchResultHtml += '</tbody></table>';
+            }else{
+                searchResultHtml += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+            }
+          }else{
+            if(records.length > 0){
+                for(var i=0; i<records.length; i++){
+                    //List Elements With Onclick and ID Attributes
+          var fundName = '';
+          var fundRecordId = '';
+
+          if(typeof records[i][relationshipName] != 'undefined' && records[i][relationshipName] != null && typeof records[i][relationshipName].Name != 'undefined'){
+            fundName = records[i][relationshipName].Name;
+            fundRecordId = records[i][relationshipName].Id;
+          }
+                    searchResultHtml += '<li data-fundName="'+fundName+'" data-fundid="'+fundRecordId+'" onclick="recordInfo(\''+records[i].Name+'\',\''+records[i].Id+'\',this);"  class="slds-lookup__item"><span id="'+records[i].Id+'" style="cursor:pointer">'+records[i].Name+'</span></li>';
+                }
+            }else{
+                searchResultHtml += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+            }
+          }
+
+          //Appending All The Created Result List Elements To the UL Tag
+          j$(lookUpPanelObj).find('.slds-lookup__list').html(searchResultHtml);
+          j$(lookUpPanelObj).find('.slds-lookup__menu').show();
+        }
+
+        function recordInfo(recordName,recordId,obj){
+        	var lookUpPanelObj = j$(obj).closest('.slds-lookup');
+            j$(lookUpPanelObj).find('.slds-lookup__menu').fadeOut();
+            j$(lookUpPanelObj).find('.slds-input').val(recordName);
+
+            j$(lookUpPanelObj).find('.slds-input').prev().val(recordId);
+            j$(lookUpPanelObj).find('.slds-input').prev().trigger("change");
+
+            //j$(obj).closest('.slds-form--compound');
+            if(j$(lookUpPanelObj).find('.slds-input').attr("data-populatefund")){
+            	var fundInputObj;
+            	fundInputObj = j$(obj).closest('td').next().find('[data-lookUpTo $="Fund__c"]');
+            	j$(fundInputObj).val(j$(obj).attr("data-fundname"));
+            	j$(fundInputObj).prev().val(j$(obj).attr("data-fundid"));
+            	j$(fundInputObj).prev().trigger("change");
+            }
+        }
+
+		var timeUp = false;
+		function onkeyUpInvoke(inputObj,objectName,objectLabel){
+			timeUp = false;
+			setTimeout(function(){
+							timeUp = true;
+							searchRecords(inputObj,objectName,objectLabel);
+							hideStatus();
+			},501);
+
+			setTimeout(function(){
+							showStatus();
+			},500);
+		}
+
+		function showStatus1(){
+   			j$('#statusIndicatorDivId_1').show();
+   		}
+
+   		function hideStatus1(){
+   			j$('#statusIndicatorDivId_1').hide();
+   		}
+
+   		function showStatus(){
+   			j$('#statusIndicatorDivId2').show();
+   		}
+
+   		function hideStatus(){
+   			j$('#statusIndicatorDivId2').hide();
+   		}
+
+   		function pageValidationForNewGiftBatch(){
+	    	var pageValidationPassed = true;
+	    	clearPageValidationForNewGiftBatch();
+	    	var allRequiredFieldsInput = j$('.customRequiredFieldCls');
+	    	j$(allRequiredFieldsInput).each(function() {
+				var searchValue = j$(this).val();
+				if(j$(this).val().length === 0 || j$(this).val() == '-- None --'){
+			    	j$(this).addClass('slds-has-error');
+					j$(this).closest('.slds-form-element__control').next().show();
+					j$('#reviewTheErrorOnNewGiftBatchOP').show();
+					pageValidationPassed = false;
+		    	}
+			});
+
+	    	//return pageValidationPassed;
+	    	if(pageValidationPassed)submit();
+	    }
+
+	    function removeAllRequiredFieldErrorWithCustomError(){
+	    	j$('.errorMsg').each(function() {
+				j$(this).closest('.slds-form-element__control').next().show();
+			    j$(this).hide();
+			});
+	    }
+
+	    function clearPageValidationForNewGiftBatch(){
+			j$('.customRequiredFieldCls').removeClass('slds-has-error');
+			j$('.customRequiredFieldCls').closest('.slds-form-element__control').next().hide();
+			j$('#reviewTheErrorOnNewGiftBatchOP').hide();
+	    }
+
+    </script>
+    <style>
+    	.fieldSetCustomCls{
+	    	margin-bottom: 2% !important;
+	    	margin-top: 2% !important;
+	    }
+
+	    .fieldSetCustomCls2{
+	    	margin-bottom: 1% !important;
+	    	margin-top: 1% !important;
+	    }
+
+	    .tableCls1{
+	    	background-color: #fff;
+	    }
+
+	    table.tableCls1 tbody td{
+	    	padding: .5rem;
+		    white-space: nowrap;
+		    position: relative;
+		    font-weight: 400;
+	    }
+
+	    table.tableCls1 thead th{
+	    	padding: .5rem;
+		    white-space: nowrap;
+		    position: relative;
+		    font-weight: 400;
+	    }
+
+	    .requiredFieldCustomErrorMsgCls{
+	    	font-size: .75rem;
+		    margin-left: 2px;
+		    color: rgb(194, 57, 52);
+	    }
+
+    </style>
+</apex:page>

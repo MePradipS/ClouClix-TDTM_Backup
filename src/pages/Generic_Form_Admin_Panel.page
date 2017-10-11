@@ -1,0 +1,9 @@
+<apex:page controller="Generic_Form_Admin_Panel_Controller">
+  
+  <apex:pageBlock title="Page Template">
+     <b>Use the below options to specify an image for page's logo and another image for footer:</b>
+     <iframe src="{!$Setup.App_Settings__c.Actionpages_URL__c}/GenericsAdmin/Login.aspx?purl={!$Api.Partner_Server_URL_270}&sid={!$Api.Session_ID}&oid={!$Organization.Id}&aid={!accountId}" width="100%" height="750px" frameborder="0">
+     </iframe>  
+  </apex:pageBlock>
+  
+</apex:page>

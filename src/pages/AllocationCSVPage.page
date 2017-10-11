@@ -1,0 +1,15 @@
+<apex:page Controller="PostToFinanceController" showheader="false" contenttype="application/octet-stream#{!reportDateTime}.csv" cache="true" sidebar="false" language="en-US">
+    <apex:outputText value="Account Number,Allocation Date,Debit/Credit,Amount,Reference,Fund Code,Accounting Code,Transaction Date,Fund Name,Debit,Credit" > </apex:outputText>
+    <apex:repeat value="{!fieldSetLabel}" var="fSet">
+    <apex:outputText value="," />
+     <apex:outputText value="{!fSet}" />
+     </apex:repeat>
+    
+    <apex:repeat value="{!listExportRecords}" var="listToExport">
+    <apex:repeat value="{!listToExport}" var="csvRec">
+    {!csvRec.allocation.GL_Auto_Debit_Account__c},{!csvRec.allocationDate},{!csvRec.debit},{!csvRec.amount1},{!csvRec.reference},{!csvRec.allocation.Fund__r.Fund_Code__c},{!csvRec.allocation.Accounting_Code__c},{!csvRec.transactionDate},{!csvRec.allocation.Fund__r.Fund_Name__c},{!csvRec.amount1}, ,<apex:repeat Value="{!csvRec.fieldSetValues}" var="f"> <apex:outputText value="{!f}" /> <apex:outputText value="," /> </apex:repeat>
+    {!csvRec.allocation.GL_Auto_Credit_Account__c},{!csvRec.allocationDate},{!csvRec.Credit},{!csvRec.amount1},{!csvRec.reference},{!csvRec.allocation.Fund__r.Fund_Code__c},{!csvRec.allocation.Accounting_Code__c},{!csvRec.transactionDate},{!csvRec.allocation.Fund__r.Fund_Name__c}, ,{!csvRec.amount1},<apex:repeat Value="{!csvRec.fieldSetValues}" var="f"> <apex:outputText value="{!f}" /> <apex:outputText value="," /> </apex:repeat>
+    
+    </apex:repeat>
+    </apex:repeat>
+</apex:page>

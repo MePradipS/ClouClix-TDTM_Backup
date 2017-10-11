@@ -1,0 +1,77 @@
+<apex:page controller="CSearch">
+    <apex:sectionHeader title="Search" subtitle="Find Me a Position"/>
+    <apex:pageMessages ></apex:pageMessages>    
+    <apex:form >
+        <apex:actionFunction action="{!signUp}" name="signUp" reRender="frmMain">
+            <apex:param name="Index" value=""/>
+        </apex:actionFunction>       
+        <apex:pageBlock >
+            <apex:pageBlockSection >
+                <apex:outputField value="{!theVolunteer.FirstName}"/>
+                <apex:outputField value="{!theVolunteer.LastName}"/>
+                <apex:outputField value="{!theVolunteer.Preferred_Program_1__c}"/>
+                <apex:outputField value="{!theVolunteer.Preferred_Program_2__c}"/>                                
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>    
+        <apex:pageBlock title="Filter Options" >
+            <apex:pageBlockSection >   
+                <!--<apex:selectList label="Position Type" size="1" value="{!posType}">
+                    <apex:selectOptions value="{!types}" />
+                </apex:selectList>      -->      
+                <apex:inputField value="{!thePos.Role_Locale__c}"/>         
+            </apex:pageBlockSection>        
+            <apex:pageBlockSection title="Skills To Filter By:" >               
+                <apex:repeat var="skill" value="{!filterOptions}">
+                    <apex:inputCheckbox value="{!skill.value}" label="{!skill.key}" />
+                </apex:repeat>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Languages:" >
+                <apex:repeat var="lang" value="{!filterOptionsLang}">
+                    <apex:inputCheckbox value="{!lang.value}" label="{!lang.key}"/>
+                </apex:repeat>
+            </apex:pageBlockSection>            
+            <apex:pageBlockButtons location="bottom" >
+                <apex:commandButton value="Filter" action="{!refreshList}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        <apex:pageBlock title="Matching Positions" >
+        <apex:variable var="rowIndex" value="{!0}"/>
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockTable var="thePos" value="{!thePositions}">  
+                    <apex:column >
+                        <apex:variable var="rowIndex" value="{!rowIndex+1}"/>
+                        <a href="#" onclick="if (window.confirm('Are you sure?')) signUp('{!rowIndex}');">Sign Up</a>    
+                        |
+                        <a href="#" onclick="window.open('/_ui/core/email/author/EmailAuthor?p2_lkid={!theVolunteer.Id}&rtype=003', '_blank');">Email Details</a>
+                    </apex:column>                              
+                    <apex:column value="{!thePos.Name}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Volunteer_Role__c.fields.Name.label}
+                        </apex:facet>         
+                    </apex:column> 
+                    <apex:column value="{!thePos.Role_Description_Templates__c}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Volunteer_Role__c.fields.Role_Description_Templates__c.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!thePos.Role_Status__c}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Volunteer_Role__c.fields.Role_Status__c.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!thePos.Role_Locale__c}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Volunteer_Role__c.fields.Role_Locale__c.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!thePos.Number_of_Service_Hours_Involved__c}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Volunteer_Role__c.fields.Number_of_Service_Hours_Involved__c.label}
+                        </apex:facet>         
+                    </apex:column>                                                                                                                                         
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>        
+    </apex:form>
+</apex:page>

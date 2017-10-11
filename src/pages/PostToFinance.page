@@ -1,0 +1,254 @@
+<apex:page controller="PostToFinanceController" sidebar="false" id="mypage" action="{!RedirectByTheme}">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+    
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict(); 
+        function jShowBusy() { document.body.style.cursor = "wait"; }
+            function jHideBusy() { document.body.style.cursor = "default"; }      
+        j$(function() {
+            j$( '[id$=fromdatepicker]' ).datepicker({
+              changeMonth: true,
+              numberOfMonths: 1,
+              dateFormat: 'yy-mm-dd',
+              onClose: function( selectedDate ) {
+                j$( '[id$=todatepicker]' ).datepicker( "option", "minDate", selectedDate );
+              }
+                            
+            });
+            j$( '[id$=todatepicker]' ).datepicker({
+              changeMonth: true,
+              numberOfMonths: 1,
+              dateFormat: 'yy-mm-dd',
+              onClose: function( selectedDate ) {
+                j$( '[id$=fromdatepicker]' ).datepicker( "option", "maxDate", selectedDate );
+              }
+            });
+          });
+        
+        function checkAll(cb) {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("check-payment")!=-1)
+                inputElem[i].checked = cb.checked;
+            }
+        };
+
+        function unCheck() {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("check-all")!=-1)
+                inputElem[i].checked = false;
+            }
+        };
+        function loading(val, divId) {
+            if (val) {
+                if(divId === 'contentLoading'){
+                    document.getElementById('contentLoading').style.display = 'block';
+                }else
+                if(divId === 'contentExporting'){
+                    document.getElementById('contentExporting').style.display = 'block';    
+                }
+            }
+            else {
+                if(divId === 'contentLoading'){
+                    document.getElementById('contentLoading').style.display = 'none';
+                }else
+                if(divId === 'contentExporting'){
+                    document.getElementById('contentExporting').style.display = 'none';    
+                }  
+            }          
+        }
+    </script>
+    <style type="text/css">
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+        
+        .popupBackground {
+            background-color: rgba(0,0,0,0.2);
+//            opacity: 0.20;
+//            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        
+         tr.dataRow {
+           background-color:white;
+         }
+         tr.dataRow:hover {
+           background-color: #e3f3ff;
+         };
+    </style>
+    
+    
+    <apex:form id="myform">
+    
+            <!-- user story #102396768 -->
+            <apex:actionPoller action="{!pausingExecution}" enabled="{!jobProcess}"  interval="{!pollarInterval}" reRender="myform"  oncomplete="exportAllocationRecord();" />
+         <apex:outputPanel id="progress" rendered="{!jobProcess}">
+            <center>
+                <div style="padding:8px; border:1px solid #ccc; border-radius:5px;">
+                    <apex:image url="{!URLFOR($Resource.gpAssets,'loader.gif')}"/>
+                    <div style="font-size:1.6em">Processing the Allocations...</div> 
+                </div>
+            </center>
+        </apex:outputPanel>
+            
+    
+        <apex:pageBlock id="pageBlockId" rendered="{! if(jobProcess== false, true, false)}">
+            <apex:outputText value="Post Allocation To Finance" style="font-size:20px;"/><br></br><br></br>
+            <apex:outputText value="Allocation Date Range :" style="font-size:14px"/><br></br><br></br>
+            <b>From </b> <apex:inputText value="{!fromDate}" id="fromdatepicker" onclick="j$('[id$=fromdatepicker]').datepicker({dateFormat: 'yy-mm-dd'});" style="border: 1px solid #91CDFF; padding: 5px;"  />&nbsp;&nbsp;&nbsp;
+            <b>To </b> <apex:inputText value="{!toDate}" id="todatepicker" onclick="j$('[id$=todatepicker]').datepicker({dateFormat: 'yy-mm-dd'});" style="border: 1px solid #91CDFF; padding: 5px;"/>                        
+            <apex:actionStatus id="conLoading" onstart="loading(true, 'contentLoading')" onstop="loading(false, 'contentLoading')" />
+            <apex:commandButton value="Filter" action="{!callSearchAllocationMethod}" reRender="searchPanel" status="conLoading" /><br/><br/>
+            <apex:pageBlockSection columns="1" >
+                <apex:outputText value="Choose File Type :" style="font-size:14px"/> 
+                <apex:selectRadio layout="lineDirection" value="{!fileFormat}" id="radionButton">
+                    <apex:selectOptions value="{!FileFormatList}"/>
+                </apex:selectRadio>
+                <apex:actionFunction name="refreshPaymentList" reRender="unreceiptedPayments" status="selectStatus" oncomplete="unCheck()"/>
+                <apex:actionFunction name="exportAllocationRecord" action="{!exportPage}" />
+                <apex:outputPanel id="searchPanel">
+                    <apex:pagemessages />
+                    <apex:actionStatus id="exportAllocationFile" onstart="loading(true, 'contentExporting')" onstop="loading(false, 'contentExporting')" />
+                    <apex:commandButton value="Post Allocations" action="{!exportAllocationRecords}" reRender="myform"  />
+                    <!--<apex:commandLink value="Post Allocations" action="{!exportAllocationRecords}" target="_self" styleClass="btn" style="text-decoration:none;padding:4px;" oncomplete="reloadPage();"/> oncomplete="setTimeout(function() {alert('Manish');},5000);"-->
+
+                    <center><apex:commandButton value="<< First Page" rerender="searchPanel" action="{!FirstPage}" disabled="{!prev}" status="conLoading"/>
+                    <apex:commandButton value="< Previous" rerender="searchPanel" action="{!previous}" disabled="{!prev}" status="conLoading"/>
+                     Page No : {!pageNumber} of {!totalPages}
+                     <apex:commandButton value="Next >" rerender="searchPanel" action="{!next}" disabled="{!nxt}" status="conLoading"/>
+                    <apex:commandButton value="Last Page >>" rerender="searchPanel" action="{!LastPage}" disabled="{!nxt}" status="conLoading"/></center>                        
+                        <table class="list " border="0" cellpadding="5" cellspacing="0">
+                           <tr class="headerRow">
+                              <th class="headerRow"> <apex:inputCheckbox id="check-all">
+                                        <apex:actionSupport event="onclick" onsubmit="checkAll(this)" reRender="unreceiptedPayments" status="selectStatus"/>
+                                    </apex:inputCheckbox>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Allocation Number{!IF(sortExpression=='Name',IF(sortDirection='ASC','▼','▲'),'')}" >
+                                     <apex:param value="Name" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow"> 
+                                  <apex:commandLink action="{!searchAllocation}" value="Constituent{!IF(sortExpression=='Constituent__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Constituent__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Allocation Date{!IF(sortExpression=='Allocation_Date__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Allocation_Date__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Allocated Amount{!IF(sortExpression=='Amount__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Amount__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Fund Code{!IF(sortExpression=='Fund__r.Fund_Code__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Fund__r.Fund_Code__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Accounting Code{!IF(sortExpression=='Accounting_Code__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Accounting_Code__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Transaction Date{!IF(sortExpression=='Gift__r.Gift_Date__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Gift__r.Gift_Date__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="Fund Name{!IF(sortExpression=='Fund__r.Fund_Name__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="Fund__r.Fund_Name__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="GL Debit Account{!IF(sortExpression=='GL_Auto_Debit_Account__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="GL_Auto_Debit_Account__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                              <th class="headerRow">
+                                  <apex:commandLink action="{!searchAllocation}" value="GL Credit Account{!IF(sortExpression=='GL_Auto_Credit_Account__c',IF(sortDirection='ASC','▼','▲'),'')}">
+                                     <apex:param value="GL_Auto_Credit_Account__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                  </apex:commandLink>
+                              </th>
+                               
+                               <apex:repeat value="{!fieldSetLabel}" var="fSet">
+                                 <th class="headerRow">
+                                     <apex:commandLink action="{!searchAllocation}" value="{!fSet}{!IF(fSet==sortExpressionLabel,IF(sortDirection='ASC','▼','▲'),'')}">
+                                         <apex:param value="{!fSet}" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                      </apex:commandLink>
+                                 </th>
+                               </apex:repeat>
+                           </tr>
+                           <apex:repeat value="{!listCSVRecords}" var="allocationList">
+                            <apex:repeat value="{!allocationList}" var="a">
+                           <tr class="dataRow">
+                              <td class="dataCell"><apex:inputCheckbox value="{!a.selected}" id="check-payment">
+                                  <apex:actionSupport event="onclick" reRender="" status="selectStatus"/>
+                                  </apex:inputCheckbox>
+                              </td>
+                              <td class="dataCell">{!a.allocation.Name}</td>
+                              <td class="dataCell">{!a.reference}</td>
+                              <td class="dataCell">{!a.allocationDate1}</td>
+                              <!--<td class="dataCell">{!a.allocation.Amount__c}</td>-->
+                              
+                              <td class="dataCell">{!a.amount1}</td>
+                              
+                              <td class="dataCell">{!a.allocation.Fund__r.Fund_Code__c}</td>
+                              <td class="dataCell">{!a.allocation.Accounting_Code__c}</td>
+                              <td class="dataCell">{!a.transactionDate}</td>
+                              <td class="dataCell">{!a.allocation.Fund__r.Fund_Name__c}</td>
+                              <td class="dataCell">{!a.allocation.GL_Auto_Debit_Account__c}</td>
+                              <td class="dataCell">{!a.allocation.GL_Auto_Credit_Account__c}</td>
+                               
+                               <apex:repeat value="{!a.fieldSetValues}" var="f">
+                                 <td class="dataCell">{!f}</td>
+                              </apex:repeat>
+                           </tr>
+                           </apex:repeat>
+                       </apex:repeat>
+                       </table>
+                   <!-- </apex:pageBlockSectionItem>   -->             
+                    <apex:pageBlockSectionItem rendered="{!isTrue == false}">No Record Found!</apex:pageBlockSectionItem>
+                    <center><apex:commandButton value="<< First Page" rerender="searchPanel" action="{!FirstPage}" disabled="{!prev}" status="conLoading"/>
+                    <apex:commandButton value="< Previous" rerender="searchPanel" action="{!previous}" disabled="{!prev}" status="conLoading"/>
+                    Page No : {!pageNumber} of {!totalPages}
+                    <apex:commandButton value="Next >" rerender="searchPanel" action="{!next}" disabled="{!nxt}" status="conLoading"/>
+                    <apex:commandButton value="Last Page >>" rerender="searchPanel" action="{!LastPage}" disabled="{!nxt}" status="conLoading"/></center>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+         <div id="contentLoading" style="display: none;">
+            <apex:outputPanel styleClass="popupBackground" layout="block" />
+            <div style="text-align: center;" class="custPopup">
+                <img src="/img/loading.gif" alt="Loading graphic" /> <b>Retrieving Records....</b>
+            </div>
+        </div>
+        <div id="contentExporting" style="display: none;">
+            <apex:outputPanel styleClass="popupBackground" layout="block"/>
+            <div style="text-align:center;" class="custPopup">
+                <img src="/img/loading.gif" alt="graphic"/><b>Exporting File...</b>
+            </div>
+        </div>
+    </apex:form>
+</apex:page>

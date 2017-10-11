@@ -1,0 +1,540 @@
+<apex:page standardController="Receipt__c" extensions="consolidatedReceiptController" action="{!RedirectByTheme}">
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+    <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+    <script src="{!URLFOR($Resource.aljsTest3)}"></script>
+    <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+    <head>
+        <apex:slds />
+    </head>
+    
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <apex:form styleclass="slds-scope">
+        <apex:actionFunction name="rerenderTheGifts" rerender="batchTransactionListTitleOP,gifts1,attachments" action="{!applyPaymentFilter}" status="statusId2">
+            <apex:param name="selectedPaymentView" assignTo="{!selectedPaymentFilter}" value="" />
+        </apex:actionFunction>
+        <apex:actionStatus id="statusId2" onstart="showStatus2()" onstop="hideStatus2()" />
+        
+        <apex:actionFunction name="reRenderAttachments" rerender="attachments" status="statusId2" oncomplete="attachReceiptToTransactionOnPaymentSelect();"/>
+        
+        <apex:actionFunction name="cancel" action="{!cancel}" />
+        <apex:actionFunction name="GenerateReceipt" action="{!generateReceiptLtng}" rendered="{!containsPayment}"/>
+        
+        <div class="slds-page-header">
+            <div class="slds-grid">
+                <div class="slds-col slds-has-flexi-truncate">
+                    <div class="slds-media slds-no-space slds-grow">
+                        <div class="slds-media__figure">
+                            <svg class="slds-icon slds-icon-standard-user" aria-hidden="true">
+                                <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#user"></use>
+                            </svg>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-title--caps slds-line-height--reset">New Consolidated Receipt</p>
+                            <h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="this should match the Record Title">Consolidated Receipt</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <apex:outputpanel id="newGiftBatchWarningOP">
+            <apex:outputpanel rendered="{!submitErrorMsg != '' && submitErrorMsg != null}" layout="block" styleclass="slds-notify_container slds-notify_container--inline" style="position: inherit;">
+                <apex:outputpanel layout="block" styleclass="slds-notify slds-notify--alert slds-theme--error slds-theme--alert-texture slds-banner" html-role="alert">
+                    <span class="slds-assistive-text">Error</span>
+                    <span>
+                        <span aria-hidden="true" class="slds-icon icon-text-email slds-icon--x-small slds-m-right--x-small">
+                            <img src="{!$Resource.SLDS0122}/assets/icons/utility/error_60.png" style="width:2%"></img>
+                        </span>
+                        <label id="submitErrorMsgLblId">{!submitErrorMsg}</label>
+                    </span>
+                </apex:outputpanel>
+            </apex:outputpanel>
+        </apex:outputpanel>
+        
+        <apex:outputPanel layout="block" rendered="true" styleClass="slds-card" style="background:#FFFFFF;margin-top: 1%;">
+                <div class="slds-card__header" style="position: relative;">
+                    <div role="status" class="slds-spinner slds-spinner--medium" id="statusIndicatorDivId_1" style="display:none;z-index: 1000;">
+                        <span class="slds-assistive-text">Loading</span>
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                    
+                    <div class="slds-card__body">
+                        <div class="slds-no-flex">
+                            <apex:outputpanel layout="block" styleclass="slds-button-group slds-align--absolute-center slds-p-bottom--small" html-role="group">
+                                <button type='button' onclick="cancel();" class="slds-button slds-button--neutral" style="">Cancel</button>
+                                <button type='button' onclick="GenerateReceipt();" class="slds-button slds-button--brand" style="">Generate Receipt</button>
+                            </apex:outputpanel>
+                        </div>
+                        
+                        <div id="reviewTheErrorOnNewGiftBatchOP" class="slds-notify_container slds-notify_container--inline" style="position: inherit;margin-top: 4px;display:none;">
+                            <div class="slds-notify slds-notify--alert slds-theme--error slds-theme--alert-texture slds-banner" role="alert">
+                                <span class="slds-assistive-text">Error</span>
+                                <span>
+                                    <span aria-hidden="true" class="slds-icon icon-text-email slds-icon--x-small slds-m-right--x-small">
+                                        <img src="{!$Resource.SLDS0122}/assets/icons/utility/error_60.png" style="width:2%"></img>
+                                    </span>
+                                    <label id="reviewTheErrorOnNewGiftBatchMsgLblId">Review the errors on this page.</label>
+                                </span>
+                            </div>
+                        </div>
+                                                
+                        <div class="slds-card" style="position:relative; width: 900px; margin: 0 auto;">
+                            <div role="status" class="slds-spinner slds-spinner--medium" id="statusIndicatorDivId2" style="display:none;z-index: 1000;">
+                                <span class="slds-assistive-text">Loading</span>
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                            <div class="slds-card__header slds-grid">
+                                <div class="slds-media slds-media--center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon_container slds-icon-standard-contact"
+                                            title="description of icon when needed">
+                                            <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                                                <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#contact"></use>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2>
+                                            <apex:outputpanel id="batchTransactionListTitleOP" styleclass="slds-text-heading--small">Payments</apex:outputpanel>
+                                        </h2>
+                                    </div>
+                                </div>
+                                <div class="slds-no-flex">
+                                    <div class="slds-button-group" role="group">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label"></label>
+                                            <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 100%;">
+                                                <div class="slds-form-element" onclick="processPicklistForBatchTransactionList(this);">
+                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="/* width: 100%; */">
+                                                        <apex:inputText style="cursor: pointer;" value="{!selectedPaymentFilter}" id="text-input-03" styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                        <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                            <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/down_60.png"></img>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown--left" role="listbox" style="/* width: 100%;max-width: 100% */">
+                                                    <ul id="option-list-01" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                        <li role="presentation" onclick="processPickValue2(this)" data-pickValue="This Year">
+                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-0">
+                                                                <span style="width: 10%;">
+                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:none;opacity: 1;"></img>
+                                                                </span>
+                                                                <span class="slds-truncate">This Year</span>
+                                                            </span>
+                                                        </li>
+                                                        <li role="presentation" onclick="processPickValue2(this)" data-pickValue="Last Year">
+                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-1">
+                                                                <span style="width: 10%;">
+                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:none;opacity: 1;"></img>
+                                                                </span>
+                                                                <span class="slds-truncate">Last Year</span>
+                                                            </span>
+                                                        </li>
+                                                        <li role="presentation" onclick="processPickValue2(this)" data-pickValue="All">
+                                                            <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-2">
+                                                                <span style="width: 10%;">
+                                                                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:none;opacity: 1;"></img>
+                                                                </span>
+                                                                <span class="slds-truncate">All</span>
+                                                            </span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-card__body">
+                                <apex:outputPanel layout="block" id="gifts1" style="width: inherit;height: 300px;overflow-x: auto;">
+                                    <table class="slds-table slds-table--bordered slds-table--cell-buffer">
+                                        <thead>
+                                            <tr class="slds-text-title--caps">
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        <span class="slds-checkbox">
+                                                            <apex:inputcheckbox id="check-all1" onclick="checkOrUncheckAllCheckBox(this);"/>
+                                                            <apex:outputLabel styleClass="slds-checkbox__label" for="check-all1">
+                                                                <span class="slds-checkbox--faux"></span>
+                                                                <span class="slds-form-element__label">
+                                                                    
+                                                                </span>
+                                                            </apex:outputLabel>
+                                                        </span>
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        Payment Number
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        payment Date
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                       payment Amount
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" >
+                                                        Payment Type
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                       payment Status
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        Transaction Number
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        Transaction Type
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        Gift Date
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate">
+                                                        Receipt Type
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr id="NoRecordsToDisplayTrId">
+                                                <td colspan="10">
+                                                    <span class="slds-form-element__label">
+                                                        No Records To Display
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <apex:repeat value="{!payments}" var="PW">
+                                                <tr>
+                                                    <td> 
+                                                        <span class="slds-checkbox">
+                                                            <apex:inputcheckbox value="{!PW.selected}" id="checkbox-1" styleClass="eachPaymentCheckBoxCls" onclick="processEachPaymentCheckBox(this);"/>
+                                                            <apex:outputLabel styleClass="slds-checkbox__label" for="checkbox-1">
+                                                                <span class="slds-checkbox--faux"></span>
+                                                                <span class="slds-form-element__label">
+                                                                    
+                                                                </span>
+                                                            </apex:outputLabel>
+                                                        </span>
+                                                    </td>
+                                                    <td> 
+                                                         <apex:outputLink value="/{!PW.payment.Id}">{!PW.payment.Name}</apex:outputLink>
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputField value="{!PW.payment.Date__c}" />
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputField value="{!PW.payment.Amount__c}" />
+                                                    </td>
+                                                    <td>
+                                                        <div class="slds-truncate">{!PW.payment.Payment_Type__c}</div>
+                                                    </td>
+                                                    <td>
+                                                        {!PW.payment.Status__c}
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputLink value="/{!PW.payment.Donation__r.Id}">{!PW.payment.Donation__r.Name}</apex:outputLink>
+                                                    </td>
+                                                    <td>
+                                                        {!PW.payment.Donation__r.Gift_Type__c}
+                                                    </td>
+                                                    
+                                                    <td>
+                                                        <apex:outputField value="{!PW.payment.Donation__r.Gift_Date__c}" />
+                                                    </td>
+                                                    <td>
+                                                        {!PW.payment.Donation__r.Receipt_Type__c}
+                                                    </td>
+                                                </tr>
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                    <script>
+                                        if({!payments.size > 0}){
+                                            var j$ = jQuery.noConflict();
+                                            j$('#NoRecordsToDisplayTrId').hide();
+                                        }else{
+                                            j$('#NoRecordsToDisplayTrId').show();
+                                        }
+                                    </script>
+                                </apex:outputPanel>
+                            
+                            </div>
+                        </div>                        
+                        
+                        <apex:outputpanel id="attachments" >
+                            <apex:outputPanel layout="block" rendered="{!payments.size > 0}" styleClass="slds-box slds-theme--default slds-container fieldSetCustomCls">
+                                <div class="slds-form--compound">
+                                    <div class="slds-form-element__group">
+                                        <div class="slds-form-element__row">
+                                            <apex:outputpanel layout="block" styleClass="slds-form-element">
+                                                <label class="slds-form-element__label" for="text-input-01">
+                                                    Attach Receipt to Transaction
+                                                </label>
+                                                
+                                                <div class="slds-form-element__control">
+                                                    <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 100%;">
+                                                       
+                                                        <div class="slds-form-element" onclick="processPicklist(this);">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+                                                                <apex:inputText value="{!receipt.Gift__c}" id="receiptTransactionInputId" style="display: none;"/>
+                                                                <apex:inputText style="cursor: pointer;" styleclass="slds-lookup__search-input slds-input customRequiredFieldCls" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+                                                                <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+                                                                    <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <apex:outputpanel layout="block" id="transactionListOPId" rendered="{!transactionsToAttach.size > 0}" styleClass="slds-dropdown slds-dropdown--left" html-role="listbox" style="width: 100%;max-width: 100%;">
+                                                            <ul id="option-list-01" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                <apex:repeat value="{!transactionsToAttach}" var="item">
+                                                                    <li role="presentation" onclick="processPickValue(this);setReceiptTransactionVal(this);" data-pickValue="{!item.label}" data-pickIdValue="{!item.value}" data-toProcessOnServer="true">
+                                                                        <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item.label}">
+                                                                            <span style="width: 10%;">
+                                                                                <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(receipt.Gift__c == item.label,'block','none')};opacity: 1;"></img>
+                                                                            </span>
+                                                                            <span class="slds-truncate">{!item.label}</span>
+                                                                        </span>
+                                                                    </li>
+                                                                </apex:repeat>
+                                                            </ul>
+                                                        </apex:outputpanel>
+                                                    
+                                                    </div>
+                                                </div>
+                                                
+                                            </apex:outputpanel>
+                                            <apex:outputpanel layout="block" styleClass="slds-form-element">
+                                                <label class="slds-form-element__label" for="text-input-01">
+                                                    Auto Email Receipt
+                                                </label>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-checkbox">
+                                                        <apex:inputcheckbox value="{!receipt.Auto_Email_Receipt__c}" id="autoEmail1" onclick="reRenderAttachments();"/>
+                                                        <apex:outputLabel styleClass="slds-checkbox__label" for="autoEmail1">
+                                                            <span class="slds-checkbox--faux"></span>
+                                                            <span class="slds-form-element__label">
+                                                                
+                                                            </span>
+                                                        </apex:outputLabel>
+                                                    </span>
+                                                </div>
+                                            </apex:outputpanel>
+                                        </div>
+                                        <div class="slds-form-element__row">
+                                            <apex:outputpanel layout="block" styleClass="slds-form-element">
+                                                <label class="slds-form-element__label" for="text-input-01">
+                                                    Email Address
+                                                </label>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputField value="{!receipt.Receipt_Email_Address__c}" rendered="{!receipt.Auto_Email_Receipt__c}"/>
+                                                    </span>
+                                                </div>
+                                            </apex:outputpanel>
+                                            <apex:outputpanel layout="block" styleClass="slds-form-element">
+                                                
+                                            </apex:outputpanel>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </apex:outputPanel>
+                        </apex:outputpanel>
+                        
+                        <div class="slds-no-flex">
+                            <apex:outputpanel layout="block" styleclass="slds-button-group slds-align--absolute-center" html-role="group">
+                                <button type='button' onclick="cancel();" class="slds-button slds-button--neutral" style="">Cancel</button>
+                                <button type='button' onclick="GenerateReceipt();" class="slds-button slds-button--brand" style="">Generate Receipt</button>
+                            </apex:outputpanel>
+                        </div>
+                    </div>
+                
+                </div>
+            </apex:outputPanel>
+       
+    </apex:form>
+    </html>
+    
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        function checkAll(cb) {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("check-payment")!=-1)
+                inputElem[i].checked = cb.checked;
+            }
+        };
+
+        function unCheck() {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+            if(inputElem[i].id.indexOf("check-all")!=-1)
+                inputElem[i].checked = false;
+            }
+        };
+        
+        
+        j$(document).on("click", function(event){
+            var dropdownObjs = j$(".slds-dropdown");
+            if(dropdownObjs !== event.target && !dropdownObjs.has(event.target).length){
+                if(!isPicklistClicked){
+                    j$(".pickListFieldCustomCls").removeClass("slds-is-open");
+                }
+                isPicklistClicked = false;
+            }
+        });
+        
+        var isPicklistClicked = false;
+        function processPicklist(obj){
+            isPicklistClicked = true;
+            j$(obj).parent().toggleClass("slds-is-open");
+        }
+        
+        var pickedElement;
+        var frequencyVal;
+        
+        function processPickValue(obj){
+            pickedElement = obj;
+            var currentpicklistObj = j$(pickedElement).closest('.pickListFieldCustomCls');
+            var pickvalue = j$(pickedElement).attr("data-pickValue");
+            
+            var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+            j$(pickedElement).parent().find("img").hide();
+            j$(pickedElement).find("img").show();
+            //j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+            j$(currentpicklistObj).toggleClass("slds-is-open");
+            j$(currentpicklistObj).find("input").val(pickvalue);
+            
+        }
+        
+        function setReceiptTransactionVal(obj){
+            var pickedIdvalue = j$(obj).attr("data-pickIdValue");
+            j$("[id$='receiptTransactionInputId']").val(pickedIdvalue);
+        }
+        
+        function attachReceiptToTransactionOnPaymentSelect(){
+            if(j$("[id$='receiptTransactionInputId']").val() == ""){
+                j$("[id$='transactionListOPId']").find("li:first-child").trigger('click');
+                j$(".pickListFieldCustomCls").removeClass("slds-is-open");
+            }
+        }
+        
+        
+        
+        
+        var currentpicklistObj2;
+        function processPicklistForBatchTransactionList(obj){
+            isPicklistClicked = true;
+            currentpicklistObj2 = obj;
+            j$(currentpicklistObj2).parent().toggleClass("slds-is-open");
+        }
+        
+        var pickedElement2;
+        function processPickValue2(obj){
+            pickedElement2 = obj;
+            var pickvalue = j$(pickedElement2).attr("data-pickValue");
+            j$(pickedElement2).parent().find("img").hide();
+            j$(pickedElement2).find("img").show();
+            j$(currentpicklistObj2).parent().toggleClass("slds-is-open");
+            j$(currentpicklistObj2).find("input").val(pickvalue);
+            rerenderTheGifts(pickvalue);
+        }
+        function showStatus2(){
+            j$('#statusIndicatorDivId2').show();
+        }
+        
+        function hideStatus2(){
+            j$('#statusIndicatorDivId2').hide();
+        }
+        
+        function checkOrUncheckAllCheckBox(clickedChkBoxObj){
+            if(j$(clickedChkBoxObj).prop('checked')){
+                j$(".eachPaymentCheckBoxCls").prop("checked",true);
+            }else{
+                j$(".eachPaymentCheckBoxCls").prop("checked",false);
+            }
+            reRenderAttachments();
+        }
+        
+        function processEachPaymentCheckBox(clickedChkBoxObj){
+            if(j$(clickedChkBoxObj).prop('checked')){
+                //if rest other are checked then
+                if(j$('.eachPaymentCheckBoxCls:checkbox:not(:checked)').length == 0){
+                    j$("[id$='check-all1']").prop("checked",true);
+                }
+            }else{
+                j$("[id$='check-all1']").prop("checked",false);
+            }
+            reRenderAttachments();
+        }
+    </script>
+    
+    <style>
+        .payment-filter {
+            padding-bottom: 10px !important;
+            margin-left: 80% !important;
+        }
+
+        .payment-filter-label {
+            margin-right: 10px !important;
+        }
+
+        .attachments tr td:first-child {
+            text-align: right;
+        }
+
+        .attachments tr td {
+            padding: 5px;
+            width: 20%;
+        }
+
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+
+        .popupBackground {
+            background-color: black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        
+        .fieldSetCustomCls{
+            margin-bottom: 2% !important;
+            margin-top: 2% !important;
+        }
+    </style>
+
+</apex:page>

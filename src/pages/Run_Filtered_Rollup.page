@@ -1,0 +1,39 @@
+<apex:page standardcontroller="Contact" extensions="rollupBatchController" action="{!executeRollupBatch}">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" />
+    <head>
+        <title>Running Filtered Rollup...</title>
+        <script>
+        window.onload = function() {
+            setTimeout(function(){
+                history.go(-1);
+                return true;
+            },30000);
+        };
+        
+        function delayLoading() {
+            setTimeout(function(){
+                complete();
+                return true;
+            },2000);
+        }
+        
+        </script>
+    </head>
+    <body>
+        <apex:form >
+        	<div>
+        		<div style="width:25px; margin:50px auto 0px;">
+        			<img src="/img/loading32.gif" width="25" height="25" />
+        		</div>
+				<div style="width:175px; margin:0 auto;">
+					<h1>Processing, please wait...</h1>
+				</div>
+				<div style="width:125px; margin:0 auto;">
+		            <apex:actionFunction name="complete" action="{!redirect}" />
+		            <apex:actionPoller action="{!pausingExecution}" enabled="{!jobProcess}" interval="5" oncomplete="delayLoading();" />
+		            <apex:commandButton action="{!redirect}" value="Return To Contact" />
+	            </div>
+            </div>
+        </apex:form>
+    </body>
+</apex:page>

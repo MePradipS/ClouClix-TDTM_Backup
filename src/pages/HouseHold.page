@@ -1,0 +1,279 @@
+<apex:page tabStyle="Account" controller="HouseHold" sidebar="false" showHeader="true" action="{!RedirectByTheme}">
+    <style>
+        #overDiv{
+            background-color: #000;
+            width: 100%;
+            height: 100%;
+            left:0;
+            top:0;/*FF IE7*/
+            filter:alpha(opacity=40);/*IE*/
+            opacity:0.4;/*FF*/
+            z-index:1;
+            position:fixed!important;/*FF IE7*/
+            position:absolute;/*IE6*/
+        }
+         
+        .button {  
+            display: inline-block;  
+            position: relative;  
+            margin: 10px;  
+            padding: 0 20px;  
+            text-align: center;  
+            text-decoration: none;  
+            font: bold 12px/25px Arial, sans-serif;  
+            text-shadow: 1px 1px 1px rgba(255,255,255, .22);  
+            -webkit-border-radius: 30px;  
+            -moz-border-radius: 30px;  
+            border-radius: 30px;  
+            -webkit-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);  
+            -moz-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);  
+            box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);  
+            -webkit-transition: all 0.15s ease;  
+            -moz-transition: all 0.15s ease;  
+            -o-transition: all 0.15s ease;  
+            -ms-transition: all 0.15s ease;  
+            transition: all 0.15s ease;  
+            font-weight:bold;
+            background-image:url({!$Resource.ButtonBackImg});
+            background-repeat:repeat-x; 
+            color: #000000; 
+        } 
+
+        .green 
+        {  
+            color: #3e5706;  
+            background: #a5cd4e; /* Old browsers */ 
+            background: -moz-linear-gradient(top,  #a5cd4e 0%, #6b8f1a 100%); /* FF3.6+ */ 
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a5cd4e), color-stop(100%,#6b8f1a)); /* Chrome,Safari4+ */ 
+            background: -webkit-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* Chrome10+,Safari5.1+ */ 
+            background: -o-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* Opera 11.10+ */ 
+            background: -ms-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* IE10+ */ 
+            background: linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* W3C */ 
+        }   
+
+
+    </style>
+    <script type='text/javascript'>
+
+        function delMyMember(ActionMemberId){
+            f = confirm("Confirm to remove it?");
+            if(f){
+                delMember(ActionMemberId);
+            }
+        }
+        function searchExistingMemberKeyPress(ev)  {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                searchExistingMember();
+                return false;
+             } else {
+                  return true;
+             }
+         }
+    </script>
+    
+    <apex:form >
+        <apex:actionFunction name="delMember" action="{!delMember}" rerender="page" status="pageStatus">
+            <apex:param name="ActionMemberId" assignTo="{!ActionMemberId}" value="" />
+        </apex:actionFunction>        
+        <apex:outputPanel id="page">
+            <div id="overDiv" style="top:0px;left:0px;position:absolute;width=1000px;height:1000px;display:{!JSENCODE(HTMLENCODE(DisplayBackBlock))}">
+            </div>
+            <apex:pageBlock title="Households: ">
+                <apex:pageBlockSection title="Households Details" showHeader="false" columns="2">        
+                      <apex:repeat value="{!HouseHoldFieldList}" var="f">
+                          <apex:inputField value="{!houseHold[f.fieldPath]}" 
+                              required="{!OR(f.required, f.dbrequired)}"/>
+                      </apex:repeat>        
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+            <apex:pageBlock title="Member List: ">   
+                <div style="text-align:left">
+                    <a href="#" class="button" onclick="newMember()" >Add New Member</a>                 
+                </div>                        
+                <div style="display:{!DisplayHiddenPopUp}">
+                    <apex:pageMessages />
+                </div> 
+            
+                <apex:pageBlockTable title="Member List" value="{!MyMemberList}" var="mm" id="theTable" rowClasses="odd,even" styleClass="tableClass" width="70%">
+                    <apex:column >
+                        <apex:facet name="header">Action</apex:facet>
+                        <table>
+                            <tr>
+                                <td>
+                                    <apex:commandLink action="{!editMember}" value="Edit" immediate="true" reRender="page" status="pageStatus">
+                                        <apex:param name="ActionMemberId" value="{!mm.Id}"/>                            
+                                    </apex:commandLink>
+                                </td>
+                                <td>
+                                    <apex:commandLink action="{!cloneMember}" value="Clone" immediate="true" reRender="page" status="pageStatus">
+                                        <apex:param name="ActionMemberId" value="{!mm.Id}"/>                            
+                                    </apex:commandLink>
+                                </td>
+                                <td>
+                                    <a href="#none" onclick="delMyMember('{!mm.Id}');">Remove</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </apex:column>
+                    <apex:repeat value="{!MemberFieldList}" var="f">
+                        <apex:column width="2%" >
+                            <apex:facet name="header">{!f.label}</apex:facet>
+                            <apex:outputfield style="width=20px" value="{!mm.Member[f.fieldPath]}"/>
+                        </apex:column>
+                    </apex:repeat>
+                </apex:pageBlockTable> 
+            </apex:pageBlock>
+                
+            <div style="text-align:center;margin-left:auto;margin-right:auto;">
+                <a href="#" class="button" onclick="saveAll()">Save All</a> 
+                <a href="#" class="button" onclick="cancelAll()" >Cancel</a> 
+            </div> 
+            <apex:outputText value="{!Msg}"/> 
+            <br/>
+            <apex:actionStatus id="pageStatus">
+                <apex:facet name="start"><h1>Loading...</h1></apex:facet>
+                <apex:facet name="stop">               
+                </apex:facet>
+            </apex:actionStatus>
+            <div id="dlDiv" style="position:absolute;top:5%;left:15%;width:70%;z-index:2;display:{!DisplayPopUp}">
+                <div style="padding:20px">  
+                <div>           
+                <apex:outputPanel id="member">   
+                    <apex:pageBlock title="Member Management">
+                        <apex:pageMessages />
+                        <table width="100%" style="background-image:url({!$Resource.HeadBackImg});background-repeat:repeat-x;" >
+                            <tr>
+                                <td >
+                                    <br/>
+                                    <font color="white" size="3">{!MemberOperation}</font>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td >
+                                    &nbsp;                                        
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="DivMember" style='padding:20px 0 20px 0;text-align:center;display:{!DisplayMemberDetails}'>
+                            <apex:pageBlockSection showHeader="false" title="Member Details" columns="2">
+                                  <apex:repeat value="{!MemberFieldList}" var="f">
+                                      <apex:inputField value="{!Member[f.fieldPath]}" 
+                                          required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}"/>
+                                  </apex:repeat>        
+                            </apex:pageBlockSection>
+                        </div>
+                        <table style="display:{!JSENCODE(HTMLENCODE(DisplaySearchKeywords))}">
+                            <tr align="left">
+                                <td>
+                                    <strong>Search by Last Name:</strong>
+                                </td>
+                                <td>
+                                    <apex:inputText value="{!Keywords}" onkeypress="return searchExistingMemberKeyPress(event);"/>
+                                    <a href="#" class="button" onclick="searchExistingMember()">Search</a>
+                                </td>
+                            </tr>
+                        </table>
+                        <apex:pageBlockTable rules="rows" title="Existing Member List"  value="{!ExistingMemberList}" var="em" id="tableExistingMember" rowClasses="odd,even" styleClass="tableClass" width="100%" style="display:{!DisplayExistingMemberList}">
+                            <apex:column >
+                                <apex:facet name="header">Action</apex:facet>
+                                <apex:inputcheckbox value="{!em.Checked}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">First Name</apex:facet>
+                                <apex:outputText value="{!em.Member.FirstName}"/>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Last Name</apex:facet>
+                                <a href="/{!em.Member.Id}" target="_blank">{!em.Member.LastName}</a>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Email</apex:facet>
+                                <apex:outputText value="{!em.Member.Email}"/>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Phone</apex:facet>
+                                <apex:outputText value="{!em.Member.Phone}"/>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Mailing Address</apex:facet>
+                                <apex:outputText value="{!em.Member.MailingStreet} {!em.Member.MailingCity} {!em.Member.MailingState} {!em.Member.MailingPostalCode} {!em.Member.MailingCountry}"/>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Household Name</apex:facet>
+                                <a href="/{!em.Member.Household__c}" target="_blank">{!em.Member.Household__r.Name}</a>
+                            </apex:column>
+                        </apex:pageBlockTable>
+                        
+                        <div align="right"  style="display:{!JSENCODE(HTMLENCODE(DisplayPageIndex))}">
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <h1>Total count: {!TotalCount}</h1>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <font size="1pt">
+                                Page #:&nbsp;<apex:outputLabel value="{!PageIndex}"/>
+                                &nbsp;out of&nbsp;
+                                <apex:outputLabel value="{!TotalPageNumber}"/>
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                            </font>
+                            <apex:commandButton value="Previous" action="{!previousBtnClick}" disabled="{!PreviousButtonDisabled}" reRender="member" status="memberStatus"></apex:commandButton>
+                            <apex:commandButton value="Next" action="{!nextBtnClick}" disabled="{!NextButtonDisabled}" reRender="member" status="memberStatus"></apex:commandButton>
+                        </div>
+
+                        <div style="text-align:center;margin-left:auto;margin-right:auto;">
+                            <br/>
+                            <div style="display:{!JSENCODE(HTMLENCODE(DisplayNewMemberButton))}">                
+                                <a href="#" class="button" onclick="showSuggestedMember()">Search Existing Individuals</a>
+                                <a href="#" class="button" onclick="cancel()">Cancel</a>
+                            </div>
+                            <div style="display:{!JSENCODE(HTMLENCODE(DisplaySuggestedMemberButton))}">
+                                <a href="#" class="button" onclick="addSelectedMember()" style="display:{!DisplayAddSelectedMemberButton}" >Add Selected to Household</a>
+                                <a href="#" class="button" onclick="save()">Save New Member</a>
+                                <a href="#" class="button" onclick="saveAndNewMember()">Save and Create Another Member</a>
+                                <a href="#" class="button" onclick="showSuggestedMember()">Search Existing Individuals</a>
+                                <a href="#" class="button" onclick="cancel()">Cancel</a>
+                            </div>
+                            <div style="display:{!JSENCODE(HTMLENCODE(DisplayEditMemberButton))}">
+                                <a href="#" class="button" onclick="save()">Save</a>
+                                <a href="#" class="button" onclick="saveAndNewMember()">Save and Create Another Member</a>
+                                <a href="#" class="button" onclick="cancel()">Cancel</a>
+                            </div>
+                            <div style="display:{!JSENCODE(HTMLENCODE(DisplayExistingMemberButton))}">
+                                <a href="#" class="button" onclick="addSelectedMember()" style="display:{!DisplayAddSelectedMemberButton}" >Add Selected to Household</a>
+                                <a href="#" class="button" onclick="newMember()">Save New Member</a>
+                                <a href="#" class="button" onclick="cancel()">Cancel</a>
+                            </div>  
+                            <br/>
+                        </div>             
+                        <apex:actionStatus id="memberStatus">
+                            <apex:facet name="start"><h1>Loading...</h1></apex:facet>
+                            <apex:facet name="stop"> 
+                                <br/>                            
+                            </apex:facet>
+                        </apex:actionStatus>              
+                    </apex:pageBlock>   
+                    </apex:outputPanel>        
+                    </div> 
+                </div>
+                </div> 
+             
+        <apex:actionFunction name="showSuggestedMember" action="{!showSuggestedMember}" rerender="page" status="memberStatus">
+        </apex:actionFunction>           
+        <apex:actionFunction name="cancel" action="{!cancel}" rerender="page" status="memberStatus" immediate="true" >
+        </apex:actionFunction>           
+        <apex:actionFunction name="addSelectedMember" action="{!addSelectedMember}" rerender="page" status="memberStatus">
+        </apex:actionFunction>           
+        <apex:actionFunction name="save" action="{!save}" rerender="page" status="memberStatus">
+        </apex:actionFunction>           
+        <apex:actionFunction name="saveAndNewMember" action="{!saveAndNewMember}" rerender="page" status="memberStatus">
+        </apex:actionFunction>
+        <apex:actionFunction name="newMember" action="{!newMember}" rerender="page" status="memberStatus">
+        </apex:actionFunction>
+        <apex:actionFunction name="searchExistingMember" action="{!searchExistingMember}" rerender="page" status="memberStatus">
+        </apex:actionFunction>
+        <apex:actionFunction name="saveAll" action="{!saveAll}" rerender="page" status="pageStatus">
+        </apex:actionFunction>
+        <apex:actionFunction name="cancelAll" action="{!cancelAll}" rerender="page" status="pageStatus" immediate="true">
+        </apex:actionFunction>
+        
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

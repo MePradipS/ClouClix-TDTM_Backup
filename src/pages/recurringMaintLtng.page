@@ -1,0 +1,92 @@
+<apex:page controller="recurringMaintController" tabStyle="Recurring_Donation__c" action="{!init}">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+<head>
+ <apex:slds />
+</head>
+  <!--<apex:sectionHeader title="{!$ObjectType.Recurring_Donation__c.Label}" subtitle="{!recurringDonation.Name}"/> -->
+   <!-- ********************* HEDER SECTIION *********************** -->
+      <div class="slds slds-page-header">
+         <div class="slds slds-grid">
+            <div class="slds slds-col slds-has-flexi-truncate">
+               <div class="slds slds-media slds-no-space slds-grow">
+                  <div class="slds slds-media__figure">
+                     <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#reward"></use>
+                     </svg>
+                  </div>
+                  <div class="slds slds-media__body">
+                     <p class="slds slds-text-title--caps slds-line-height--reset">{!$ObjectType.Recurring_Donation__c.Label}</p>
+                     <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="this should match the Record Title">{!recurringDonation.Name}</h1>
+                  </div>
+               </div>
+            </div>
+            <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+            </div>
+         </div>
+      </div>
+      <!-- ******************** END OF HEDER SECTION ***************** -->
+  <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+  <script type="text/javascript" src="https://api.causeview.com/tools/crossdomain.js"></script>
+  <apex:stylesheet value="{!URLFOR($Resource.SLDS0122, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+  <apex:stylesheet value="{!URLFOR($Resource.SLDS221, 'assets/styles/salesforce-lightning-design-system.css')}" />
+  
+  <apex:outputPanel rendered="{!OR(wizardStep==1,wizardStep==3)}" layout="none">
+
+    <!--<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">-->
+    
+  <script>
+   $(function(){
+      var accountId = '{!URLENCODE(settings.CV_Account_Id__c)}';
+      var url = '{!URLENCODE(settings.Stock_Form_URL__c)}?callback=?';
+      var errorMessage = "Could not retrive your organization form configuration, please contact the administrator";
+      $.getJSON(decodeURIComponent(url), { type:"{!URLENCODE(recurringAction)}",accountId:accountId,txtype:"{!URLENCODE(recurringDonation.Type__c)}" }, function(result) {
+      
+         if ($.isEmptyObject(result)) {
+           window.alert(errorMessage + ' Empty');
+           return;
+         }
+         if (!result.hasOwnProperty("FormId") || !result.FormId) {
+           window.alert(errorMessage + ' Could not find FormId');
+           return;
+        }
+         var src = result.Domain + '/' + result.FormUrl + "?accountid=" + accountId + "&encryptedRecurringId=" + '{!URLENCODE(recurringDonation.Encrypted_Key__c)}' + "&RecurringId=" +  '{!URLENCODE(recurringDonation.Id)}'
+         var frameHeight = (result.FrameHeight)? result.FrameHeight+"px":"250px";
+         $("#causeview_iframe").loadCauseViewForm({src:src, api:result.Domain, frame_height:frameHeight, applyQueryStrings:true });  
+        
+      }).error(function(xhr, ajaxOptions, thrownError)
+      {
+      }).success(function() {  });
+      
+   });
+  </script>
+  </apex:outputPanel>
+  <apex:form styleclass="slds">
+     <apex:pagemessages ></apex:pagemessages> 
+     <fieldset class="slds-box slds-theme--default slds-container">
+    
+    
+     <legend class="slds-text-heading--medium slds-p-vertical--medium">Recuring Donation</legend>  
+   
+      <div class="slds-media__body">
+
+     <apex:commandLink value="Go back to {!recurringDonation.Name}" action="{!cancel}" style="padding-bottom:10px;color:#1e90ff" styleClass="slds-text-link--reset">
+     <div class="slds-tile__detail slds-text-body--small">
+          
+          </div>
+     </apex:commandLink></div>
+     </fieldset>
+     
+     <!--<apex:pageBlock title="Recurring:{!IF(wizardStep=1,'Update Payment Information','Cancel Recurring Gift')}" mode="edit" rendered="{!OR(wizardStep==1,wizardStep==3)}"> -->
+     <apex:outputPanel rendered="{!OR(wizardStep==1,wizardStep==3)}">
+      <fieldset class="slds-box slds-theme--default slds-container">
+     <legend class="slds-text-heading--medium slds-p-vertical--medium">Recurring:{!IF(wizardStep=1,'Update Payment Information','Cancel Recurring Gift')}</legend> 
+            
+        <div id="causeview_iframe" class="causeviewContainer"></div>
+        <div class="slds-form-element slds-hint-parent slds-has-divider--bottom"></div>  
+      </fieldset>
+      </apex:outputPanel>
+     <!-- </apex:pageBlock>  -->
+  </apex:form>
+  
+  </html>
+</apex:page>

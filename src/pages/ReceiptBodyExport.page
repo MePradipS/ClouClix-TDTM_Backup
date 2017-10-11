@@ -1,0 +1,3 @@
+<apex:page controller="ReceiptBodyExportController" renderAs="pdf" >
+    <apex:outputText escape="false" value="{!content}"></apex:outputText>
+</apex:page>

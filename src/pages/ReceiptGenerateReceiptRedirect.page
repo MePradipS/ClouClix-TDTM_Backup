@@ -1,0 +1,2 @@
+<apex:page controller="ReceiptGenerateReceiptController" id="ReceiptGenerateReceiptRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

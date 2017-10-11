@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Campaign" extensions="CampaignCreateAppealAPController" id="CampaignCreateAppealAPRedirect" showHeader="true" sidebar="true" action="{!RedirectCampaign}">
+</apex:page>
