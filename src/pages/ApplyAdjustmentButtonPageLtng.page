@@ -1,0 +1,184 @@
+<apex:page standardController="Gift_Detail__c" extensions="ApplyAdjustmentButtonPageController,RemoteQueryBuilder"  tabStyle="Gift_Detail__c" action="{!RedirectByTheme}">
+<script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+<apex:includeScript value="{!$Resource.jQuery172}"/>
+
+ <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+ <head>
+   <apex:slds />
+ </head>
+    <apex:form >
+         <div class="slds slds-page-header">
+          <div class="slds slds-grid">
+            <div class="slds slds-col slds-has-flexi-truncate">
+              <div class="slds slds-media slds-no-space slds-grow">
+                  <div class="slds slds-media__figure">
+                     <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                      <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#orders"></use>
+                     </svg>
+                   </div>
+                   <div class="slds slds-media__body">
+                    <p class="slds slds-text-title--caps slds-line-height--reset">ADJUSTMENT</p>
+                    <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="adjustment">Adjustment</h1>
+                  </div>
+              </div>
+            </div>
+              <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+
+              </div>
+          </div>
+         </div>
+          <article class="slds-card" style="background: #FFFFFF;">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                   <p class="slds slds-text-title--caps slds-line-height--reset"></p>
+                </header>
+                <div class="slds-no-flex">
+                   <div class="slds-button-group" role="group">
+
+
+                   </div>
+                </div>
+            </div>
+            <div class="slds-card__body">
+              <div style="padding-left: 35%;">
+              <div style="width: 75%;">
+              <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                 <div class="slds-form-element">
+                  <label class="slds-form-element__label" for="text-input-01">Fund</label>
+                   <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 56%;" >
+                        <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                            <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                        </span>
+                        <input id="searchInput15"  data-isRequired="true" data-requiredFieldName="{!$ObjectType.Gift_Detail__c.fields.Fund__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),fieldNamespace + 'Fund__c','{!$ObjectType.Gift_Detail__c.fields.Fund__c.label}','15')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn15" /> 
+                        <apex:inputText value="{!giftDetail.Fund__c}" style="display:none"/>
+                  </div>
+                   <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn15" style="display:none;max-width: 56%;">
+                      <div class="slds-lookup__item">
+                          <span id="searchText15"></span>
+                      </div>
+                      <ul class="slds-lookup__list" role="presentation" id="searchResultsUL15" style="max-height: 240px;">
+                      </ul>
+
+                  </div>
+                </div>
+              </div>
+
+           <div class="slds-card__footer">
+           <div class="slds-align--absolute-center">
+             <ul class="slds-has-dividers--top">
+                <apex:commandButton styleclass="slds-button slds-button--neutral" value="Submit" action="{!submit}" />
+             </ul>
+            </div>
+            </div>
+          </div>
+          </div>
+
+        </div>
+        </article>
+    </apex:form>
+ <script>
+        var nameSpace = "{!PackageNamespace}";
+        var j$ = jQuery.noConflict();
+        sforce.connection.sessionId='{!GETSESSIONID()}';
+        function searchRecords(key,objectName,objectLabel,iVal){
+            if(!timeUp) return;
+            j$('#'+key.attr('aria-activedescendant')).show();
+            searchKey = key.val();
+            if(searchKey == ''){
+                j$('#'+key.attr('aria-activedescendant')).hide();
+            }
+
+            j$('#searchText'+iVal).text('\"'+searchKey+'\" In '+objectLabel);
+
+            var fields = "Id, Name,Fund_Name__c";
+            var clause = "Fund_Name__c LIKE '"+searchKey+"%' LIMIT 15";
+            var records = [];
+
+            RemoteQueryBuilder.ListQueryBuilderWhere(
+              objectName, fields, clause,
+              function(result, event){
+                records = result;
+                var searchLis ="";
+                if(records.length > 0){
+                    for(var i=0; i<records.length; i++){
+                        searchLis += '<li onclick="recordInfo(\''+records[i][nameSpace + "Fund_Name__c"]+'\',\''+records[i].Id+'\',\''+iVal+'\');"  class="slds-lookup__item"><span id="'+records[i]["Id"]+'" style="cursor:pointer">'+records[i][nameSpace + "Fund_Name__c"]+'</span></li>';
+                    }
+                }else{
+                    searchLis += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+                }
+                j$('#searchResultsUL'+iVal).html(searchLis);
+              }
+            );
+        }
+
+        function recordInfo(recordName,recordId,iVal){
+            j$('#SrchDrpDwn'+iVal).fadeOut();
+            j$('#searchInput'+iVal).val(recordName);
+            j$('#searchInput'+iVal).next().attr('Value',recordId);
+
+            var idval = 'hiddenId'+iVal;
+            j$("[id$="+idval+"]").val(recordId);
+
+            j$('[id$=searchInputtext]').val(recordName);
+            j$('[id$=searchInputId]').val(recordId);
+        }
+
+        var timeUp = false;
+        function onkeyUpInvoke(key,objectName,objectLabel,iVal){
+            timeUp = false;
+            setTimeout(function(){
+                            timeUp = true;
+                            searchRecords(key,objectName,objectLabel,iVal);
+                            hideStatus();
+            },501);
+
+            setTimeout(function(){
+                            showStatus();
+            },500);
+        }
+
+        function validateData(){
+            j$('.requiredFieldCustomErrorMsgCls').hide();
+            j$('[data-isRequired ="true"]').removeClass('slds-has-error');
+            var requiredFieldList = j$('[data-isRequired ="true"]');
+            var isValidationPassed = true;
+            j$(requiredFieldList).each(function(index,item) {
+                if(j$(this).val().length == 0 || j$(this).val() == '-- None --'){
+                    var errorMsgElementId = 'requiredFieldCustomErrorMsgId_'+j$(item).attr("data-requiredFieldName");
+                    j$(item).addClass('slds-has-error');
+                    j$('#'+errorMsgElementId).show();
+                    isValidationPassed = false;
+                }
+            });
+            return isValidationPassed;
+        }
+
+        j$(document).ready(function()
+          {
+              var assetsLocation = '{!URLFOR($Asset.SLDS)}';
+              j$.aljsInit({
+                    assetsLocation: assetsLocation,
+                    scoped: true
+              });
+
+
+              initDatePicker();
+
+          });
+        function initDatePicker(){
+            j$('.datePickerInputCls').datepicker(
+                    {
+                        format: 'DD/MM/YYYY',
+                    }
+              );
+        }
+
+        function initALJSINIT(){
+            j$.aljsInit({
+                    assetsLocation: assetsLocation,
+                    scoped: true
+              });
+        }
+   </script>
+ </html>
+</apex:page>

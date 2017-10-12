@@ -1,0 +1,8 @@
+<apex:component controller="CurrencyOutputFieldController">
+  <apex:attribute name="value" description="amount to display"
+                  type="Decimal" required="true" assignTo="{!value}"/>
+  <apex:attribute name="currencyIsoCode" description="currencyIsoCode of amount"
+                  type="String" required="false" assignTo="{!currencyIsoCode}"/>
+    
+   <apex:outputfield value="{!opp.Amount}"/>
+</apex:component>

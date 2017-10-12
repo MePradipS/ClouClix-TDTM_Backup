@@ -1,0 +1,668 @@
+<apex:page controller="TransactionBatchPresetsController" action="{!RedirectByTheme}">
+<style type="text/css">
+ .col1 { width:5%; padding:3px 3px 3px 3px; }
+ .col2 { width:13%; text-align:right; vertical-align:middle; padding:3px 3px 3px 3px; min-width:120px;}
+ .col3 { width:32%; text-align:left; vertical-align:middle; padding:3px 3px 3px 3px; min-width:350px;}
+ .col4 { width:9%; text-align:left;vertical-align:middle; padding:3px 3px 3px 3px; min-width:80px;}
+ .col5 { width:9%; text-align:left;vertical-align:middle; padding:3px 3px 3px 3px; min-width:80px;}
+ .col6 { width:32%; padding:3px 3px 3px 3px;}
+ 
+ .row {}
+ .row:hover { background-color:#ebebeb; border:solid 1px #dcdcdc; }
+ .headerLabel {
+    color:#800000;
+    font-size:1em;
+    font-weight:bold;
+    padding:5px 2px 4px 5px;
+    border-bottom:solid 1px #dcdcdc;
+ }
+ .rich-tabhdr-side-border {  width:0px; padding:0px; border:0px; }
+ .rich-tabhdr-side-border img {  width:0px; padding:0px; border:0px; }
+ </style>
+ <link type="text/css" rel="stylesheet" href="/sCSS/20.0/sprites/1288206287000/Theme3/default/versioning.css"/>
+ 
+ <apex:sectionHeader subtitle="My Batch Presets" title="Batch Transactions"/>
+ <apex:form >
+    <apex:pagemessages />
+    <apex:variable id="readonlyTip" value="Read Only?" var="readonlyTip"/>
+    <apex:variable id="hideTip" value="Hide?" var="hideTip"/>
+    <apex:pageBlock mode="edit">
+  
+         <apex:pageBlockButtons >
+           <apex:commandButton value="Save" action="{!save}"/>
+           <apex:commandButton value="Clear My Presets" action="{!clear}" onclick="return window.confirm('You are about to clear all of your presets. Are you sure?');"/>
+         </apex:pageBlockButtons>
+         
+         <apex:tabPanel id="ss_shifted" headerSpacing="0" activeTabClass="activeTab" inactiveTabClass="inactiveTab" contentClass="tabContent">
+           <apex:tab label="{!$ObjectType.Contact.label}">
+             
+           <apex:pageblockSection title="{!$ObjectType.Contact.label} Presets">
+           </apex:pageblockSection>
+           <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row" style="min-width:900px">
+             
+             <apex:outputLabel value=""/>
+             <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+             <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+             <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+             <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+             <apex:outputLabel value="" />
+ 
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.FirstName.label}" styleClass="labelCol"/>
+             <apex:outputField value="{!wrapper.constituent.FirstName}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentFirstName.readOnly}" disabled="{!NOT(wrapper.presets.constituentFirstName.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentFirstName.isHidden}" disabled="{!NOT(wrapper.presets.constituentFirstName.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent last Name -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.LastName.label}" styleClass="labelCol"/>
+             <apex:outputField value="{!wrapper.constituent.LastName}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentLastName.readOnly}" disabled="{!NOT(wrapper.presets.constituentLastName.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentLastName.isHidden}" disabled="{!NOT(wrapper.presets.constituentLastName.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent MailingStreet -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.MailingStreet.label}" styleClass="labelCol"/>
+             <apex:outputField value="{!wrapper.constituent.MailingStreet}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingStreet.readOnly}" disabled="{!NOT(wrapper.presets.constituentMailingStreet.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingStreet.isHidden}" disabled="{!NOT(wrapper.presets.constituentMailingStreet.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent MailingCity -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.MailingCity.label}" styleClass="labelCol"/>
+             <apex:inputField value="{!wrapper.constituent.MailingCity}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingCity.readOnly}" disabled="{!NOT(wrapper.presets.constituentMailingCity.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingCity.isHidden}" disabled="{!NOT(wrapper.presets.constituentMailingCity.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent MailingState -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.MailingState.label}" styleClass="labelCol"/>
+             <apex:inputField value="{!wrapper.constituent.MailingState}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingState.readOnly}" disabled="{!NOT(wrapper.presets.constituentMailingState.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingState.isHidden}" disabled="{!NOT(wrapper.presets.constituentMailingState.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent MailingPostalCode -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.MailingPostalCode.label}" styleClass="labelCol"/>
+             <apex:outputField value="{!wrapper.constituent.MailingPostalCode}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingPostalCode.readOnly}" disabled="{!NOT(wrapper.presets.constituentMailingPostalCode.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingPostalCode.isHidden}" disabled="{!NOT(wrapper.presets.constituentMailingPostalCode.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent MailingCountry -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.MailingCountry.label}" styleClass="labelCol"/>
+             <apex:inputField value="{!wrapper.constituent.MailingCountry}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingCountry.readOnly}" disabled="{!NOT(wrapper.presets.constituentMailingCountry.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentMailingCountry.isHidden}" disabled="{!NOT(wrapper.presets.constituentMailingCountry.canHide)}" title="{!hideTip}"/> 
+             <apex:outputLabel value="" />
+             
+             <!-- constituent Region -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Region__c.label}" styleClass="labelCol"/>
+             <apex:inputField value="{!wrapper.constituent.Region__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentRegion.readOnly}" disabled="{!NOT(wrapper.presets.constituentRegion.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentRegion.isHidden}" disabled="{!NOT(wrapper.presets.constituentRegion.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+              
+             <!-- constituent Phone -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Phone.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.constituent.Phone}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentPhone.readOnly}" disabled="{!NOT(wrapper.presets.constituentPhone.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentPhone.isHidden}" disabled="{!NOT(wrapper.presets.constituentPhone.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+              
+             <!-- constituent Email -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Email.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.constituent.Email}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentEmail.readOnly}" disabled="{!NOT(wrapper.presets.constituentEmail.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentEmail.isHidden}" disabled="{!NOT(wrapper.presets.constituentEmail.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+               
+             <!-- constituent Primary_Addressee__c -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Primary_Addressee__c.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.constituent.Primary_Addressee__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentPrimaryAddressee.readOnly}" disabled="{!NOT(wrapper.presets.constituentPrimaryAddressee.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentPrimaryAddressee.isHidden}" disabled="{!NOT(wrapper.presets.constituentPrimaryAddressee.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+              
+             <!-- constituent Primary_Salutation__c -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Primary_Salutation__c.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.constituent.Primary_Salutation__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentPrimarySalutation.readOnly}" disabled="{!NOT(wrapper.presets.constituentPrimarySalutation.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentPrimarySalutation.isHidden}" disabled="{!NOT(wrapper.presets.constituentPrimarySalutation.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value=""/>
+              
+             <!-- constituent Trade_Status__c -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Trade_Status__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.constituent.Trade_Status__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentTradeStatus.readOnly}" disabled="{!NOT(wrapper.presets.constituentTradeStatus.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentTradeStatus.isHidden}" disabled="{!NOT(wrapper.presets.constituentTradeStatus.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value=""  />
+             
+             <!-- constituent Codes -->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Constituent_Codes__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.constituent.Constituent_Codes__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentCodes.readOnly}" disabled="{!NOT(wrapper.presets.constituentCodes.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentCodes.isHidden}" disabled="{!NOT(wrapper.presets.constituentCodes.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent Solicit Codes-->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Solicit_Codes__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.constituent.Solicit_Codes__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentSolicitCode.readOnly}" disabled="{!NOT(wrapper.presets.constituentSolicitCode.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentSolicitCode.isHidden}" disabled="{!NOT(wrapper.presets.constituentSolicitCode.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             <!-- constituent house hold-->
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.Household__c.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.constituent.Household__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.constituentHousehold.readOnly}" disabled="{!NOT(wrapper.presets.constituentHousehold.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.constituentHousehold.isHidden}" disabled="{!NOT(wrapper.presets.constituentHousehold.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+         </apex:panelGrid>
+         </apex:tab>
+         
+         <!-- +++++++++++++++++ Org ++++++++++++++++++++ -->
+         <apex:tab id="Organization" label="{!$ObjectType.Account.label}">
+             
+           <apex:pageBlockSection title="{!$ObjectType.Account.label} Presets">
+           </apex:pageBlockSection>
+           <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row">
+             <apex:outputLabel value=""/>
+             <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+             <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+             <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+             <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Name.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.Name}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgName.readOnly}" disabled="{!NOT(wrapper.presets.orgName.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgName.isHidden}" disabled="{!NOT(wrapper.presets.orgName.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.BillingStreet.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.BillingStreet}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingStreet.readOnly}" disabled="{!NOT(wrapper.presets.orgBillingStreet.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingStreet.isHidden}" disabled="{!NOT(wrapper.presets.orgBillingStreet.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value=""  />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.BillingCity.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.BillingCity}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingCity.readOnly}" disabled="{!NOT(wrapper.presets.orgBillingCity.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingCity.isHidden}" disabled="{!NOT(wrapper.presets.orgBillingCity.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.BillingState.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.BillingState}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingState.readOnly}" disabled="{!NOT(wrapper.presets.orgBillingState.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingState.isHidden}" disabled="{!NOT(wrapper.presets.orgBillingState.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.BillingPostalCode.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.BillingPostalCode}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingPostalCode.readOnly}" disabled="{!NOT(wrapper.presets.orgBillingPostalCode.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingPostalCode.isHidden}" disabled="{!NOT(wrapper.presets.orgBillingPostalCode.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.BillingCountry.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.BillingCountry}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingCountry.readOnly}" disabled="{!NOT(wrapper.presets.orgBillingCountry.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgBillingCountry.isHidden}" disabled="{!NOT(wrapper.presets.orgBillingCountry.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value=""/>
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Region__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.Region__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgRegion.readOnly}" disabled="{!NOT(wrapper.presets.orgRegion.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgRegion.isHidden}" disabled="{!NOT(wrapper.presets.orgRegion.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Phone.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.Phone}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgPhone.readOnly}" disabled="{!NOT(wrapper.presets.orgPhone.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgPhone.isHidden}" disabled="{!NOT(wrapper.presets.orgPhone.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Fax.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.Fax}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgFax.readOnly}" disabled="{!NOT(wrapper.presets.orgFax.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgFax.isHidden}" disabled="{!NOT(wrapper.presets.orgFax.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Website.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.Website}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgWebsite.readOnly}" disabled="{!NOT(wrapper.presets.orgWebsite.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgWebsite.isHidden}" disabled="{!NOT(wrapper.presets.orgWebsite.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Email__c.label}" styleClass="labelCol"/> 
+             <apex:outputField value="{!wrapper.account.Email__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgEmail.readOnly}" disabled="{!NOT(wrapper.presets.orgEmail.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgEmail.isHidden}" disabled="{!NOT(wrapper.presets.orgEmail.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Type.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.Type}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgType.readOnly}" disabled="{!NOT(wrapper.presets.orgType.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgType.isHidden}" disabled="{!NOT(wrapper.presets.orgType.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Trade_Status__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.Trade_Status__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgTradeStatus.readOnly}" disabled="{!NOT(wrapper.presets.orgTradeStatus.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgTradeStatus.isHidden}" disabled="{!NOT(wrapper.presets.orgTradeStatus.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Solicit_Codes__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.Solicit_Codes__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgSolicitCode.readOnly}" disabled="{!NOT(wrapper.presets.orgSolicitCode.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgSolicitCode.isHidden}" disabled="{!NOT(wrapper.presets.orgSolicitCode.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+             &nbsp;
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Constituent_Codes__c.label}" styleClass="labelCol"/> 
+             <apex:inputField value="{!wrapper.account.Constituent_Codes__c}" />
+             <apex:inputCheckbox value="{!wrapper.presets.orgConstituentCode.readOnly}" disabled="{!NOT(wrapper.presets.orgConstituentCode.canSetReadOnly)}" title="{!readonlyTip}"/>
+             <apex:inputCheckbox value="{!wrapper.presets.orgConstituentCode.isHidden}" disabled="{!NOT(wrapper.presets.orgConstituentCode.canHide)}" title="{!hideTip}"/>
+             <apex:outputLabel value="" />
+             
+            </apex:panelGrid>
+           </apex:tab>
+           
+            <!-- +++++++++++++++++ recurring ++++++++++++++++++++ -->
+          <apex:tab id="recurring" label="{!$ObjectType.Recurring_Donation__c.label}">
+             
+             <apex:pageBlockSection title="{!$ObjectType.Recurring_Donation__c.label} Presets">
+             </apex:pageBlockSection>
+             <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row">
+                  <apex:outputLabel value=""/>
+                 <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+                 <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+                 <apex:outputLabel value="" />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Frequency__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.recurringDonation.Frequency__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanFrequency.readOnly}" disabled="{!NOT(wrapper.presets.shareplanFrequency.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanFrequency.isHidden}" disabled="{!NOT(wrapper.presets.shareplanFrequency.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""  />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Start_Date__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.recurringDonation.Start_Date__c}" required="false" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanStartDate.readOnly}" disabled="{!NOT(wrapper.presets.shareplanStartDate.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanStartDate.isHidden}" disabled="{!NOT(wrapper.presets.shareplanStartDate.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value="" />
+                 
+                 <!--
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.End_Date__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.recurringDonation.End_Date__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanEndDate.readOnly}" disabled="{!NOT(wrapper.presets.shareplanEndDate.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanEndDate.isHidden}" disabled="{!NOT(wrapper.presets.shareplanEndDate.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value="" />
+                 -->
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.of_Payments__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.recurringDonation.of_Payments__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanNumberOfPayments.readOnly}" disabled="{!NOT(wrapper.presets.shareplanNumberOfPayments.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanNumberOfPayments.isHidden}" disabled="{!NOT(wrapper.presets.shareplanNumberOfPayments.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+
+             </apex:panelGrid>
+          </apex:tab>
+          
+          <!-- +++++++++++++++++ gift ++++++++++++++++++++ -->
+          <apex:tab id="gift" label="{!TrsactionName}">
+            
+             <apex:pageBlockSection title="{!TrsactionName} Presets">
+             </apex:pageBlockSection>
+             <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row">
+                  <apex:outputLabel value=""/>
+                 <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+                 <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+                 <apex:outputLabel value="" />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Gift_Date__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Gift_Date__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDate.readOnly}" disabled="{!NOT(wrapper.presets.giftDate.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDate.isHidden}" disabled="{!NOT(wrapper.presets.giftDate.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""  />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Channel__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Channel__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftChannel.readOnly}" disabled="{!NOT(wrapper.presets.giftChannel.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftChannel.isHidden}" disabled="{!NOT(wrapper.presets.giftChannel.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Amount__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.payment.Amount__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftAmount.readOnly}" disabled="{!NOT(wrapper.presets.giftAmount.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftAmount.isHidden}" disabled="{!NOT(wrapper.presets.giftAmount.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Gift_Type__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Gift_Type__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftType.readOnly}" disabled="{!NOT(wrapper.presets.giftType.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftType.isHidden}" disabled="{!NOT(wrapper.presets.giftType.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value="" styleClass="headerLabel" />
+                 
+                 <!-- 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Foundation_Credit__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Foundation_Credit__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftFoundationCredit.readOnly}" disabled="{!NOT(wrapper.presets.giftFoundationCredit.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftFoundationCredit.isHidden}" disabled="{!NOT(wrapper.presets.giftFoundationCredit.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+
+                                  
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Product__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Product__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftProduct.readOnly}" disabled="{!NOT(wrapper.presets.giftProduct.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftProduct.isHidden}" disabled="{!NOT(wrapper.presets.giftProduct.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Membership__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Membership__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftMembership.readOnly}" disabled="{!NOT(wrapper.presets.giftMembership.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftMembership.isHidden}" disabled="{!NOT(wrapper.presets.giftMembership.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Primary_Solicitor__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Primary_Solicitor__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftPrimarySolicitor.readOnly}" disabled="{!NOT(wrapper.presets.giftPrimarySolicitor.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftPrimarySolicitor.isHidden}" disabled="{!NOT(wrapper.presets.giftPrimarySolicitor.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                  -->
+                  
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Internal_Solicitor__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Internal_Solicitor__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftInternalSolicitor.readOnly}" disabled="{!NOT(wrapper.presets.giftInternalSolicitor.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftInternalSolicitor.isHidden}" disabled="{!NOT(wrapper.presets.giftInternalSolicitor.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="Note Subject" styleClass="labelCol"/> 
+                 <apex:inputText value="{!wrapper.noteSubject}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftSubject.readOnly}" disabled="{!NOT(wrapper.presets.giftSubject.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftSubject.isHidden}" disabled="{!NOT(wrapper.presets.giftSubject.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="Note Content" styleClass="labelCol"/> 
+                 <apex:inputtextarea value="{!wrapper.noteBody}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftNotes.readOnly}" disabled="{!NOT(wrapper.presets.giftNotes.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftNotes.isHidden}" disabled="{!NOT(wrapper.presets.giftNotes.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+            </apex:panelGrid>
+           </apex:tab>
+              
+            <!-- +++++++++++++++++ payment ++++++++++++++++++++ -->
+            <apex:tab id="payment" label="{!$ObjectType.Payment__c.label}">
+             
+             <apex:pageBlockSection title="{!$ObjectType.Payment__c.label} Presets">
+             </apex:pageBlockSection>
+             <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row">
+                 <apex:outputLabel value=""/>
+                 <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+                 <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+                 <apex:outputLabel value="" />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.payment.Payment_Type__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentType.readOnly}" disabled="{!NOT(wrapper.presets.paymentType.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentType.isHidden}" disabled="{!NOT(wrapper.presets.paymentType.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Credit_Card_Type__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.payment.Credit_Card_Type__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentCCType.readOnly}" disabled="{!NOT(wrapper.presets.paymentCCType.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentCCType.isHidden}" disabled="{!NOT(wrapper.presets.paymentCCType.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Credit_Card_Expiry_Date__c.label}" styleClass="labelCol"/> 
+                 <apex:outputField value="{!wrapper.recurringDonation.Credit_Card_Expiry_Date__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanCCExpiryDate.readOnly}" disabled="{!NOT(wrapper.presets.shareplanCCExpiryDate.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanCCExpiryDate.isHidden}" disabled="{!NOT(wrapper.presets.shareplanCCExpiryDate.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Cheque_Date__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.payment.Cheque_Date__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentChequeDate.readOnly}" disabled="{!NOT(wrapper.presets.paymentChequeDate.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentChequeDate.isHidden}" disabled="{!NOT(wrapper.presets.paymentChequeDate.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Cheque_Num__c.label}" styleClass="labelCol"/> 
+                 <apex:outputField value="{!wrapper.payment.Cheque_Num__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentChequeNo.readOnly}" disabled="{!NOT(wrapper.presets.paymentChequeNo.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentChequeNo.isHidden}" disabled="{!NOT(wrapper.presets.paymentChequeNo.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Date_Deposited__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.payment.Date_Deposited__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentDateDeposited.readOnly}" disabled="{!NOT(wrapper.presets.paymentDateDeposited.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentDateDeposited.isHidden}" disabled="{!NOT(wrapper.presets.paymentDateDeposited.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Date__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.payment.Date__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentDate.readOnly}" disabled="{!NOT(wrapper.presets.paymentDate.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.paymentDate.isHidden}" disabled="{!NOT(wrapper.presets.paymentDate.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Bank_Name__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.recurringDonation.Bank_Name__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanBankName.readOnly}" disabled="{!NOT(wrapper.presets.shareplanBankName.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanBankName.isHidden}" disabled="{!NOT(wrapper.presets.shareplanBankName.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Bank_City__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.recurringDonation.Bank_City__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanBankCity.readOnly}" disabled="{!NOT(wrapper.presets.shareplanBankCity.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanBankCity.isHidden}" disabled="{!NOT(wrapper.presets.shareplanBankCity.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Branch_Num__c.label}" styleClass="labelCol"/> 
+                 <apex:outputField value="{!wrapper.recurringDonation.Branch_Num__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanBranchNo.readOnly}" disabled="{!NOT(wrapper.presets.shareplanBranchNo.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanBranchNo.isHidden}" disabled="{!NOT(wrapper.presets.shareplanBranchNo.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Institution_Num__c.label}" styleClass="labelCol"/> 
+                 <apex:outputField value="{!wrapper.recurringDonation.Institution_Num__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanInstitutionNo.readOnly}" disabled="{!NOT(wrapper.presets.shareplanInstitutionNo.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanInstitutionNo.isHidden}" disabled="{!NOT(wrapper.presets.shareplanInstitutionNo.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Recurring_Donation__c.fields.Account__c.label}" styleClass="labelCol"/> 
+                 <apex:outputField value="{!wrapper.recurringDonation.Account__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanAccountNo.readOnly}" disabled="{!NOT(wrapper.presets.shareplanAccountNo.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.shareplanAccountNo.isHidden}" disabled="{!NOT(wrapper.presets.shareplanAccountNo.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+             </apex:panelGrid>
+           </apex:tab>  
+           
+           <!-- +++++++++++++++++ receipt ++++++++++++++++++++ -->
+           <apex:tab id="receipt" label="{!$ObjectType.Receipt__c.label}">
+             
+             <apex:pageBlockSection title="{!$ObjectType.Receipt__c.label} Presets">
+             </apex:pageBlockSection>
+             <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row">
+                  <apex:outputLabel value=""/>
+                 <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+                 <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+                 <apex:outputLabel value="" />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Receipt_Type__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Receipt_Type__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.receiptType.readOnly}" disabled="{!NOT(wrapper.presets.receiptType.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.receiptType.isHidden}" disabled="{!NOT(wrapper.presets.receiptType.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Letter__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Letter__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftLetter.readOnly}" disabled="{!NOT(wrapper.presets.giftLetter.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftLetter.isHidden}" disabled="{!NOT(wrapper.presets.giftLetter.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Reference__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Reference__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftReference.readOnly}" disabled="{!NOT(wrapper.presets.giftReference.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftReference.isHidden}" disabled="{!NOT(wrapper.presets.giftReference.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Receipt__c.fields.Notes__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.receipt.Notes__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.receiptNotes.readOnly}" disabled="{!NOT(wrapper.presets.receiptNotes.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.receiptNotes.isHidden}" disabled="{!NOT(wrapper.presets.receiptNotes.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Receipt__c.fields.Amount_Not_Eligible__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.receipt.Amount_Not_Eligible__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.receiptAmountEligible.readOnly}" disabled="{!NOT(wrapper.presets.receiptAmountEligible.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.receiptAmountEligible.isHidden}" disabled="{!NOT(wrapper.presets.receiptAmountEligible.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+             </apex:panelGrid>
+           </apex:tab>  
+           
+           <!-- +++++++++++++++++ gift Detail ++++++++++++++++++++ -->
+           <apex:tab id="giftDetail" label="{!$ObjectType.Gift_Detail__c.label}">
+             
+             <apex:pageBlockSection title="{!$ObjectType.Gift_Detail__c.label} Presets">
+             </apex:pageBlockSection>
+             <apex:panelGrid columns="6" cellpadding="0" cellspacing="0" border="0" width="100%" columnClasses="col1,col2,col3,col4,col5,col6" rowClasses="row">
+                 
+                  <apex:outputLabel value=""/>
+                 <apex:outputLabel value="Field Name" styleClass="headerLabel" />
+                 <apex:outputLabel value="Default Value" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Read Only" styleClass="headerLabel"/>
+                 <apex:outputLabel value="Hidden" styleClass="headerLabel"/>
+                 <apex:outputLabel value="" />
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.Amount__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.Amount__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailAmount.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailAmount.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailAmount.isHidden}" disabled="{!NOT(wrapper.presets.giftDetailAmount.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.New_Campaign__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.New_Campaign__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailCampaign.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailCampaign.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailCampaign.isHidden}" disabled="true" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>                 
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.Fund__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.Fund__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailFund.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailFund.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailFund.isHidden}" disabled="{!NOT(wrapper.presets.giftDetailFund.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>                                                   
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Package_Name__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.gift.Package_Name__c}" />
+                 <!--<apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.causeview__Package__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.causeview__Package__c}" />-->
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailPackage.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailPackage.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailPackage.isHidden}" disabled="{!NOT(wrapper.presets.giftDetailPackage.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>            
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.Product__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.Product__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailProduct.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailProduct.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailProduct.isHidden}" disabled="{!NOT(wrapper.presets.giftDetailProduct.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>                 
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.Tribute__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.Tribute__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailTribute.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailTribute.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailTribute.isHidden}" disabled="{!NOT(wrapper.presets.giftDetailTribute.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+                 &nbsp;
+                 <apex:outputLabel value="{!$ObjectType.Gift_Detail__c.fields.Description__c.label}" styleClass="labelCol"/> 
+                 <apex:inputField value="{!wrapper.giftDetail.Description__c}" />
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailDescription.readOnly}" disabled="{!NOT(wrapper.presets.giftDetailDescription.canSetReadOnly)}" title="{!readonlyTip}"/>
+                 <apex:inputCheckbox value="{!wrapper.presets.giftDetailDescription.isHidden}" disabled="{!NOT(wrapper.presets.giftDetailDescription.canHide)}" title="{!hideTip}"/>
+                 <apex:outputLabel value=""/>
+                 
+            </apex:panelGrid>
+          </apex:tab>
+         </apex:tabPanel>
+
+    </apex:pageBlock>
+ </apex:form>
+</apex:page>

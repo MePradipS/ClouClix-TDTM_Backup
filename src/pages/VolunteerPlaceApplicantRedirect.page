@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Volunteer_Application__c" extensions="VolunteerPlaceApplicantController" id="VolunteerPlaceApplicantRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

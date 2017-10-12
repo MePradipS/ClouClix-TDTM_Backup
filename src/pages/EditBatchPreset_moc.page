@@ -1,0 +1,1924 @@
+<apex:page standardController="Batch_Template__c" extensions="BatchPresetController_moc" sidebar="false" id="pg" action="{!createCSV}">
+    <apex:includeScript value="{!$Resource.jQuery}"/>
+    <apex:includeScript value="{!URLFOR($Resource.XLSXSupport , 'js-xlsx-master/dist/xlsx.core.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.XLSXSupport , 'js-xlsx-master/js-for-xls-write/Blob.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.XLSXSupport , 'js-xlsx-master/js-for-xls-write/FileSaver.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.XLSXSupport , 'js-xlsx-master/js-for-xls-write/Export2Excel.js')}" />
+    <!--sorting Related start-->
+    <apex:includeScript value="{!$Resource.jQuery1102}" />
+    <apex:includeScript value="{!$Resource.jQueryUI1104}" />
+
+    <script>
+    var j$ = jQuery.noConflict();
+
+        j$(document).ready(function() {
+            var NamespacePrefix = '{!PackageNamespace}';
+            var giftTypePicklistValues = '';
+            j$('.gift-' + NamespacePrefix + 'Gift_Type__c option').each(function(i, elem) {
+                if(elem.value.trim() != '') {
+                    giftTypePicklistValues += elem.value + '~`~';
+                }
+            });
+
+            var x = j$('[id$="giftTypePicklistValues"]');
+            j$('[id$="giftTypePicklistValues"]').val(giftTypePicklistValues);
+        });
+
+        function deleteIndexList(indexNo){
+            //alert('delete'+indexNo);
+            var idValue = 'theField'+indexNo;
+            j$("input[id$=" + idValue + "]").val('done');
+        }
+
+        function sortRowsInTable(indexNo){
+            //alert('indexNo-1--  '+indexNo);
+            j$('.tBodysortable'+indexNo).sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              cursor: "move",
+              stop: function(event, ui) {
+                        var ParentId = ui.item.parent().parent().attr('id');
+                        //alert("klklkl- "+ParentId);
+                        if(ParentId != 'table'){
+                            //alert("klklkl- "+ParentId);
+                            return false;
+                        }
+                        updateIndexList(indexNo);
+                    }
+            })
+        }
+
+        function updateIndexList(indexNo){
+            //alert('indexNo-2--  '+indexNo);
+            var sortedIDs_Temp = j$( ".tBodysortable"+indexNo).sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            var idValue = 'theField'+indexNo;
+            j$("input[id$=" + idValue + "]").val(sortedIDs_Temp);
+
+
+        }
+
+        function removeElement(objName,elementId){
+            //alert('klklk--   '+objName+'    '+elementId);
+            var obj = document.getElementById(elementId);
+            //alert(obj);
+            var row_index = j$(obj).parent().parent().index();
+            //alert('row_index--   '+row_index);
+            //removeRecord(objName,row_index);
+            j$( "input[id$='theField7']" ).val(row_index);
+        }
+
+
+
+        function sortRowsInTable0(){
+            j$('.tBodysortable0').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop: function(event, ui) {
+                        test("klklkl");
+                    }
+            })
+        }
+
+
+        function updateIndexList0(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable0").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField0']" ).val(sortedIDs_Temp);
+        }
+        //bik
+
+        function sortRowsInTable1(){
+            j$('.tBodysortable1').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop:updateIndexList1
+            })
+        }
+
+
+        function updateIndexList1(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable1").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField1']" ).val(sortedIDs_Temp);
+        }
+        //bik
+
+
+        function sortRowsInTable2(){
+            j$('.tBodysortable2').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop:updateIndexList2
+            })
+        }
+
+        function updateIndexList2(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable2").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField2']" ).val(sortedIDs_Temp);
+        }
+        //bik
+
+        function sortRowsInTable3(){
+            j$('.tBodysortable3').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop:updateIndexList3
+            })
+        }
+
+        function updateIndexList3(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable3").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField3']" ).val(sortedIDs_Temp);
+        }
+        //bik
+
+
+        function sortRowsInTable4(){
+            j$('.tBodysortable4').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop:updateIndexList4
+            })
+        }
+
+        function updateIndexList4(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable4").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField4']" ).val(sortedIDs_Temp);
+        }
+        //bik
+
+        function sortRowsInTable5(){
+            j$('.tBodysortable5').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop:updateIndexList5
+            })
+        }
+
+        function updateIndexList5(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable5").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField5']" ).val(sortedIDs_Temp);
+        }
+        //bik
+
+        function sortRowsInTable6(){
+            j$('.tBodysortable6').sortable({
+              items: "tr:not(:first):not(:last)",
+              axis: "y",
+              containment: "parent",
+              stop:updateIndexList6
+            })
+        }
+
+        function updateIndexList6(){
+            //alert('hi--');
+            var sortedIDs_Temp = j$( ".tBodysortable6").sortable( "toArray" );
+            sortedIDs_Temp = jQuery.grep(sortedIDs_Temp, function( a ) {
+              return a != 'extra1' && a != 'extra2';
+            });
+            j$( "input[id$='theField6']" ).val(sortedIDs_Temp);
+        }
+        //bik
+        //---------------------Event Level LookUp------------------
+        //user story : Event Level look-up doesn't return results
+        function openLookup(baseURL, width, modified, searchParam){
+            var originalbaseURL = baseURL;
+            var originalwidth = width;
+            var originalmodified = modified;
+            var originalsearchParam = searchParam;
+
+            var searchlktp = baseURL.search("lktp");
+            var lookupType = baseURL.substr(searchlktp+5, 3);
+            if (modified == '1') baseURL = baseURL + searchParam;
+
+
+            var isCustomLookup = false;
+
+            if(lookupType == "{!keyPrefixMap['Event Level']}") {
+                var Lookup_Id = "{!JSENCODE(eventLevelLookupId)}";
+                var event_Level_LookupId = Lookup_Id.slice(2);
+                var stIdx = baseURL.indexOf('&lkfield=');
+                if(stIdx != -1) {
+                    var toRep = baseURL.substring(stIdx, originalbaseURL.indexOf('&lktp', stIdx + 1));
+                    baseURL = baseURL.replace(toRep, '');
+                }
+                var stIdx1 = baseURL.indexOf('&dplp=');
+                if(stIdx1 != -1) {
+                    var toRep = baseURL.substring(stIdx1, originalbaseURL.indexOf('&lktp', stIdx1 + 1));
+                    baseURL = baseURL.replace(toRep, '');
+                }
+                baseURL = baseURL + "&lkfield=" + event_Level_LookupId + "&lkent=" + "{!keyPrefixMap['Allocation']}";
+                var appealValue = j$('[id$=allocAppeal_lkid]');
+                var giftDetail_appealId = appealValue[0].value;
+                var dplpToEncode = "[null,\"";
+                if(giftDetail_appealId != undefined){
+                    dplpToEncode = dplpToEncode + giftDetail_appealId;
+                }
+                dplpToEncode = dplpToEncode + "\"]";
+                var dplp_Id = encodeURIComponent(dplpToEncode);
+                baseURL = baseURL + "&dplp=" + dplp_Id;
+                isCustomLookup = true;
+              }
+
+            if(isCustomLookup == true){
+              openPopup(baseURL, "lookup", 350, 480, "width="+width+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+            }
+            else {
+              if (modified == '1') originalbaseURL = originalbaseURL + originalsearchParam;
+              openPopup(originalbaseURL, "lookup", 350, 480, "width="+originalwidth+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+            }
+        }
+        //---------------------------------------------------------
+    </script>
+    <!--sorting Related End-->
+    <script type="text/javascript">
+      function loading(val) {
+        if (val) {
+          document.getElementById('contentLoading').style.display = 'block';
+          document.getElementById('contentLoaded').style.display = 'none';
+        }
+        else {
+          document.getElementById('contentLoading').style.display = 'none';
+          document.getElementById('contentLoaded').style.display = 'block';
+        }
+      }
+
+      function applyAppealDefaults(elem) {
+        var appealId = document.getElementById(elem.id + '_lkid').value;
+        var j$ = jQuery.noConflict();
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BatchPresetController_moc.getFundName}', appealId,
+            function(result, event){
+                if (event.status) {
+                    //var letterComponentId = 'giftBatch:MainForm:newItemBlock:receiptSection:receiptLetter';
+                    var resultsFund = eval('result.' + NamespacePrefix + 'Fund__r');
+                    if (result && resultsFund) {
+                       var fundControlId = j$("input[id$='allocFund']").attr('id');    //elem.id.replace(':allocAppeal', ':allocFund');
+                       var fundControlName = j$("input[id$='allocFund"+"_lkold']").val();
+                       //76815138
+                       //document.getElementById(fundControlId).value = '';
+                       //76815138
+
+                       if (!hasValue(fundControlId)){
+                               var resultId = eval('result.' + NamespacePrefix + 'Fund__r.Id');
+                               var resultName = eval('result.' + NamespacePrefix + 'Fund__r.Name');
+                               setlookupValue(fundControlId, resultId, resultName);
+                               //alert(document.getElementById(fundControlId).value);
+                               document.getElementById(fundControlId).focus();
+
+                       }
+                    }
+                    /*if (result.LetterId && !hasValue(letterComponentId)) {
+                       setlookupValue(letterComponentId, result.LetterId, result.LetterName);
+                    }*/
+                } else if (event.type === 'exception') {
+                    alert('Error: ' +event.message);
+                } else {
+                    alert('Error: ' +event.message);
+                }
+            },
+            {escape: true}
+        );
+    }
+   function hasValue(target) {
+      return (document.getElementById(target) && document.getElementById(target).value);
+   }
+   function hasValue1(target) {
+      return (j$("input[id$=target]").val() && j$("input[id$=target]").val());
+   }
+   function setlookupValue(target, id, name) {
+       if (!hasValue1("allocFund"+"_lkold")){
+         if (document.getElementById(target)) {
+             document.getElementById(target).value = name;
+             document.getElementById(target+'_lkid').value = id;
+             document.getElementById(target+'_lkold').value = name;
+         }
+       }
+    }
+    </script>
+
+    <style>
+        .cloned-temp {
+            background-color: white;
+            width: 500px;
+            height: 30px;
+            text-align: -webkit-center;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 20px;
+            font-weight: 900;
+            color: red;
+            padding-top: 5px;
+        }
+
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+
+        .popupBackground {
+            background-color: rgba(0,0,0,0.2);
+//            opacity: 0.20;
+//            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+
+        .col1 {
+            width: 5%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .col2 {
+            width: 13%;
+            text-align: right;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 120px;
+        }
+
+        .col3 {
+            width: 82%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 350px;
+        }
+
+        .col4 {
+            width: 9%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 80px;
+        }
+
+        .col5 {
+            width: 9%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 80px;
+        }
+
+        .col6 {
+            width: 9%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .remove {
+            height: 22px;
+            width: 23px;
+        }
+
+        .removeDis {
+            height: 16px;
+            width: 16px;
+            margin-left: 3px;
+            margin-top: 3px;
+        }
+
+        .up {
+            width: 2%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .down {
+            width: 3%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .row {
+
+        }
+
+        .multiSelectPicklistRow td select {
+            width: 100% !important;
+        }
+
+        .row:hover {
+            background-color: #ebebeb;
+            border: solid 1px #dcdcdc;
+        }
+
+        .headerLabel {
+            color: #800000;
+            font-size: 1em;
+            font-weight: bold;
+            padding: 5px 2px 4px 5px;
+            border-bottom: solid 1px #dcdcdc;
+        }
+
+        .rich-tabhdr-side-border {
+            width: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+
+        .rich-tabhdr-side-border img {
+            width: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+
+    </style>
+
+
+    <apex:outputPanel styleClass="cloned-mask popupBackground" rendered="{!isCloned}">
+        <div class="cloned-temp">This Batch Template is Not Editable</div>
+    </apex:outputPanel>
+
+    <apex:sectionHeader subtitle="{!template.Name}" title="Gift Batch Templates"/>
+    <apex:pageMessages />
+    <apex:form id="form">
+        <apex:inputHidden value="{!objectRecordsIndexStr}" id="theField" />
+        <apex:inputHidden value="{!IndexListStr0}" id="theField0" />
+        <apex:inputHidden value="{!IndexListStr1}" id="theField1" />
+        <apex:inputHidden value="{!IndexListStr2}" id="theField2" />
+        <apex:inputHidden value="{!IndexListStr3}" id="theField3" />
+        <apex:inputHidden value="{!IndexListStr4}" id="theField4" />
+        <apex:inputHidden value="{!IndexListStr5}" id="theField5" />
+        <apex:inputHidden value="{!IndexListStr6}" id="theField6" />
+
+
+        <apex:inputHidden value="{!removalIndex1}" id="theField7" />
+
+        <apex:actionFunction action="{!deletePreset}" name="deleteconfirm"/>
+        <!--    Gift Type Picklist Values    -->
+        <apex:inputHidden id="giftTypePicklistValues" value="{!giftTypePicklistValues}"/>
+
+        <!--To show succes message on page after save a record-->
+        <div id="makethisvanish">
+            <apex:outputText value="{!successMessage}" style="color:green;font-weight:bold"></apex:outputText>
+        </div>
+        <apex:pageBlock id="pBlock">
+            <div id="contentLoading" style="display: none;">
+                <apex:outputPanel styleClass="popupBackground" layout="block" />
+                <div style="text-align: center;" class="custPopup">
+                    <img src="/img/loading.gif" alt="Loading graphic" /> <b>Processing....</b>
+                </div>
+            </div>
+
+
+
+            <apex:pageBlockButtons >
+<!--                 <apex:commandButton value="Save" action="{!saveBatchPreset}" rendered="{!isCloned == false}"/> -->
+                <apex:commandButton value="Save" action="{!saveBatchPreset}"/>
+                <apex:commandButton value="Cancel" action="{!cancel}" immediate="true"  rendered="{!isCloned == false}"/>
+<!--                 <apex:commandButton value="Delete" action="{!deletePreset}"  rendered="{!isCloned == false}"/> -->
+                <apex:commandButton value="Delete" reRender="none" rendered="{!isPresetSaved}" status="delrec"/>
+                <apex:actionStatus onstart="confirmDelete()" id="delrec"/>
+                <apex:outputPanel id="cloneBatchPreset"  rendered="{!isCloned == false}">
+                    <apex:commandButton value="Clone" action="{!clonePresetTemplate}" rendered="{!isPresetSaved}"/>
+                    <apex:commandButton value="New Batch" action="{!createNewBatch}" rendered="{!isPresetSaved}"/>
+                    <button type="button" onclick="exportXLS()" id="DownloadXLSButton">Download xls</button>
+                </apex:outputPanel>
+<!--                <apex:commandButton value="Clone" action="{!clonePresetTemplate}"/>
+-->            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection title="Batch Template Detail">
+                <apex:inputField value="{!template.Name}" />
+                <apex:inputField value="{!template.Type__c}" id="tempTYpe" required="true"/>
+<!--                <script>document.getElementById('{!$Component.tempTYpe}').disabled = true; </script>
+-->            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Transaction Type">
+<!--                 <apex:outputText value="Select Transaction Type" style="color: #4a4a56;margin-left: 67px;font-weight: bold;font-size: 12px;"/> -->
+                <apex:inputField value="{!template.Transaction_Type__c}" id="transactionType" required="false" />
+            </apex:pageBlockSection>
+
+            <!-- ########### Indiviuals ########### -->
+            <apex:pageblockSection id="contactSection" title="{!$ObjectType.Contact.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell"><apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                <table class="layout">
+                                    <tr>
+                                        <td class="selectCell">
+                                            <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Contact.label} Fields </apex:outputPanel>
+                                            <apex:selectList id="conSel1" value="{!conSelected}" multiselect="true" style="width:250px" size="15">
+                                                <apex:selectOptions value="{!ConPickListOptions}" />
+                                            </apex:selectList>
+                                        </td>
+                                        <td class="buttonCell">
+                                            <apex:actionStatus id="conLoading" onstart="loading(true)" onstop="loading(false)" />
+                                            <apex:commandButton value=" Add " oncomplete="deleteIndexList(0);processCheckBoxOnPanelRerender('tBodysortable0');processAllChkBox_AfterElementAdd('0','tBodysortable0');processAllReadOnlyChkBoxesInTBody('tBodysortable0');" action="{!addInPreset}" reRender="ConDetail, conSel1, cloneBatchPreset" status="conLoading">
+                                                <apex:param name="ObjectType" value="Contact"/>
+                                            </apex:commandButton>
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel></td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="ConDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable0">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable0',this.checked);" id="chkBoxId0"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="conRowNum" />
+                                            <apex:repeat value="{!contactFields}" var="con" id="contactRepeat">
+                                                <tr class="row" id="{!con.fieldName}:{!conRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!con.isRequired}"/>
+                                                        <apex:commandLink onclick="removeElement('contact',this.id);" oncomplete="deleteIndexList(0);processCheckBoxOnPanelRerender('tBodysortable0');processChkBoxAndAllChkBoxInTBody('0','tBodysortable0');processAllReadOnlyChkBoxesInTBody('tBodysortable0');" action="{!removeFromPreset}" reRender="ConDetail, conSel1, cloneBatchPreset" status="conLoading" rendered="{!NOT(con.isRequired)}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="Contact"/>
+                                                            <apex:param name="index" value="{!conRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!con.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Contact.fields[con.fieldName].type}" value="{!con.sObjectType[con.fieldName]}" required="false" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Contact.fields[con.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Contact.fields[con.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Contact.fields[con.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Contact.fields[con.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Contact.fields[con.fieldName].type}');"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!con.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!con.isForSummary}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('0',this.checked);" styleClass="chkBoxCls" id="summId"/></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!con.isHidden}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('0',this.checked);" styleClass="chkBoxCls" id="hideId"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="conRowNum" value="{!conRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <!--sorting Related change next 3 lines from here-->
+                                        <script>
+                                        sortRowsInTable(0);
+                                        </script>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Org ########### -->
+            <apex:pageblockSection id="Organization" title="{!$ObjectType.Account.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Account.label} Fields </apex:outputPanel>
+                                                <apex:selectList id="AccSel1" value="{!accSelected}" multiselect="true" style="width:250px" size="15">
+                                                    <apex:selectOptions value="{!AccPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="Accloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " oncomplete="deleteIndexList(1);processCheckBoxOnPanelRerender('tBodysortable1');processAllChkBox_AfterElementAdd('1','tBodysortable1');processAllReadOnlyChkBoxesInTBody('tBodysortable1');" action="{!addInPreset}" reRender="AccDetail, AccSel1, cloneBatchPreset" status="Accloading">
+                                                    <apex:param name="ObjectType" value="Account"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="AccDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable1">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable1',this.checked);" id="chkBoxId1"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="accRowNum" />
+                                            <apex:repeat value="{!accountFields}" var="acc">
+                                                <tr class="row" id="{!acc.fieldName}:{!accRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!acc.isRequired}"/>
+                                                        <apex:commandLink id="removeFromPreset" onclick="removeElement('Account',this.id);" oncomplete="deleteIndexList(1);processCheckBoxOnPanelRerender('tBodysortable1');processChkBoxAndAllChkBoxInTBody('1','tBodysortable1');processAllReadOnlyChkBoxesInTBody('tBodysortable1');" action="{!removeFromPreset}" reRender="AccDetail, AccSel1, cloneBatchPreset" status="Accloading" rendered="{!NOT(acc.isRequired)}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="Account"/>
+                                                            <apex:param name="index" value="{!accRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!acc.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Account.fields[acc.fieldName].type}" value="{!acc.sObjectType[acc.fieldName]}" required="false" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Account.fields[acc.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Account.fields[acc.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Account.fields[acc.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Account.fields[acc.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Account.fields[acc.fieldName].type}');"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!acc.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+
+                                                    <td class="col5"><apex:inputCheckbox value="{!acc.isForSummary}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('1',this.checked);" styleClass="chkBoxCls" id="summId"/></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!acc.isHidden}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('1',this.checked);" styleClass="chkBoxCls" id="hideId"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="accRowNum" value="{!accRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <!--sorting Related change next 3 lines from here-->
+                                        <script>
+                                         sortRowsInTable(1);
+                                        </script>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Recurring ########### -->
+            <apex:pageblockSection id="Recurring" title="{!$ObjectType.Recurring_Donation__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Recurring_Donation__c.label} Fields </apex:outputPanel>
+                                                <apex:selectList id="rfgSel1" value="{!rgfSelected}" multiselect="true" style="width:250px">
+                                                    <apex:selectOptions value="{!RgfPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="Rfgloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " oncomplete="deleteIndexList(2);processCheckBoxOnPanelRerender('tBodysortable2');processAllChkBox_AfterElementAdd('2','tBodysortable2');processAllReadOnlyChkBoxesInTBody('tBodysortable2');" action="{!addInPreset}" reRender="RfgDetail, rfgSel1, cloneBatchPreset" status="Rfgloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedRecurringDonation}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="RfgDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable2">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable2',this.checked);" id="chkBoxId2"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="rfgRowNum" />
+                                            <apex:repeat value="{!RecurringGiftFields}" var="rfg">
+                                                <tr class="row" id="{!rfg.fieldName}:{!rfgRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!rfg.isRequired}"/>
+                                                        <apex:commandLink onclick="removeElement('{!NamespacedRecurringDonation}',this.id);" oncomplete="deleteIndexList(2);processCheckBoxOnPanelRerender('tBodysortable2');processChkBoxAndAllChkBoxInTBody('2','tBodysortable2');processAllReadOnlyChkBoxesInTBody('tBodysortable2');" action="{!removeFromPreset}" reRender="RfgDetail, rfgSel1, cloneBatchPreset" status="Rfgloading" rendered="{!NOT(rfg.isRequired)}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedRecurringDonation}"/>
+                                                            <apex:param name="index" value="{!rfgRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!rfg.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Recurring_Donation__c.fields[rfg.fieldName].type}" value="{!rfg.sObjectType[rfg.fieldName]}" required="false" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Recurring_Donation__c.fields[rfg.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Recurring_Donation__c.fields[rfg.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Recurring_Donation__c.fields[rfg.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Recurring_Donation__c.fields[rfg.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Recurring_Donation__c.fields[rfg.fieldName].type}');"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!rfg.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+
+                                                    <td class="col5"><apex:inputCheckbox disabled="true"/></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!rfg.isHidden}"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="rfgRowNum" value="{!rfgRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--sorting Related change next 3 lines from here-->
+                                    <script>
+                                        sortRowsInTable(2);
+                                    </script>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Gift ########### -->
+            <apex:pageblockSection id="Gift" title="Gift Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> Gift Fields </apex:outputPanel>
+                                                <apex:selectList id="giftSel1" value="{!trnxSelected}" multiselect="true" style="width:250px">
+                                                    <apex:selectOptions value="{!TrnxPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="giftloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " oncomplete="deleteIndexList(3);processCheckBoxOnPanelRerender('tBodysortable3');processAllChkBox_AfterElementAdd('3','tBodysortable3');processAllReadOnlyChkBoxesInTBody('tBodysortable3');" action="{!addInPreset}" reRender="giftDetail, giftSel1, cloneBatchPreset" status="giftloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedGift}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="giftDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable3">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable3',this.checked);" id="chkBoxId3"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="giftRowNum" />
+                                            <apex:repeat value="{!TransactionFields}" var="gift">
+                                                <tr class="row" id="{!gift.fieldName}:{!giftRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!gift.isRequired}"/>
+                                                        <apex:commandLink onclick="removeElement('{!NamespacedGift}',this.id);" oncomplete="deleteIndexList(3);processCheckBoxOnPanelRerender('tBodysortable3');processChkBoxAndAllChkBoxInTBody('3','tBodysortable3');processAllReadOnlyChkBoxesInTBody('tBodysortable3');" action="{!removeFromPreset}" reRender="giftDetail, giftSel1, cloneBatchPreset" status="giftloading" rendered="{!NOT(gift.isRequired)}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedGift}"/>
+                                                            <apex:param name="index" value="{!giftRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!gift.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Gift__c.fields[gift.fieldName].type} gift-{!gift.fieldName}" value="{!gift.sObjectType[gift.fieldName]}" required="false" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Gift__c.fields[gift.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Gift__c.fields[gift.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Gift__c.fields[gift.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Gift__c.fields[gift.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Gift__c.fields[gift.fieldName].type}');"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!gift.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+
+
+                                                    <td class="col5"><apex:inputCheckbox value="{!gift.isForSummary}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('3',this.checked);" styleClass="chkBoxCls" id="summId"/></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!gift.isHidden}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('3',this.checked);" styleClass="chkBoxCls" id="hideId"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="giftRowNum" value="{!giftRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--sorting Related change next 3 lines from here-->
+                                    <script>
+                                        sortRowsInTable(3);
+                                    </script>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Payment ########### -->
+            <apex:pageblockSection id="Payment" title="{!$ObjectType.Payment__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td>
+                                <apex:outputPanel layout="block" styleClass="PTypeSelectTitle"> {!$ObjectType.Payment__c.label} Type Fields </apex:outputPanel>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <apex:selectList id="paymentTypesToAdd" value="{!paymentTypesToAdd}" multiselect="true" style="vertical-align: top; width: 150px; height: 150px;">
+                                                <apex:selectOptions value="{!PTypePickListOptionsToAdd}"/>
+                                            </apex:selectList>
+                                        </td>
+                                        <td style="vertical-align: middle;">
+                                            <apex:commandLink title="Add" action="{!addPaymentTypes}" oncomplete="processAllChkBox_AfterElementAdd('4','tBodysortable4');processPaymentTypeChkBoxes('tBodysortable4');processAllReadOnlyChkBoxesInTBody('tBodysortable4');processAllReadOnlyChkBoxesInAllTBody();processAllChkBox_AfterElementAddInAllTBody();" reRender="pymtDetail, pymtSel1, paymentTypesToAdd, paymentTypesToRemove, ConDetail, conSel1, cloneBatchPreset, AccDetail, AccSel1" status="pymtloading">
+                                                <apex:image styleClass="picklistArrowRight" style="display: block; margin-bottom: 5px;" url="/s.gif"/>
+                                            </apex:commandLink>
+                                            <apex:commandLink title="Remove" action="{!removePaymentTypes}" oncomplete="processAllChkBox_AfterElementAdd('4','tBodysortable4');processPaymentTypeChkBoxes('tBodysortable4');processAllReadOnlyChkBoxesInTBody('tBodysortable4');processAllReadOnlyChkBoxesInAllTBody();" reRender="pymtDetail, pymtSel1, paymentTypesToAdd, paymentTypesToRemove, ConDetail, conSel1, cloneBatchPreset, AccDetail, AccSel1" status="pymtloading">
+                                                <apex:image styleClass="picklistArrowLeft" style="display: block;" url="/s.gif"/>
+                                            </apex:commandLink>
+                                        </td>
+                                        <td>
+                                            <apex:selectList id="paymentTypesToRemove" value="{!paymentTypesToRemove}" multiselect="true" style=" vertical-align: top; width: 150px; height: 150px;">
+                                                <apex:selectOptions value="{!PTypePickListOptionsToRemove}"/>
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Payment__c.label} Fields </apex:outputPanel>
+                                                <apex:selectList id="pymtSel1" value="{!pymtSelected}" multiselect="true" style="width:250px">
+                                                    <apex:selectOptions value="{!PymtPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="pymtloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " oncomplete="deleteIndexList(4);processCheckBoxOnPanelRerender('tBodysortable4');processAllChkBox_AfterElementAdd('4','tBodysortable4');processAllReadOnlyChkBoxesInTBody('tBodysortable4');" action="{!addInPreset}" reRender="pymtDetail, pymtSel1, cloneBatchPreset" status="pymtloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedPayment}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="pymtDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable4">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable4',this.checked);" id="chkBoxId4"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="pymtRowNum" />
+                                            <apex:repeat value="{!PaymentFields}" var="pymt">
+                                                <tr class="row" id="{!pymt.fieldName}:{!pymtRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!NOT(AND(NOT(pymt.isRequired), NOT(CONTAINS(PaymentTypeFields, pymt.fieldName))))}"/>
+                                                        <apex:commandLink onclick="removeElement('{!NamespacedPayment}',this.id);" oncomplete="deleteIndexList(4);processCheckBoxOnPanelRerender('tBodysortable4');processChkBoxAndAllChkBoxInTBody('4','tBodysortable4');processPaymentTypeChkBoxes('tBodysortable4');processAllReadOnlyChkBoxesInTBody('tBodysortable4');" action="{!removeFromPreset}" reRender="pymtDetail, pymtSel1, cloneBatchPreset" status="pymtloading" rendered="{!AND(NOT(pymt.isRequired), NOT(CONTAINS(PaymentTypeFields, pymt.fieldName)))}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedPayment}"/>
+                                                            <apex:param name="index" value="{!pymtRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!pymt.fieldLable}</b></td>
+                                                    <td class="col3">
+                                                        <apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Payment__c.fields[pymt.fieldName].type}" value="{!pymt.sObjectType[pymt.fieldName]}" required="false" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" rendered="{!pymt.fieldName != NamespacedPaymentType}"/>
+                                                        <apex:selectList id="inputFieldId_selectPymtId" styleclass="inputFieldCls:{!$ObjectType.Payment__c.fields[pymt.fieldName].type}" value="{!pymt.sObjectType[pymt.fieldName]}" size="1" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Payment__c.fields[pymt.fieldName].type}');" rendered="{!pymt.fieldName == NamespacedPaymentType}" style="vertical-align: top;">
+                                                            <apex:selectOptions value="{!PaymentTypePickListOptions}"/>
+                                                        </apex:selectList>
+                                                    </td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!pymt.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+
+                                                    <td class="col5">
+                                                        <apex:inputCheckbox value="{!pymt.isForSummary}" disabled="{!pymt.fieldName == NamespacedPaymentType}" rendered="false"/>
+                                                        <apex:inputCheckbox value="{!pymt.isForSummary}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('4',this.checked);" styleClass="{!IF(CONTAINS(fieldIdMapStr,(':'+pymt.fieldName)),fieldIdMap[pymt.fieldName],'chkBoxCls')}" id="summId" rendered="{!pymt.fieldName != NamespacedPaymentType}"/>
+                                                    </td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!pymt.isHidden}" disabled="{!pymt.fieldName == NamespacedPaymentType}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('4',this.checked);" styleClass="chkBoxCls" id="hideId"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="pymtRowNum" value="{!pymtRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--sorting Related change next 3 lines from here-->
+                                    <script>
+                                    sortRowsInTable(4);
+                                    </script>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                    <script>
+                    sortRowsInTable(4);
+                    </script>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Receipt ########### -->
+            <apex:pageblockSection id="Receipt" title="{!$ObjectType.Receipt__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Receipt__c.label} Fields </apex:outputPanel>
+                                                <apex:selectList id="rcptSel1" value="{!rcptSelected}" multiselect="true" style="width:250px">
+                                                    <apex:selectOptions value="{!RcptPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="rcptloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " oncomplete="deleteIndexList(5);processCheckBoxOnPanelRerender('tBodysortable5');processAllChkBox_AfterElementAdd('5','tBodysortable5');processAllReadOnlyChkBoxesInTBody('tBodysortable5');" action="{!addInPreset}" reRender="rcptDetail, rcptSel1, cloneBatchPreset" status="rcptloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedReceipt}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="rcptDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable5">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable5',this.checked);" id="chkBoxId5"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="rcptRowNum" />
+                                            <apex:repeat value="{!ReceiptFields}" var="rcpt">
+                                                <tr class="row" id="{!rcpt.fieldName}:{!rcptRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!rcpt.isRequired}"/>
+                                                        <apex:commandLink onclick="removeElement('{!NamespacedReceipt}',this.id);" oncomplete="deleteIndexList(5);processCheckBoxOnPanelRerender('tBodysortable5');processChkBoxAndAllChkBoxInTBody('5','tBodysortable5');processAllReadOnlyChkBoxesInTBody('tBodysortable5');" action="{!removeFromPreset}" reRender="rcptDetail, rcptSel1, cloneBatchPreset" status="rcptloading" rendered="{!NOT(rcpt.isRequired)}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedReceipt}"/>
+                                                            <apex:param name="index" value="{!rcptRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!rcpt.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Receipt__c.fields[rcpt.fieldName].type}" value="{!rcpt.sObjectType[rcpt.fieldName]}" required="false" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Receipt__c.fields[rcpt.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Receipt__c.fields[rcpt.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Receipt__c.fields[rcpt.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Receipt__c.fields[rcpt.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Receipt__c.fields[rcpt.fieldName].type}');"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!rcpt.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+
+                                                    <td class="col5"><apex:inputCheckbox value="{!rcpt.isForSummary}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('5',this.checked);" styleClass="chkBoxCls" id="summId"/></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!rcpt.isHidden}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('5',this.checked);" styleClass="chkBoxCls" id="hideId"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="rcptRowNum" value="{!rcptRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--sorting Related change next 3 lines from here-->
+                                    <script>
+                                        sortRowsInTable(5);
+                                    </script>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                    <script>
+                    sortRowsInTable(5);
+                    </script>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Gift Detail ########### -->
+            <apex:pageblockSection id="GiftDetail" title="{!$ObjectType.Gift_Detail__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Gift_Detail__c.label} Fields </apex:outputPanel>
+                                                <apex:selectList id="giftDetailSel1" value="{!giftDetailSelected}" multiselect="true" style="width:250px" >
+                                                    <apex:selectOptions value="{!DGPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="giftDetailloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " oncomplete="deleteIndexList(6);processCheckBoxOnPanelRerender('tBodysortable6');processAllChkBox_AfterElementAdd('6','tBodysortable6');processAllReadOnlyChkBoxesInTBody('tBodysortable6');" action="{!addInPreset}" reRender="gdDetail, giftDetailSel1, cloneBatchPreset" status="giftDetailloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedGiftDetail}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="gdDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "tBodysortable6">
+                                            <tr class="row_Extra1" id="extra1">
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>
+                                                    <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;" onchange="processAllChkBox('summ','tBodysortable6',this.checked);" id="chkBoxId6"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <!-- <div style="height: 20px;width: 40px;margin-top: 5px;margin-left: 3px;background: #ebebeb;">
+                                                        <apex:inputCheckbox style="float: left;"/>
+                                                        <div style="float: left;margin-top: 2px;font-weight: bold;">All</div>
+                                                    </div> -->
+                                                </td>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            <apex:variable value="{!0}" var="gdRowNum" />
+                                            <apex:repeat value="{!GiftDetailFields}" var="gftDel">
+                                                <tr class="row" id="{!gftDel.fieldName}:{!gdRowNum}">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDeleteDisabled.png')}" alt="Remove" styleClass="remove removeDis" title="Remove" rendered="{!gftDel.isRequired}"/>
+                                                        <apex:commandLink onclick="removeElement('{!NamespacedGiftDetail}',this.id);" oncomplete="deleteIndexList(6);processCheckBoxOnPanelRerender('tBodysortable6');processChkBoxAndAllChkBoxInTBody('6','tBodysortable6');processAllReadOnlyChkBoxesInTBody('tBodysortable6');" action="{!removeFromPreset}" reRender="gdDetail, giftDetailSel1, cloneBatchPreset" status="giftDetailloading" rendered="{!NOT(gftDel.isRequired)}">
+                                                            <apex:image value="{!URLFOR($Resource.Icons, 'BatchTemplateDelete.png')}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedGiftDetail}"/>
+                                                            <apex:param name="index" value="{!gdRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!gftDel.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField id="inputFieldId" styleclass="inputFieldCls:{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}" value="{!gftDel.sObjectType[gftDel.fieldName]}" required="false" rendered="{!AND(gftDel.fieldName != NamespacedNewCampaign, gftDel.fieldName != NamespacedFund)}" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');"/>
+                                                        <apex:inputField id="allocAppeal" styleclass="inputFieldCls:{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}" value="{!gftDel.sObjectType[gftDel.fieldName]}" required="false"  rendered="{!gftDel.fieldName == NamespacedNewCampaign}" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onchange="applyAppealDefaults(this);processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');"/>
+                                                        <apex:inputField id="allocFund" styleclass="inputFieldCls:{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}" value="{!gftDel.sObjectType[gftDel.fieldName]}" required="false"  rendered="{!gftDel.fieldName == NamespacedFund}" onblur="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onkeyup="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onclick="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onfocus="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');" onchange="processReadOnlyCheckBox(this,'{!$ObjectType.Gift_Detail__c.fields[gftDel.fieldName].type}');"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!gftDel.isReadOnly}" id="readOnlyId" styleclass="readOnlyCls"/></td>
+
+                                                    <td class="col5"><apex:inputCheckbox value="{!gftDel.isForSummary}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('6',this.checked);" styleClass="chkBoxCls" id="summId"/></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!gftDel.isHidden}" onclick="processCheckBox(this);" onchange="uncheckAllChkBoxIfUncheck('6',this.checked);" styleClass="chkBoxCls" id="hideId"/></td>
+                                                    <td class="col7"><apex:image value="{!$Resource.BatchTemplateIcon}" width="25" height="20"/></td>
+                                                </tr>
+                                                <apex:variable var="gdRowNum" value="{!gdRowNum + 1}" />
+                                            </apex:repeat>
+                                            <tr class="row_Extra2" id="extra2">
+                                                <td colspan="7">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!--sorting Related change next 3 lines from here-->
+                                    <script>
+                                        sortRowsInTable(6);
+                                    </script>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+
+            <!-- ########### Event Detail ########### -->
+<!--            <apex:pageblockSection id="Event" title="{!$ObjectType.Event_Registration__c.label} Presets" collapsible="true" columns="1" rendered="{!isEventPreset}">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Event_Registration__c.label} Fields </apex:outputPanel>
+                                                <apex:selectList id="eventSel1" value="{!eventRegSelected}" multiselect="true" style="width:250px" size="15">
+                                                    <apex:selectOptions value="{!EventPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="eventloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add " action="{!addInPreset}" reRender="eventDetail, eventSel1" status="eventloading">
+                                                    <apex:param name="ObjectType" value="causeview__Event_Registration__c"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75">
+                                <apex:outputPanel id="eventDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="eventRowNum" />
+                                            <apex:repeat value="{!eventRegFields}" var="event">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink value="Remove" action="{!removeFromPreset}" reRender="eventDetail, eventSel1" status="eventloading" rendered="{!NOT(event.isRequired)}">
+                                                            <apex:param name="ObjectType" value="causeview__Event_Registration__c"/>
+                                                            <apex:param name="index" value="{!eventRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!event.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!event.sObjectType[event.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!event.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!event.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!event.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="eventRowNum" value="{!eventRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+-->
+        </apex:pageBlock>
+    </apex:form>
+    <script>
+      var j$ = jQuery.noConflict();
+      j$('#sortable').sortable({
+          items: "tr:not(:first):not(:last)",
+          axis: "y",
+          containment: "#sortable"
+        })
+
+     function processCheckBox(chkBoxObj){
+        //alert('mmm---  '+chkBoxObj.parentNode.parentNode.id);
+        var rowObj = chkBoxObj.parentNode.parentNode;
+        var chkObjArray = rowObj.getElementsByClassName('chkBoxCls');
+        //alert('chkbox1---chkbox2-- '+chkObjArray[0].checked+'  '+chkObjArray[1].checked);
+        if(chkObjArray != undefined && chkObjArray.length == 2){
+            if(chkObjArray[0].checked){
+                chkObjArray[1].disabled= true;
+            }else{
+                chkObjArray[1].disabled= false;
+            }
+
+            if(chkObjArray[1].checked){
+                chkObjArray[0].disabled= true;
+            }else{
+                chkObjArray[0].disabled= false;
+            }
+        }
+     }
+
+     function processCheckBoxesForEachRow(rowObj){
+        var chkObjArray = rowObj.getElementsByClassName('chkBoxCls');
+        //alert('chkbox1---chkbox2-- '+chkObjArray[0].checked+'  '+chkObjArray[1].checked);
+        if(chkObjArray != undefined && chkObjArray.length == 2){
+            if(chkObjArray[0].checked){
+                chkObjArray[1].disabled= true;
+            }else{
+                chkObjArray[1].disabled= false;
+            }
+
+            if(chkObjArray[1].checked){
+                chkObjArray[0].disabled= true;
+            }else{
+                chkObjArray[0].disabled= false;
+            }
+        }
+     }
+
+     function processCheckBoxOnPanelRerender(tbodyCls){
+        var tbodyObj_Array = document.getElementsByClassName(tbodyCls);
+        //alert('tbodyObj_Array-- '+tbodyObj_Array.length);
+        if(tbodyObj_Array != undefined && tbodyObj_Array.length == 1){
+            var tbodyObj = tbodyObj_Array[0];
+            var tbodyObj_Rows_Array = tbodyObj.getElementsByClassName('row');
+            if(tbodyObj_Rows_Array != undefined && tbodyObj_Array.length > 0){
+                for(i=0;i<tbodyObj_Rows_Array.length;i++){
+                    processCheckBoxesForEachRow(tbodyObj_Rows_Array[i]);
+                }
+            }
+        }
+     }
+
+     function ProcessAllCheckBoxOnPageLoad(){
+        //alert('pgLoad1');
+        processCheckBoxOnPanelRerender('tBodysortable0');
+        processCheckBoxOnPanelRerender('tBodysortable1');
+        processCheckBoxOnPanelRerender('tBodysortable2');
+        processCheckBoxOnPanelRerender('tBodysortable3');
+
+        processCheckBoxOnPanelRerender('tBodysortable4');
+        processCheckBoxOnPanelRerender('tBodysortable5');
+        processCheckBoxOnPanelRerender('tBodysortable6');
+
+
+        /*
+        //alert('pageload--  ');
+        var tBodyObj_Array = j$('[class^="tBodysortable"]');
+        for(i=0;i<tBodyObj_Array.length;i++){
+            processCheckBoxOnPanelRerender(tBodyObj_Array[i].className);
+            //alert(tBodyObj_Array[i].className);
+        }
+        */
+     }
+
+
+     function processAllChkBox(colType,tBodyCls,checkedAllVal){
+        //alert('ppp-- '+colType+'   '+tBodyCls+'   '+checkedAllVal);
+        var chkBox_Summ_Array = j$('.'+tBodyCls+' input:checkbox[id$="summId"]:enabled');
+        //alert('arr--   '+chkBox_Summ_Array.length);
+        if(chkBox_Summ_Array != undefined && chkBox_Summ_Array.length > 0){
+            for(i=0;i<chkBox_Summ_Array.length;i++){
+                //alert(chkBox_Summ_Array[i].disabled);
+                //if(checkedAllVal)chkBox_Summ_Array[i].checked = checkedAllVal;
+                chkBox_Summ_Array[i].checked = checkedAllVal;
+                processCheckBox(chkBox_Summ_Array[i]);
+            }
+        }
+
+        if(checkedAllVal == false){
+            var chkBox_Hide_Array = j$('.'+tBodyCls+' input:checkbox[id$="hideId"]:enabled');
+        }
+     }
+
+     function confirmDelete(){
+            if(confirm('Are you sure you want to delete?'))
+               deleteconfirm();
+        }
+     function processAllChkBoxOnLoad(colType,tBodyCls,checkedAllVal){
+        //alert('ppp-- '+colType+'   '+tBodyCls+'   '+checkedAllVal);
+        var chkBox_Summ_Array = j$('.'+tBodyCls+' input:checkbox[id$="summId"]:enabled');
+        //alert('arr--   '+chkBox_Summ_Array.length);
+        if(chkBox_Summ_Array != undefined && chkBox_Summ_Array.length > 0){
+            for(i=0;i<chkBox_Summ_Array.length;i++){
+                //alert(chkBox_Summ_Array[i].disabled);
+                if(checkedAllVal)chkBox_Summ_Array[i].checked = checkedAllVal;
+                //chkBox_Summ_Array[i].checked = checkedAllVal;
+                processCheckBox(chkBox_Summ_Array[i]);
+            }
+        }
+
+        if(checkedAllVal == false){
+            var chkBox_Hide_Array = j$('.'+tBodyCls+' input:checkbox[id$="hideId"]:enabled');
+        }
+     }
+
+     function processAllChkBox_AfterElementAdd(indexVal,tBodyCls){
+        //alert('kkk-- '+indexVal+'   '+tBodyCls);
+        //chkBoxId0
+        var idLastPartVal = 'chkBoxId'+indexVal;
+        var chkBox_Summ_All = j$('.'+tBodyCls+' input:checkbox[id$='+idLastPartVal+']');
+        //alert(chkBox_Summ_All[0].checked);
+        if(chkBox_Summ_All != "undefined" && chkBox_Summ_All.length > 0){
+            //alert('test');
+            //processAllChkBox('summ',tBodyCls,chkBox_Summ_All[0].checked);
+            processAllChkBoxOnLoad('summ',tBodyCls,chkBox_Summ_All[0].checked);
+        }
+     }
+
+     function uncheckAllChkBoxIfUncheck(indexVal,checkedVal){
+        var idLastPartVal = 'chkBoxId'+indexVal;
+        var chkBox_Summ_All = j$('.tBodysortable'+indexVal+' input:checkbox[id$='+idLastPartVal+']');
+        if(checkedVal == false){
+            chkBox_Summ_All[0].checked = false;
+        }else{
+            processChkBoxAndAllChkBoxInTBody(indexVal,'tBodysortable'+indexVal);
+        }
+     }
+
+     function processChkBoxAndAllChkBoxInTBody(indexVal,tBodyCls){
+        var idLastPartVal = 'chkBoxId'+indexVal;
+        var chkBox_Summ_All = j$('.'+tBodyCls+' input:checkbox[id$='+idLastPartVal+']');
+
+        var chkBox_Summ_Array = j$('.'+tBodyCls+' input:checkbox[id$="summId"]:enabled');
+        if(chkBox_Summ_Array != undefined && chkBox_Summ_Array.length > 0){
+            chkBox_Summ_All[0].checked = true;
+            for(i=0;i<chkBox_Summ_Array.length;i++){
+                chkBox_Summ_All[0].checked = chkBox_Summ_Array[i].checked;
+                if(!chkBox_Summ_All[0].checked)return;
+            }
+        }
+     }
+
+     function processChkBoxAndAllChkBoxInAllTBody(){
+        //alert('pgLoad2');
+        processChkBoxAndAllChkBoxInTBody('0','tBodysortable0');
+        processChkBoxAndAllChkBoxInTBody('1','tBodysortable1');
+        processChkBoxAndAllChkBoxInTBody('2','tBodysortable2');
+        processChkBoxAndAllChkBoxInTBody('3','tBodysortable3');
+        processChkBoxAndAllChkBoxInTBody('4','tBodysortable4');
+        processChkBoxAndAllChkBoxInTBody('5','tBodysortable5');
+        processChkBoxAndAllChkBoxInTBody('6','tBodysortable6');
+     }
+
+
+     function processPaymentTypeChkBoxes(tBodyCls) {
+        var selectedPaymentList = [];
+        var selectedElement = document.getElementById("pg:form:pBlock:Payment:paymentTypesToRemove");
+            for (var i = 0; i < selectedElement.options.length; i++) {
+                //alert(selectedElement.options[i].disabled);
+                if(selectedElement.options[i].disabled)continue;
+                   var optVal = selectedElement.options[i].value;
+                   selectedPaymentList.push(optVal);
+            }
+            if(selectedPaymentList.length > 1){
+                var chkBoxList = [];
+                for (var i = 0; i < selectedPaymentList.length; i++) {
+                    var chkBox_Arr = document.getElementsByClassName(selectedPaymentList[i]);
+                    if(chkBox_Arr.length > 0){
+                        for (var j = 0; j < chkBox_Arr.length; j++) {
+                            chkBox_Arr[j].checked = false;
+                            chkBox_Arr[j].disabled = true;
+                        }
+                    }
+                }
+                //alert(chkBoxList.length);
+            }
+     }
+
+     function processReadOnlyCheckBox(fieldObj,type){
+        //alert('type--- '+type);
+        //alert('fieldObj--1-  '+fieldObj.parentNode.parentNode.id);
+        //alert('fieldObj--2-  '+fieldObj.value.length);
+        var rowObj;
+        if(type != 'date' && type != 'reference'){
+            rowObj = fieldObj.parentNode.parentNode;
+        }else{
+            rowObj = fieldObj.parentNode.parentNode.parentNode;
+        }
+
+        //alert(rowobj);
+        var chkObjArray = rowObj.getElementsByClassName('readOnlyCls');
+        //alert('readOnlyCheckObj---   '+chkObjArray[0].checked);
+
+        if(type != 'boolean' && chkObjArray.length > 0 ){
+            if(fieldObj.value != "undefined" && fieldObj.value != '' && fieldObj.value.trim().length > 0){
+            //chkObjArray[0].checked = true;
+            chkObjArray[0].disabled = false;
+            }else{
+                chkObjArray[0].checked = false;
+                chkObjArray[0].disabled = true;
+            }
+        }else if (type == 'boolean'){
+            /*
+            if(fieldObj.checked == true){
+                //chkObjArray[0].checked = false;
+                chkObjArray[0].disabled = false;
+            }else{
+                chkObjArray[0].checked = false;
+                chkObjArray[0].disabled = true;
+            }
+            */
+        }
+
+
+     }
+
+     function processAllReadOnlyChkBoxesInTBody(tBodyCls){
+        var inputField_Array = j$('.'+tBodyCls+' [id$="inputFieldId"]');
+
+        if(inputField_Array != 'undefined' && inputField_Array.length > 0){
+            for (var i = 0; i < inputField_Array.length; i++) {
+                var classNm = inputField_Array[i].className;
+                var classSplitedArr = classNm.split(":");
+                processReadOnlyCheckBox(inputField_Array[i],classSplitedArr[1]);
+            }
+        }
+
+        // for payment type
+        if(tBodyCls == 'tBodysortable4'){
+            var pymtObjArray = j$('.'+tBodyCls+' [id$="inputFieldId_selectPymtId"]');
+            if(pymtObjArray != 'undefined' && pymtObjArray.length > 0){
+                for (var i = 0; i < pymtObjArray.length; i++) {
+                    var classNm = pymtObjArray[i].className;
+                    var classSplitedArr = classNm.split(":");
+                    processReadOnlyCheckBox(pymtObjArray[i],classSplitedArr[1]);
+                }
+            }
+        }
+
+        // for allocation appeal and fund
+        if(tBodyCls == 'tBodysortable6'){
+            var appealObjArray = j$('.'+tBodyCls+' [id$="allocAppeal"]');
+            if(appealObjArray != 'undefined' && appealObjArray.length > 0){
+                for (var i = 0; i < appealObjArray.length; i++) {
+                    var classNm = appealObjArray[i].className;
+                    var classSplitedArr = classNm.split(":");
+                    processReadOnlyCheckBox(appealObjArray[i],classSplitedArr[1]);
+                }
+            }
+
+            var allocFundObjArray = j$('.'+tBodyCls+' [id$="allocFund"]');
+            if(allocFundObjArray != 'undefined' && allocFundObjArray.length > 0){
+                for (var i = 0; i < allocFundObjArray.length; i++) {
+                    var classNm = allocFundObjArray[i].className;
+                    var classSplitedArr = classNm.split(":");
+                    processReadOnlyCheckBox(allocFundObjArray[i],classSplitedArr[1]);
+                }
+            }
+
+        }
+
+     }
+
+     function processAllReadOnlyChkBoxesInAllTBody(){
+        processAllReadOnlyChkBoxesInTBody('tBodysortable0');
+        processAllReadOnlyChkBoxesInTBody('tBodysortable1');
+        processAllReadOnlyChkBoxesInTBody('tBodysortable2');
+        processAllReadOnlyChkBoxesInTBody('tBodysortable3');
+        processAllReadOnlyChkBoxesInTBody('tBodysortable4');
+        processAllReadOnlyChkBoxesInTBody('tBodysortable5');
+        processAllReadOnlyChkBoxesInTBody('tBodysortable6');
+     }
+
+     function processAllChkBox_AfterElementAddInAllTBody(){
+        processAllChkBox_AfterElementAdd('0','tBodysortable0');
+        processAllChkBox_AfterElementAdd('1','tBodysortable1');
+        processAllChkBox_AfterElementAdd('2','tBodysortable2');
+        processAllChkBox_AfterElementAdd('3','tBodysortable3');
+        processAllChkBox_AfterElementAdd('4','tBodysortable4');
+        processAllChkBox_AfterElementAdd('5','tBodysortable5');
+        processAllChkBox_AfterElementAdd('6','tBodysortable6');
+     }
+
+     function loadFunctions(){
+        ProcessAllCheckBoxOnPageLoad();
+        processChkBoxAndAllChkBoxInAllTBody();
+        processPaymentTypeChkBoxes('tBodysortable4');
+        processAllReadOnlyChkBoxesInAllTBody();
+        processAllChkBox_AfterElementAddInAllTBody();
+     }
+     window.onload = loadFunctions();
+   </script>
+    <style type="text/css">
+
+        .col1 {
+            width: 5%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .col2 {
+            width: 13%;
+            text-align: right;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 120px;
+        }
+
+        .col3 {
+            width: 82%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 350px;
+        }
+
+        .col4 {
+            width: 9%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 80px;
+        }
+
+        .col5 {
+            width: 9%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 80px;
+        }
+
+        .col6 {
+            width: 9%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .remove {
+            height: 22px;
+            width: 23px;
+        }
+
+        .removeDis {
+            height: 16px;
+            width: 16px;
+            margin-left: 3px;
+            margin-top: 3px;
+        }
+
+        .up {
+            width: 2%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .down {
+            width: 3%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .row {
+
+        }
+
+        .multiSelectPicklistRow td select {
+            width: 100% !important;
+        }
+
+        .row:hover {
+            background-color: #ebebeb;
+            border: solid 1px #dcdcdc;
+        }
+
+        .headerLabel{
+            color: #800000;
+            font-size: 1em;
+            font-weight: bold;
+            padding: 5px 2px 4px 5px;
+            border-bottom: solid 1px #dcdcdc;
+        }
+
+        .PTypeSelectTitle {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            height: 14px;
+            padding-bottom: 6px;
+            padding-left: 0px;
+            padding-right: 0px;
+            padding-top: 6px;
+            text-align: center;
+        }
+
+        .rich-tabhdr-side-border {
+            width: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+
+        .rich-tabhdr-side-border img {
+            width: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+
+        .row:hover {
+            background-color: #ebebeb;
+            border: solid 1px #dcdcdc;
+            cursor: move;
+        }
+        .row_Extra1{height: 15px;}
+        .row_Extra2{height: 20px;}
+        .inputhiddenCls{width: 100%;}
+    </style>
+    <link type="text/css" rel="stylesheet" href="/sCSS/20.0/sprites/1288206287000/Theme3/default/versioning.css" />
+
+    <!-- ********This table will be hidden and used to eport content of this page into Xls file after clicking button 'Download xls' *******-->
+    <table id="myTable" border="1" class="hiddenTable">
+        <tr>
+            <apex:repeat value="{!contactFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!accountFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!RecurringGiftFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!TransactionFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!PaymentFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+                <apex:outputPanel rendered="{!if(a.fieldName == NamespacedPaymentType, true, false)}">
+                    <td><apex:outputtext value="Expiry_Date__x" /></td>
+                </apex:outputPanel>
+            </apex:repeat>
+            <apex:repeat value="{!ReceiptFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!GiftDetailFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+        </tr>
+        <tr>
+            <apex:repeat value="{!contactFields}" var="a">
+                <td><apex:outputtext value="Con_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!accountFields}" var="a">
+                <td><apex:outputtext value="Acc_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!RecurringGiftFields}" var="a">
+                <td><apex:outputtext value="RGift_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!TransactionFields}" var="a">
+                <td><apex:outputtext value="Tran_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!PaymentFields}" var="a">
+                <td><apex:outputtext value="Pay_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+                <apex:outputPanel rendered="{!if(a.fieldName == NamespacedPaymentType, true, false)}">
+                    <td><apex:outputtext value="Expiry Date" /></td>
+                </apex:outputPanel>
+            </apex:repeat>
+            <apex:repeat value="{!ReceiptFields}" var="a">
+                <td><apex:outputtext value="Recei_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!GiftDetailFields}" var="a">
+                <td><apex:outputtext value="Alloc_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+        </tr>
+        <tr>
+            <apex:repeat value="{!contactFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!accountFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!RecurringGiftFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!TransactionFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!PaymentFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+                <apex:outputPanel rendered="{!if(a.fieldName == NamespacedPaymentType, true, false)}">
+                    <td><apex:outputtext value="" /></td>
+                </apex:outputPanel>
+            </apex:repeat>
+            <apex:repeat value="{!ReceiptFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!GiftDetailFields}" var="a">
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+        </tr>
+    </table>
+    <script>
+		var tableToHide = document.getElementById('myTable');
+        tableToHide.style.display='none';
+        function exportXLS(){
+            export_table_to_excel('myTable');
+        }
+     </script>
+     <style>
+            .hiddenTable td {
+            padding-left : 5px;
+            padding-right : 5px;
+            }
+         #DownloadXLSButton {
+             cursor:pointer;
+         }
+
+     </style>
+
+</apex:page>

@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Volunteer_Role__c" extensions="VolunteerRoleManageShiftsController" id="VolunteerRoleManageShiftsRedirect" showHeader="true" sidebar="true" action="{!Redirect}">	
+</apex:page>

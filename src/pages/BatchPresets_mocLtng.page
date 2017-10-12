@@ -1,0 +1,224 @@
+<apex:page standardController="Batch_Template__c" extensions="BatchPresetController_moc" action="{!RedirectByTheme}">
+  <apex:includeScript value="{!$Resource.jQuery}"/>
+  <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+  
+  <head>
+    <apex:slds />
+  </head>
+
+  <apex:form styleclass="slds-scope">      
+    <div role="status" class="slds-spinner slds-spinner--medium" id="statusIndicatorDivId" style="display:none;z-index: 1000;">
+      <span class="slds-assistive-text">Loading</span>
+      <div class="slds-spinner__dot-a"></div>
+      <div class="slds-spinner__dot-b"></div>
+    </div>
+  
+    <apex:actionStatus id="statusId" onstart="showStatus()" onstop="hideStatus()" />
+
+    <apex:outputPanel rendered="{!isSelectPreset}">
+      <apex:sectionHeader title="Batch Template" subtitle="Select Batch Template Type"  />
+
+      <apex:outputText styleClass="slds-text-heading--small">Select a template type for the Batch Template.</apex:outputText><br/><br/>
+
+      <apex:pageBlock title="Select Batch Template Type">
+            
+        <apex:pageBlockSection >
+        <!--<apex:inputField value="{!temp.Type__c}" required="true"/>-->
+          <div class="slds-form-element">
+            <label class="slds-form-element__label" for="text-input-01">
+              <abbr class="slds-required" title="required">*</abbr> Template Type</label>
+            <div class="slds-form-element__control">
+              <input type="text" required="" id="text-input-01" class="slds-input"/>
+            </div>
+          </div>
+        </apex:pageBlockSection>
+            
+        <apex:pageBlockButtons location="bottom">
+          <apex:commandButton value="Continue" action="{!showTemplate}" styleClass="slds-button slds-button--neutral"/>
+          <apex:commandButton value="Cancel" styleClass="slds-button slds-button--neutral"/>
+        </apex:pageBlockButtons>
+      </apex:pageBlock>
+    </apex:outputPanel>
+     
+    <apex:outputPanel rendered="{!isShowPreset}">
+    <!-- ********************* HEDER SECTIION *********************** -->
+    <!-- <div class="slds slds-page-header">
+         <div class="slds slds-grid">
+            <div class="slds slds-col slds-has-flexi-truncate">
+               <div class="slds slds-media slds-no-space slds-grow">
+                 <div class="slds-media__figure border-radius-small"  style="background-color: #ff7b84;" >
+                
+                  <span class="slds-icon-standard-user" title="Description of icon when needed">
+                     <svg class="slds-icon slds-icon-standard-user" aria-hidden="true" style="background-color: #ff7b84;">
+                               <use xlink:href="{!$Resource.SLDS0122}/assets/icons/custom-sprite/svg/symbols.svg#custom1"></use>
+                            </svg>
+                      <span class="slds-assistive-text">Description of icon</span>
+                   </span>
+                     
+                </div>
+                  <div class="slds slds-media__body">
+                     <p class="slds slds-text-title--caps slds-line-height--reset">Gift Batch Template</p>
+                     <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="this should match the Record Title">{!temp.Type__c} Batch Template</h1>
+                  </div>
+               </div>
+            </div>
+            <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+            </div>
+         </div>
+      </div>-->
+      <div class="slds-page-header">
+            <div class="slds-grid">
+                <div class="slds-col slds-has-flexi-truncate">
+                    <div class="slds-media slds-no-space slds-grow">
+                        <div class="slds-media__figure" >
+                            <svg class="slds-icon slds-icon-standard-user" aria-hidden="true" style="background-color: #ff7b84;">
+                               <use xlink:href="{!$Resource.SLDS0122}/assets/icons/custom-sprite/svg/symbols.svg#custom1"></use>
+                            </svg>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-title--caps slds-line-height--reset">Gift Batch Template</p>
+                            <h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="Gift Batch Template">{!temp.Type__c} Batch Template</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+      <!-- ******************** END OF HEDER SECTION ***************** -->
+          
+        
+      <br></br>
+      <!--<apex:outputLabel for="bpPickVal" styleClass="slds-form-element__label"><b>Template Type: </b></apex:outputLabel>-->      
+      <!--<apex:inputField id="bpPickVal" value="{!temp.Type__c}" styleClass="slds-select slds-input slds-input--small" style="width: 18%;"/>-->
+      <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click" style="width: 20%;">
+        <div class="slds-form-element" onclick="processPicklist(this);">
+          <label class="slds-form-element__label" for="text-input-01">Template Type</label>
+          <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+            <!--                                                             <input style="cursor: pointer;" type="search" id="text-input-01" class="slds-lookup__search-input slds-input" placeholder="Select an Option" aria-owns="option-list-01" role="combobox" aria-activedescendant="" aria-expanded="false" readonly="" /> -->
+
+            <apex:inputText style="cursor: pointer;" value="{!temp.Type__c}" id="text-input-01" html-data-isRequired="true" html-data-requiredFieldName="{!$ObjectType.Batch_Template__c.fields.Type__c.Name}" styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox" html-aria-activedescendant="" html-aria-expanded="false" html-readonly="" />
+
+            <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+              <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+            </span>
+          </div>
+        </div>   
+
+        <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width: 100%;max-width: 100%">
+          <ul id="option-list-01" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+            <apex:repeat value="{!PTypes}" var="item">
+              <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item.label}" data-toProcessOnServer="true">
+                <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id=" listbox-option-{!item.label}">    
+                  <span style="width: 10%;">
+                    <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(item.label == pType,'block','none')};opacity: 1;"></img>
+                  </span>
+                  <span class="slds-truncate">{!item.label}</span>
+                </span>
+              </li>
+            </apex:repeat>
+          </ul>
+        </div>        
+      </div>
+        
+      <apex:commandButton value="Go!" action="{!showTemplate}" style="margin-top: -1px;margin-left: 15px;"
+          styleClass="slds-button slds-button--neutral slds-m-left--small"/>
+
+      <br/><br/>
+       
+       <span style="float: right;" class="slds-p-top--large slds-p-around--medium">
+        <apex:repeat value="{!AlphaList}" var="a">
+          <span class="slds-type-focus">
+            <apex:commandLink value="{!a}"  rerender="outputpanelid"
+               styleClass="alpha-link{!if(AlphaFilter=a,' alpha-select','')}" action="{!BuildQuery}" style="text-decoration:none" status="statusId">
+               <apex:param name="AlphaFilter" value="{!a}" assignTo="{!AlphaFilter}" />
+            </apex:commandLink>
+          </span>
+            &nbsp;&nbsp;
+         </apex:repeat>
+       </span>
+        
+          <article class="slds-card">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media--center slds-has-flexi-truncate">
+<!--                     <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                            <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                                <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#insights"></use>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <h2>
+                            <span class="slds-text-heading--small">GiftBatch Template </span>
+                        </h2>
+                    </div> -->
+                    <!--<button class="slds-button slds-button--neutral">New Template</button>-->
+                     <apex:commandButton action="{!CreateNewPresetTemplate}" value="New Batch Template" styleClass="slds-button slds-button--neutral"/>
+                </header>
+                <div class="slds-no-flex"></div>
+            </div>
+            <div class="slds-card__body">
+            <apex:outputPanel id="outputpanelid">
+            <table class="slds-table slds-table--bordered slds-table--cell-buffer">
+              <thead>
+                <tr class="slds-text-title--caps">
+                  <th scope="col">
+                     <div class="slds-truncate" title="TemplateName">Template Name</div>
+                  </th>
+                  <th scope="col">
+                     <div class="slds-truncate" title="TemplateType">Template Type</div>
+                  </th>
+                </tr>
+              </thead>
+                <tbody>
+                <apex:repeat value="{!tempRecord}" var="vp">
+                    <tr>
+                       <td>
+                             <span class="slds-type-focus">
+                             <apex:commandLink value="{!vp.Name}" action="{!editAPresetTemplate}" style="text-decoration:none">
+                                   <apex:param name="templateId" value="{!vp.Id}"/>
+                              </apex:commandLink>
+                              </span>
+                        </td>
+                        
+                        <td>
+                            <div class="slds-truncate">{!vp.Type__c}</div>
+                        </td>
+                    </tr>
+                </apex:repeat>
+              </tbody>
+            </table>
+             </apex:outputPanel>  
+            </div>
+            </article>
+           
+         
+      </apex:outputPanel>
+  </apex:form>
+  </html>
+  <script>
+  var j$ = jQuery.noConflict();
+   var currentpicklistObj;
+        function processPicklist(obj){
+            currentpicklistObj = obj;
+            j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+        }
+        function processPickValue(obj){
+            pickedElement = obj;
+            var pickvalue = j$(pickedElement).attr("data-pickValue");
+            var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+            j$(pickedElement).parent().find("img").hide();
+            j$(pickedElement).find("img").show();
+            j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+            j$(currentpicklistObj).find("input").val(pickvalue);
+            
+            //j$(pickedElement).children().first().children().first().children().first().show();
+        }
+        function showStatus(){
+            j$('#statusIndicatorDivId').show();
+        }
+        function hideStatus(){
+            j$('#statusIndicatorDivId').hide();
+        }
+   </script>     
+</apex:page>

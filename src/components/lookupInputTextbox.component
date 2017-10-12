@@ -1,0 +1,42 @@
+<apex:component >
+ <apex:attribute name="title" id="textboxValue" type="String" required="true" description=""></apex:attribute>
+ <apex:attribute name="value" id="hiddenFieldValue" type="String" required="true" description=""></apex:attribute>
+ <apex:attribute name="disabled" type="Boolean" required="false" default="false" description=""></apex:attribute>
+ <apex:attribute name="required" type="Boolean" required="false" default="false" description=""></apex:attribute>
+ <apex:attribute name="navigateUrl" type="String" required="true" description=""></apex:attribute>
+ <apex:attribute name="dialogPosleft" type="String" required="false" description="" default="200"></apex:attribute>
+ <apex:attribute name="dialogPosTop" type="String" required="false" description="" default="150"></apex:attribute>
+ <apex:attribute name="dialogPosWidth" type="String" required="false" description="" default="800"></apex:attribute>
+ <apex:attribute name="dialogPosHeight" type="String" required="false" description="" default="500"></apex:attribute>
+ <apex:attribute name="width" type="String" required="false" description=""></apex:attribute>
+ <apex:attribute name="onEnterKeyDown" type="String" description="Javascript function triggered when the user hits enter on the control"/>
+ <apex:attribute name="onChange" type="String" description="Javascript function triggered when the value of the control is set."/>
+ <apex:attribute name="tabindex" type="String" description="The order in which this field is selected compared to other page components when a user presses the Tab key repeatedly. This value must be an integer between 0 and 32767, with component 0 being the first component that is selected when a user presses the Tab key."/>
+ <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'givingpowerScriptLib.js')}"/>
+ 
+ <span class="lookupInput">
+ <apex:inputText id="intextbox" value="{!title}" size="20"
+   onkeydown="javascript:if(event.which || event.keyCode){ if ((event.which == 13) || (event.keyCode == 13)) {  this.blur(); if (!{!disabled}) {!JSENCODE(onEnterKeyDown)}(); return false; } } else {return true;}"
+   onchange="javascript:if (window.document.getElementById('{!JSENCODE($Component.inhidden)}')) { window.document.getElementById('{!JSENCODE($Component.inhidden)}').value = '';}}"
+   onfocus="this.select();" disabled="{!disabled}" style="autocomplete:off;" tabindex="{!tabindex}"></apex:inputText>
+   <img src="/s.gif" width="20" class="lookupIcon"
+    onclick="openLookUpWindow(false,'{!JSENCODE(id)}','{!JSENCODE(navigateUrl)}','{!JSENCODE($Component.intextbox)}','{!JSENCODE($Component.inhidden)}', '{!dialogPosleft}','{!dialogPosTop}','{!dialogPosWidth}','{!dialogPosHeight}');"
+    rendered="{!NOT(disabled)}" 
+    onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" 
+    onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" 
+    onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="lookup" alt="lookup"/>
+ </span>
+ <apex:inputHidden id="inhidden" value="{!value}" required="{!required}" ></apex:inputHidden>
+ <script type="text/javascript">
+ //<![CDATA[ 
+ function Set{!JSENCODE(id)}(title,Value) { 
+   window.document.getElementById('{!JSENCODE($Component.intextbox)}').value = title;
+   window.document.getElementById('{!$Component.inhidden}').value = Value;
+   window.document.getElementById('{!$Component.intextbox}').focus();
+   if ({!onChange}) {!onChange}();
+ }
+ //]]> 
+ </script>
+
+           
+</apex:component>

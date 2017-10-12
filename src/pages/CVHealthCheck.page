@@ -1,0 +1,329 @@
+<apex:page sidebar="false" controller="CVHealthCheckController" action="{!RedirectByTheme}">
+     <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+     <script>
+         var j$ = jQuery.noConflict();
+         function collapseCS(type){
+             var passValue = 0;
+             var waiveTrue = 0;
+             var targetvalue;
+             var waiveValue;
+             var records;
+             var waiveRecords;
+             if(type == "Organization"){
+                 targetvalue = j$(".companyprofileclass");
+                 waiveValue = j$(".waivecompanyprofileclass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+    
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='companyprofileId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+             if(type == "Custom Setting"){
+                 targetvalue = j$(".customsettingclass");
+                 waiveValue = j$(".waivecustomsettingclass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+    
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='CustomSettingsTestId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+             if(type == "Workflow Setting"){
+                 targetvalue = j$(".WorkflowSettingsClass");
+                 waiveValue = j$(".WaiveWorkflowSettingsClass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='WorkflowSettingsTestId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+             if(type == "apexJobs"){
+                 targetvalue = j$(".apexJobsclass");
+                 waiveValue = j$(".waiveapexJobsclass");
+                 records = targetvalue.length;
+                 waiveRecords = waiveValue.length;
+                 for(var i = 0; i < records; i++){
+                     if(targetvalue[i].checked == true && waiveValue[i].checked == false){
+                         passValue += 1;
+                     }
+                     if(waiveValue[i].checked == true){
+                         waiveTrue += 1;
+                     }
+                 }
+                 records = records - waiveTrue;
+                 if(records == passValue){
+                     var are = j$("[id$='scheduleJobSectionId']").find('img');
+                     twistSection(are[0]);
+                 }
+             }
+         }
+         
+         function confirmRollup(){
+             if (confirm('Running a full rollup may cause rowlock errors for users. This could lead to the job missing batches if it gets locked out of a record a user is using. Are you sure you would like to run a full rollup at this time?')) {
+                 complete();
+                 alert('The full rollup is now running.');
+            } else {
+                 alert('The full rollup has been cancelled.');
+            }
+         }
+     </script>
+    <apex:form >
+        <apex:actionFunction name="companyprofileUpdate" action="{!updateOrgSetting}" reRender="companyprofileId"/>
+        <apex:actionFunction name="customSettingUpdate" action="{!updateWaiveSetting}" reRender="CustomSettingsTestId"/>
+        <apex:actionFunction name="workflowSettingUpdate" action="{!updateWorkflowWaiveSetting}" reRender="WorkflowSettingsTestId"/>
+        <apex:actionFunction name="apexJobsUpdate" action="{!updateRollupWaiveSetting}" reRender="scheduleJobSectionId"/>
+        <apex:pageBlock title="Causeview Health Check Panel - Beta Release">
+            <apex:pageBlockSection title="Company Profile Test - Pass ({!pass_Org_Setting}/{!total_Org_Setting}) Waived - {!waive_org_Setting}" id="companyprofileId">
+                <!-- Add code to show the status of this Company Profile Test -->
+                <apex:outputPanel id="companyprofilePanelId">
+                        <table>
+                            <col width="10"/>
+                            <col width="200"/>
+                            <col width="200"/>
+                            <col width="10"/>
+                            <tr>
+                                <td></td>
+                                <td></td> 
+                                <td></td>
+                                <td style = "font-weight: bold;">Waive</td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!org_Name_check}" disabled="true" styleClass="companyprofileclass"/></td>   
+                                <td><apex:outputLabel value="Name" style="{!IF(waiveSetting.Organisation_Name__c = true, 'color:grey' , IF(org_Name_check = false,'color:red','color:green') )}"/></td> 
+                                <td><apex:outputLabel value="{!org.Name}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Organisation_Name__c}" styleClass="waivecompanyprofileclass" onchange="companyprofileUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!org_Address_check}" disabled="true" styleClass="companyprofileclass"/></td>
+                                <td><apex:outputLabel value="Address" style="{!IF(waiveSetting.Organization_Address__c=true , 'color:grey', IF(org_Address_check = false,'color:red','color:green'))}"/></td> 
+                                <td><apex:outputLabel value="{!org.Street}"/><br/>
+                                <apex:outputLabel value="{!org.City}, "/>
+                                <apex:outputLabel value="{!org.State}"/>&nbsp;
+                                <apex:outputLabel value="{!org.PostalCode}"/>&nbsp;
+                                <apex:outputLabel value="{!org.Country}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Organization_Address__c}" styleClass="waivecompanyprofileclass" onchange="companyprofileUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!org_Phone_check}" disabled="true" styleClass="companyprofileclass"/></td>
+                                <td><apex:outputLabel value="Phone" style="{!IF(waiveSetting.Organization_Phone__c= true, 'color:grey', IF(org_Phone_check = false,'color:red','color:green')) }"/></td> 
+                                <td><apex:outputLabel value="{!org.Phone}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Organization_Phone__c}" styleClass="waivecompanyprofileclass" onchange="companyprofileUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!org_wide_Address}" disabled="true" styleClass="companyprofileclass"/></td>
+                                <td><apex:outputLabel value="Org-Wide Email Address" style="{!IF(waiveSetting.Org_Wide_Email_Address__c=true, 'color:grey' , IF(org_wide_Address = false,'color:red','color:green'))}"/></td> 
+                                <td><apex:repeat value="{!org_Email}" var="orgEmail">
+                                <apex:outputLabel value="{!orgEmail.Address}"/></apex:repeat></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Org_Wide_Email_Address__c}" styleClass="waivecompanyprofileclass" onchange="companyprofileUpdate();"/></td>
+                             </tr>
+                        </table>
+                        <script>
+                            collapseCS('Organization');
+                        </script>
+                    </apex:outputPanel>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Custom Settings Test - Pass ({!pass_Custom_Setting}/{!total_Custom_Setting}) Waived - {!waive_Custom_Setting}" id="CustomSettingsTestId">
+                <!-- Add code to show the status of this Custom Setting -->
+                    <apex:outputPanel id="customSettingPanelId">
+                        <table>
+                            <col width="10"/>
+                            <col width="400"/>
+                            <col width="10"/>
+                            <tr>
+                                <td></td>
+                                <td></td> 
+                                <td style = "font-weight: bold;">Waive</td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!appSetting.Enable_Enhanced_Batch_Interface__c}" disabled="true" styleClass="customsettingclass"/></td>    <!--id="EnableEnhancedBatchInterfaceId"-->
+                                <td><apex:outputLabel value="Enable Enhanced Batch Interface" for="EnableEnhancedBatchInterfaceId" id="EnableEnhancedBatchInterfaceLabelId" style="{!IF(waiveSetting.Enable_Enhanced_Batch_Interface_Waive__c = true  , 'color:grey' , IF(appSetting.Enable_Enhanced_Batch_Interface__c = false,'color:red','color:green') ) }"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Enable_Enhanced_Batch_Interface_Waive__c}" styleClass="waivecustomsettingclass" onchange="customSettingUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!appSetting.Enable_Enhanced_Fund_Accounting__c}" disabled="true" styleClass="customsettingclass"/></td>
+                                <td><apex:outputLabel value="Enable Enhanced Fund Accounting" for="enableEnhancedFundAccountingstatusId" id="enableEnhancedFundAccountingLabelId" style="{!IF(waiveSetting.Enable_Enhanced_Fund_Accounting_Waive__c = true  , 'color:grey' , IF(appSetting.Enable_Enhanced_Fund_Accounting__c = false,'color:red','color:green') )}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Enable_Enhanced_Fund_Accounting_Waive__c}" styleClass="waivecustomsettingclass" onchange="customSettingUpdate(); "/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!appSetting.Enable_Pledge_Installment_Model__c}" disabled="true" styleClass="customsettingclass"/></td>
+                                <td><apex:outputLabel value="Enable Pledge Installment Model" for="enablePledgeInstallmentModelstatusId" id="enablePledgeInstallmentModelLabelId" style="{!IF(waiveSetting.Enable_Pledge_Installment_Model_Waive__c = true  , 'color:grey' , IF(appSetting.Enable_Pledge_Installment_Model__c = false,'color:red','color:green') ) }"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Enable_Pledge_Installment_Model_Waive__c}" styleClass="waivecustomsettingclass" onchange="customSettingUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!appSetting.Use_Workflows_for_Sending_Receipts__c}" disabled="true" styleClass="customsettingclass"/></td>
+                                <td><apex:outputLabel value="Use Workflows for Sending Receipts" for="useWorkflowsforSendingReceiptsstatusId" id="useWorkflowsforSendingReceiptLabelId" style="{!IF(waiveSetting.Disable_Workflows_for_Sending_Receipts__c = true  , 'color:grey' , IF(appSetting.Use_Workflows_for_Sending_Receipts__c = false,'color:red','color:green'))}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Disable_Workflows_for_Sending_Receipts__c}" styleClass="waivecustomsettingclass" onchange="customSettingUpdate();"/></td>
+                             </tr>
+                        </table>
+                        <script>
+                            collapseCS('Custom Setting');
+                        </script>
+                    </apex:outputPanel>
+            </apex:pageBlockSection>
+                <apex:pageBlockSection title="Workflow Settings Test - Pass ({!pass_Workflow_Setting}/{!total_Workflow_Setting}) Waived - {!waive_Workflow_Setting}" id="WorkflowSettingsTestId">
+                    <!-- Add code to show the status of this workflow -->
+                    <apex:outputPanel id="workflowSettingPanelId">
+                        <table>
+                            <col width="10"/>
+                            <col width="400"/>
+                            <col width="10"/>
+                            <tr>
+                                <td></td>
+                                <td></td> 
+                                <td style = "font-weight: bold;">Waive</td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!send_Gift_Receipt_status}" disabled="true" styleClass="WorkflowSettingsClass"/></td>
+                                <td><apex:outputLabel value="Send Gift Receipt" for="SendGiftReceiptId" id="SendGiftReceiptLabelId" style="{!IF(waiveSetting.Send_Gift_Receipt__c= true , 'color:grey', IF(send_Gift_Receipt_status = false,'color:red','color:green'))}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Send_Gift_Receipt__c}" styleClass="WaiveWorkflowSettingsClass" onchange="workflowSettingUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!SendEventRegistrationReceipt_status}" disabled="true" styleClass="WorkflowSettingsClass"/></td>
+                                <td><apex:outputLabel value="Send Event Registration Receipt" for="SendEventRegistrationReceiptId" id="SendEventRegistrationReceiptLabelId" style="{!IF(waiveSetting.Send_Event_Registration_Receipt__c = true, 'color:grey',IF(SendEventRegistrationReceipt_status = false,'color:red','color:green'))}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.Send_Event_Registration_Receipt__c}" styleClass="WaiveWorkflowSettingsClass" onchange="workflowSettingUpdate();"/></td>
+                             </tr>
+                             <tr>
+                                <td><apex:inputCheckbox value="{!UpdatePaymentRT_RefundACH_status}" disabled="true" styleClass="WorkflowSettingsClass"/></td>
+                                <td><apex:outputLabel value="UpdatePaymentRT RefundACH Status" for="UpdatePaymentRTRefundACH" id="UpdatePaymentRTRefundACHLabelId" style="{!IF(waiveSetting.UpdatePaymentRT_RefundACH__c = true, 'color:grey',IF(UpdatePaymentRT_RefundACH_status = false,'color:red','color:green'))}"/></td> 
+                                <td><apex:inputCheckbox value="{!waiveSetting.UpdatePaymentRT_RefundACH__c}" styleClass="WaiveWorkflowSettingsClass" onchange="workflowSettingUpdate();"/></td>
+                             </tr>
+                         </table>
+                         <script>
+                            collapseCS('Workflow Setting');
+                        </script>
+                    </apex:outputPanel>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Scheduled Jobs Test - Pass ({!pass_jobs}/{!total_jobs}) Waived - {!waive_jobs}" id="scheduleJobSectionId">
+                <!-- Add code to show the status of this Scheduled Jobs -->
+                <!-- appealrollup1 -->
+                <!-- appealrollup2 -->
+                <!-- appealrollup3 --> 
+                <apex:outputPanel >
+                    <table>
+                        <col width="10"/>
+                        <col width="600"/>
+                        <col width="60"/>
+                        <col width="60"/>
+                        <col width="60"/>
+                        <col width="1900"/>
+                        <col width="1900"/>
+                        <col width="60"/>
+                        <tr>
+                            <td></td>
+                            <td></td> 
+                            <td style = "font-weight: bold;">Job Name</td>
+                            <td style = "font-weight: bold;">Status</td>
+                            <td style = "font-weight: bold;">Failures</td>
+                            <td style = "font-weight: bold;">Completion Date</td>
+                            <td style = "font-weight: bold;">NextRun Date</td>
+                            <td style = "font-weight: bold;">Waive</td>
+                         </tr>
+                         <tr>
+                            <td><apex:inputCheckbox value="{!PackageRollupBatch_check}" disabled="true" styleClass="apexJobsclass"/></td>   
+                            <td><apex:outputLabel value="Package Rollup " style="{!IF(waiveSetting.PackageRollupBatch__c= true, 'color:grey' , IF(PackageRollupBatch_status = 'Completed' && PackageRollupBatch_failure= '0' ,'color:green',  IF(PackageRollupBatch_status = 'Aborted'|| PackageRollupBatch_status = 'Failed' || PackageRollupBatch_failure != '0' ,'color:red' , 'color :amber ') ) )}"/></td> 
+                            <td><apex:outputLabel value="{!job_name1}"/></td> 
+                            <td><apex:outputLabel value="{!PackageRollupBatch_status}"/></td> 
+                            <td><apex:outputLabel value="{!PackageRollupBatch_failure}"/></td> 
+                            <td><apex:outputLabel value="{!PackageRollupBatch_completeDate}"/></td>
+                             <td><apex:outputLabel value="{!PackageRollupBatch_NextRunDate}"/></td>
+                            <td><apex:inputCheckbox value="{!waiveSetting.PackageRollupBatch__c}" styleClass="waiveapexJobsclass" onchange="apexJobsUpdate();"/></td>
+                         </tr>
+                         <tr>
+                            <td><apex:inputCheckbox value="{!AppealUtilRollBatch_check}" disabled="true" styleClass="apexJobsclass"/></td>
+                            <td><apex:outputLabel value="AppealUtil Rollup" style="{!IF(waiveSetting.AppealUtilRollBatch__c = true, 'color:grey',  IF(AppealUtilRollBatch_status = 'Completed' && AppealUtilRollBatch_failure ='0' ,'color:green', IF(AppealUtilRollBatch_status = 'Aborted'|| AppealUtilRollBatch_status = 'Failed' || AppealUtilRollBatch_failure != '0' ,'color:red' , 'color :amber ') )) }"/></td> 
+                            <td><apex:outputLabel value="{!job_name2}"/></td> 
+                            <td><apex:outputLabel value="{!AppealUtilRollBatch_status}"/></td> 
+                            <td><apex:outputLabel value="{!AppealUtilRollBatch_failure}"/></td>
+                            <td><apex:outputLabel value="{!AppealUtilRollBatch_completeDate}"/></td>
+                            <td><apex:outputLabel value="{!AppealUtilRollBatch_NextRunDate}"/></td>  
+                            <td><apex:inputCheckbox value="{!waiveSetting.AppealUtilRollBatch__c}" styleClass="waiveapexJobsclass" onchange="apexJobsUpdate();"/></td>
+                         </tr>
+                         <tr>
+                            <td><apex:inputCheckbox value="{!CampaignRollupBatch_check}" disabled="true" styleClass="apexJobsclass"/></td>
+                            <td><apex:outputLabel value="Campaign Rollup" style="{!IF(waiveSetting.CampaignRollupBatch__c = true , 'Color:grey' , IF(CampaignRollupBatch_status = 'Completed' && CampaignRollupBatch_failure ='0' ,'color:green', IF(CampaignRollupBatch_status = 'Aborted'|| CampaignRollupBatch_status = 'Failed' || CampaignRollupBatch_failure != '0' ,'color:red' , 'color :amber ') )) }"/></td> 
+                            <td><apex:outputLabel value="{!job_name3}"/></td>
+                            <td><apex:outputLabel value="{!CampaignRollupBatch_status}"/></td>  
+                            <td><apex:outputLabel value="{!CampaignRollupBatch_failure}"/></td> 
+                            <td><apex:outputLabel value="{!CampaignRollupBatch_completeDate}"/></td> 
+                              <td><apex:outputLabel value="{!CampaignRollupBatch_NextRunDate}"/></td> 
+                            <td><apex:inputCheckbox value="{!waiveSetting.CampaignRollupBatch__c}" styleClass="waiveapexJobsclass" onchange="apexJobsUpdate();"/></td>
+                         </tr>
+                         
+                         <tr>
+                            <td><apex:inputCheckbox value="{!ContactRollupBatch_check}" disabled="true" styleClass="apexJobsclass"/></td>
+                            <td><apex:outputLabel value="Contact Rollup" style="{!IF(waiveSetting.Contact_RollUp_Batch__c = true , 'color:grey' , IF(ContactRollupBatch_status = 'Completed' && ContactRollupBatch_failure = '0','color:green',IF(ContactRollupBatch_status = 'Aborted'|| ContactRollupBatch_status = 'Failed'|| ContactRollupBatch_failure != '0'  ,'color:red' , 'color :amber ')))}"/></td> 
+                            <td><apex:outputLabel value="{!job_name4}"/></td>
+                            <td><apex:outputLabel value="{!ContactRollupBatch_status}"/></td>  
+                            <td><apex:outputLabel value="{!ContactRollupBatch_failure}"/></td> 
+                            <td><apex:outputLabel value="{!ContactRollupBatch_completeDate}"/></td>
+                            <td><apex:outputLabel value="{!ContactRollupBatch_NextRunDate}"/></td> 
+                            <td><apex:inputCheckbox value="{!waiveSetting.Contact_RollUp_Batch__c}" styleClass="waiveapexJobsclass" onchange="apexJobsUpdate();"/></td>
+                         </tr>
+                         
+                         <tr>
+                            <td><apex:inputCheckbox value="{!AccountRollupBatch_check}" disabled="true" styleClass="apexJobsclass"/></td>
+                            <td><apex:outputLabel value="Account Rollup" style="{!IF(waiveSetting.Account_Rollup_Batch__c= true, 'color:grey' , IF(AccountRollupBatch_status = 'Completed' && AccountRollupBatch_failure = '0','color:green',IF(AccountRollupBatch_status = 'Aborted'|| AccountRollupBatch_status = 'Failed'|| AccountRollupBatch_failure != '0'  ,'color:red' , 'color :amber ')))}"/></td>  
+                            <td><apex:outputLabel value="{!job_name5}"/></td>
+                            <td><apex:outputLabel value="{!AccountRollupBatch_status}"/></td>  
+                            <td><apex:outputLabel value="{!AccountRollupBatch_failure}"/></td> 
+                            <td><apex:outputLabel value="{!AccountRollupBatch_completeDate}"/></td>
+                            <td><apex:outputLabel value="{!AccountRollupBatch_NextRunDate}"/></td>  
+                            <td><apex:inputCheckbox value="{!waiveSetting.Account_Rollup_Batch__c}" styleClass="waiveapexJobsclass" onchange="apexJobsUpdate();"/></td>
+                         </tr>
+                         
+                         
+                         <tr>
+                            <td><apex:inputCheckbox value="{!PaymentRollupBatch_check}" disabled="true" styleClass="apexJobsclass"/></td>
+                            <td><apex:outputLabel value="Payment Rollup" style="{!IF(waiveSetting.Payment_Rollup_Batch__c = true, 'color:grey' , IF(PaymentRollupBatch_status = 'Completed' && PaymentRollupBatch_failure = '0','color:green',IF(PaymentRollupBatch_status = 'Aborted'|| PaymentRollupBatch_status = 'Failed'|| PaymentRollupBatch_failure != '0'  ,'color:red' , 'color :amber ')))}"/></td>  
+                            <td><apex:outputLabel value="{!job_name6}"/></td>
+                            <td><apex:outputLabel value="{!PaymentRollupBatch_status}"/></td>  
+                            <td><apex:outputLabel value="{!PaymentRollupBatch_failure}"/></td> 
+                            <td><apex:outputLabel value="{!PaymentRollupBatch_completeDate}"/></td>
+                            <td><apex:outputLabel value="{!PaymentRollupBatch_NextRunDate}"/></td>  
+                            <td><apex:inputCheckbox value="{!waiveSetting.Payment_Rollup_Batch__c}" styleClass="waiveapexJobsclass" onchange="apexJobsUpdate();"/></td>
+                         </tr>
+
+                         
+                    </table>
+                    <script>
+                        collapseCS('apexJobs');
+                    </script>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>  
+        <apex:actionFunction name="complete" action="{!executeFullRollup}" />
+        <apex:commandButton value="Run Full Contact Rollup" onClick="confirmRollup()" onComplete="return null" />
+        <apex:commandButton value="Configure Sandbox" rendered="{!isSandbox}" />
+    </apex:form>
+</apex:page>

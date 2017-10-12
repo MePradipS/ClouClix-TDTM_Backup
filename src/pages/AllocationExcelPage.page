@@ -1,0 +1,44 @@
+<apex:page Controller="PostToFinanceController" showheader="false" contenttype="application/vnd.ms-excel#{!reportDateTime}.xls" cache="true" sidebar="false">
+    <table id="myTable" border="1">
+    <tr><td>Account Number</td><td>Date</td><td>Debit/Credit</td><td>Amount</td><td>Reference</td><td>Fund Code</td><td>Accounting Code</td><td>Transaction Date</td><td>Fund Name</td><td>Debit</td><td>Credit</td>
+    <apex:repeat value="{!fieldSetLabel}" var="fset">
+    <td> {!fset} </td>
+    </apex:repeat>
+    </tr>
+    <apex:repeat value="{!listExportRecords}" var="listToExport">
+    <apex:repeat value="{!listToExport}" var="csvRec">
+    <tr>
+        <td>{!csvRec.allocation.GL_Auto_Debit_Account__c}</td>
+        <td>{!csvRec.allocationDate}</td>
+        <td>{!csvRec.debit}</td>
+        <td>{!csvRec.amount1}</td>
+        <td>{!csvRec.reference}</td>
+        <td>{!csvRec.allocation.Fund__r.Fund_Code__c}</td>
+        <td>{!csvRec.allocation.Accounting_Code__c}</td>
+        <td>{!csvRec.transactionDate}</td>
+        <td>{!csvRec.allocation.Fund__r.Fund_Name__c}</td>
+        <td>{!csvRec.amount1}</td> 
+        <td></td>
+        <apex:repeat Value="{!csvRec.fieldSetValues}" var="f"> 
+         <td>{!f}</td> </apex:repeat> 
+     </tr>
+    
+    <tr><td>{!csvRec.allocation.GL_Auto_Credit_Account__c}</td>
+        <td>{!csvRec.allocationDate}</td>
+        <td>{!csvRec.Credit}</td>
+        <td>{!csvRec.amount1}</td>
+        <td>{!csvRec.reference}</td>
+        <td>{!csvRec.allocation.Fund__r.Fund_Code__c}</td>
+        <td>{!csvRec.allocation.Accounting_Code__c}</td>
+        <td>{!csvRec.transactionDate}</td>
+        <td>{!csvRec.allocation.Fund__r.Fund_Name__c}</td>
+        <td></td>
+        <td>{!csvRec.amount1}</td> 
+            <apex:repeat Value="{!csvRec.fieldSetValues}" var="f"> 
+            <td>{!f}</td> 
+            </apex:repeat>
+     </tr>
+    </apex:repeat>
+    </apex:repeat>
+    </table>
+</apex:page>

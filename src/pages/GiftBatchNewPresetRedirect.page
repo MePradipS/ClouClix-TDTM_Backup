@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Gift_Batch__c" extensions="GiftBatchNewPresetController" id="GiftBatchNewPresetRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

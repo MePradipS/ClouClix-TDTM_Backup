@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Account" extensions="AccountHouseHoldController" id="AccountHouseHoldRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

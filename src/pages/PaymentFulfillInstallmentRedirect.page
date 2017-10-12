@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Gift__c" extensions="PaymentFulfillInstallmentController" id="PaymentFulfillInstallmentRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

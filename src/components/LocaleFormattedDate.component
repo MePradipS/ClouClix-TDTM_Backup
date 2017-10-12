@@ -1,0 +1,4 @@
+<apex:component access="global" controller="LocaleFormattedDateContrl">
+<apex:attribute assignTo="{!date_time}" description="locale" name="date_time_value" type="DateTime"></apex:attribute>
+{!TimeZoneValue}
+</apex:component>

@@ -1,0 +1,656 @@
+<apex:page standardController="RD_Allocation__c" extensions="RDAllocationURLUpdate" action="{!RedirectByTheme}">
+    <apex:includeScript value="{!$Resource.jQuery}"/>
+    <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <head>
+      <apex:slds />
+    </head>
+
+
+    <script type="text/javascript">
+        var gateWay ='{!JSENCODE(gateWay)}';
+        var newUrl = window.top.location.href;
+
+        if (newUrl.indexOf('&gateway=') == -1) {
+            newUrl += '&gateway=' + gateWay;
+            window.top.location = newUrl;
+        }
+
+
+    </script>
+
+         <style>
+        .tooltip {
+            position: relative;
+            display: inline-block;
+
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        </style>
+
+        <script type="text/javascript">
+            var ischanaged = false;
+
+            function datachanged() {
+                ischanged = true;
+            }
+
+            function checkAmountStatus() {
+                if(ischanged) {
+                    j$('#amountChangeConfirmDivId').show();
+                    return false;
+                } else {
+                    j$('#amountChangeConfirmDivId').hide();
+                    return true;
+                }
+            }
+
+            var referenceNumber = '{!JSENCODE(RD_Allocation__c.Recurring_Gift__r.Reference__c)}';
+            if (IsReferenceNumberIats(referenceNumber)) {
+                document.getElementsByClassName("amount")[0].disabled = true;
+            }
+
+            function IsReferenceNumberIats(referenceNumber) {
+                return /[A-Z][0-9]+/.test(referenceNumber);
+            }
+        </script>
+
+        <script>
+        var j$ = jQuery.noConflict();
+        sforce.connection.sessionId='{!GETSESSIONID()}';
+        function searchRecords(key,objectName,objectLabel,iVal){
+            if(!timeUp) return;
+            j$('#'+key.attr('aria-activedescendant')).show();
+            searchKey = key.val();
+            if(searchKey == ''){
+                j$('#'+key.attr('aria-activedescendant')).hide();
+            }
+
+            j$('#searchText'+iVal).text('\"'+searchKey+'\" In '+objectLabel);
+
+            var fields = "Id,Name";
+            var clause = "Name LIKE '"+searchKey+"%' LIMIT 10";
+
+            RemoteQueryBuilder.ListQueryBuilderWhere(
+              objectName, fields, clause,
+              function(result, event){
+                records = result;
+
+                var searchLis ="";
+
+                if(records.length > 0){
+                    for(var i=0; i<records.length; i++){
+                        searchLis += '<li onclick="recordInfo(\''+records[i].Name+'\',\''+records[i].Id+'\',\''+iVal+'\');"  class="slds-lookup__item"><span id="'+records[i].Id+'" style="cursor:pointer">'+records[i].Name+'</span></li>';
+                    }
+                }else{
+                    searchLis += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+                }
+
+                j$('#searchResultsUL'+iVal).html(searchLis);
+              });
+        }
+
+        function recordInfo(recordName,recordId,iVal){
+            j$('#SrchDrpDwn'+iVal).fadeOut();
+            j$('#searchInput'+iVal).val(recordName);
+
+            var idval = 'hiddenId'+iVal;
+            j$("[id$="+idval+"]").val(recordId);
+        }
+
+        /*
+        function callSearchRecords(key,objectName,objectLabel,iVal){
+            delay(function(){
+                searchRecords(key,objectName,objectLabel,iVal);
+            }, 500 );
+        }
+
+        var delay = (function(){
+            var timer = 0;
+            return function(callback, ms){
+                clearTimeout (timer);
+                timer = setTimeout(callback, ms);
+            };
+        })();
+        */
+
+        var timeUp = false;
+        function onkeyUpInvoke(key,objectName,objectLabel,iVal){
+            timeUp = false;
+            setTimeout(function(){
+                            timeUp = true;
+                            searchRecords(key,objectName,objectLabel,iVal);
+                            hideStatus();
+            },501);
+
+            setTimeout(function(){
+                            showStatus();
+            },500);
+        }
+
+        var currentpicklistObj;
+        function processPicklist(obj){
+            currentpicklistObj = obj;
+            j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+        }
+
+        var pickedElement;
+        function processPickValue(obj){
+            pickedElement = obj;
+            var pickvalue = j$(pickedElement).attr("data-pickValue");
+            var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+            j$(pickedElement).parent().find("img").hide();
+            j$(pickedElement).find("img").show();
+            j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+            j$(currentpicklistObj).find("input").val(pickvalue);
+            if(toProcessOnServer == 'true'){
+                rerenderTheTransSection(pickvalue);
+            }
+            //j$(pickedElement).children().first().children().first().children().first().show();
+        }
+
+        function showStatus(){
+            j$('#statusIndicatorDivId').show();
+        }
+        function hideStatus(){
+            j$('#statusIndicatorDivId').hide();
+        }
+
+        function closeEditGiftBatchModal(){
+
+        var baseUrl = (window.location).href;
+        var id1 = baseUrl.indexOf("&gateway");
+        var id2 = baseUrl.substring(id1-15,id1);
+
+
+        j$('#divForEditRd').hide();
+         window.location.href = "/"+ id2;
+
+        }
+
+
+
+        function validateData(){
+            //.slds-has-error to add   Complete this field
+            j$('.requiredFieldCustomErrorMsgCls').hide();
+            j$('[data-isRequired ="true"]').removeClass('slds-has-error');
+            var requiredFieldList = j$('[data-isRequired ="true"]');
+            var isValidationPassed = true;
+            j$(requiredFieldList).each(function(index,item) {
+                if(j$(this).val().length == 0 || j$(this).val() == '-- None --'){
+                    var errorMsgElementId = 'requiredFieldCustomErrorMsgId_'+j$(item).attr("data-requiredFieldName");
+                    j$(item).addClass('slds-has-error');
+                    j$('#'+errorMsgElementId).show();
+                    isValidationPassed = false;
+                }
+            });
+            return isValidationPassed;
+        }
+   </script>
+
+   <apex:form >
+     <div id="divForEditRd" style="display:block;">
+                <div role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-labelledby="header43">
+                    <div class="slds-modal__container" style="width: 70%;max-width: 70%;">
+                        <div class="slds-modal__header">
+                            <button type='button' class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="closeEditGiftBatchModal();">
+                                <svg class="slds-button__icon slds-button__icon--large" aria-hidden="true">
+                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+                                </svg>
+                                <span class="slds-assistive-text">Close</span>
+                            </button>
+                               <apex:outputpanel styleclass="slds-text-heading--small"> {!$ObjectType.RD_Allocation__c.Label}</apex:outputpanel><br></br>
+                               <apex:outputpanel styleclass="slds-text-heading--small"> {!RD_Allocation__c.Name}</apex:outputpanel>
+                        </div>
+                        <div class="slds-modal__content slds-p-around--medium">
+                            <div class="slds-has-dividers--top slds-section-title--divider">Information</div>
+
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                        <div class="slds-form-element">
+                                               <apex:outputLabel value="{!$ObjectType.RD_Allocation__c.fields.Recurring_Gift__c.label}" styleclass="slds-form-element__label"/>
+                                                    <div class="slds-form-element__control slds-has-divider--bottom">
+                                                        <span class="slds-form-element__static">
+                                                            <apex:outputField value="{!RD_Allocation__c.Recurring_Gift__c}" />
+                                                        </span>
+                                                </div>
+                                        </div>
+
+                                         <div class="slds-form-element">
+                                                <apex:outputLabel value="{!$ObjectType.RD_Allocation__c.fields.Name.label}"  styleclass="slds-form-element__label"/>
+                                                            <div class="slds-form-element__control slds-has-divider--bottom">
+                                                                <span class="slds-form-element__static">
+                                                                    <apex:outputField value="{!RD_Allocation__c.Name}" />
+                                                                </span>
+                                                        </div>
+                                             </div>
+                                </div>
+                              </div>
+                            </fieldset>
+
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+                                        <div class="slds-form-element">
+                                                <!--<apex:outputLabel value="{!$ObjectType.RD_Allocation__c.fields.Active__c.label}"  styleclass="slds-form-element__label"/>-->
+                                                           <!-- <div class="slds-form-element__control slds-has-divider--bottom" style="width:50%">
+                                                                <span class="slds-form-element__static">
+                                                                    <apex:outputField value="{!RD_Allocation__c.Active__c}" />
+                                                                </span>
+                                                           </div>-->
+                                                           <apex:outputPanel rendered="{!RD_Allocation__c.Active__c}">
+                                                           <div class="slds-form-element__control">
+                                                            <span class="slds-checkbox">
+                                                              <input type="checkbox" name="options" id="checkbox-147" checked="true" />
+                                                              <label class="slds-checkbox__label" for="checkbox-147">
+                                                                <span class="slds-checkbox--faux"></span>
+                                                                <span class="slds-form-element__label">{!$ObjectType.RD_Allocation__c.fields.Active__c.label}</span>
+                                                              </label>
+                                                            </span>
+                                                          </div>
+                                                          </apex:outputPanel>
+
+                                                          <apex:outputPanel rendered="{!NOT(RD_Allocation__c.Active__c)}">
+                                                           <div class="slds-form-element__control">
+                                                            <span class="slds-checkbox">
+                                                              <input type="checkbox" name="options" id="checkbox-147" checked="" />
+                                                              <label class="slds-checkbox__label" for="checkbox-147">
+                                                                <span class="slds-checkbox--faux"></span>
+                                                                <span class="slds-form-element__label">{!$ObjectType.RD_Allocation__c.fields.Active__c.label}</span>
+                                                              </label>
+                                                            </span>
+                                                          </div>
+                                                          </apex:outputPanel>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </fieldset>
+
+
+                            <div class="slds-has-dividers--top slds-section-title--divider">Edit Rd Allocation</div>
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="text-input-01">Campaign</label>
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block">
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput0" data-isRequired="true" data-requiredFieldName="{!$ObjectType.RD_Allocation__c.fields.Campaign__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'Campaign','{!$ObjectType.RD_Allocation__c.fields.Campaign__c.label}','0')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn0" />
+                                                        </div>
+                                                        <!--<div class="requiredFieldCustomErrorMsgCls"  style="display:none;" id="requiredFieldCustomErrorMsgId_{!$ObjectType.Gift__c.fields.Organization__c.Name}">Complete this field</div>-->
+                                                     </div>
+
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn0" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText0"></span>
+                                                        </div>
+                                                     <!--Search Results UL-->
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL0" style="max-height: 240px;">
+                                                     </ul>
+
+                                                    </div>
+                                                  </div>
+                                                </apex:outputpanel>
+                                            </div>
+                                            </div>
+                                        </div>
+
+
+
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="text-input-01"> Parent Appeal </label>
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block">
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput1" data-isRequired="true" data-requiredFieldName="{!$ObjectType.RD_Allocation__c.fields.Parent_Appeal__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'Campaign','{!$ObjectType.RD_Allocation__c.fields.Parent_Appeal__c.label}','1')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn1" />
+                                                        </div>
+                                                        </div>
+
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn1" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText1"></span>
+                                                        </div>
+                                                     <!--Search Results UL-->
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL1" style="max-height: 240px;">
+                                                     </ul>
+
+                                                    </div>
+                                                  </div>
+                                                </apex:outputpanel>
+                                            </div>
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+
+
+
+
+                                       <!-- <div class="slds-form-element">
+                                          <div class="slds-form-element__label">
+                                            <label class="slds-align-middle" for="form-help">Text Label</label>
+                                          </div>
+                                          <div class="slds-form-element__icon">
+                                            <a href="javascript:void(0);">
+                                              <svg class="slds-icon slds-icon--x-small slds-icon-text-default" aria-hidden="true">
+                                                <use xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#info"></use>
+                                              </svg>
+                                              <span class="slds-assistive-text">Help</span>
+                                            </a>
+                                          </div>
+                                          <div class="slds-form-element__control">
+                                            <input type="text" id="form-help" class="slds-input" placeholder="Field Level Help" aria-describedby="help" />
+                                          </div>
+                                        </div>
+                                        <div id="help" class="slds-popover slds-popover--tooltip slds-nubbin--bottom-left" role="tooltip" aria-live="polite" style="position:absolute;top:35%;left:103px;margin-left:-2%;width:20rem;">
+                                          <div class="slds-popover__body slds-text-longform">
+                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Adipisci facere eligendi reiciendis obcaecati.</p>
+                                          </div>
+                                        </div>-->
+
+
+
+
+
+
+
+
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="text-input-01"> Appeal </label>
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block">
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput2" data-isRequired="true" data-requiredFieldName="{!$ObjectType.RD_Allocation__c.fields.New_Campaign__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'Campaign','{!$ObjectType.RD_Allocation__c.fields.New_Campaign__c.label}','2')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn2" />
+                                                        </div>
+                                                        </div>
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn2" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText2"></span>
+                                                        </div>
+                                                     <!--Search Results UL-->
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL2" style="max-height: 240px;">
+                                                     </ul>
+
+                                                    </div>
+                                                  </div>
+                                                </apex:outputpanel>
+                                            </div>
+
+                                            </div>
+                                        </div>
+
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="text-input-01"> Fund </label>
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block">
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput3" data-isRequired="true" data-requiredFieldName="{!$ObjectType.RD_Allocation__c.fields.Fund__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'{!$ObjectType.RD_Allocation__c.fields.Fund__c.referenceTo[0]}','{!$ObjectType.RD_Allocation__c.fields.Fund__c.label}','3')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn3" />
+                                                        </div>
+                                                        </div>
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn3" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText3"></span>
+                                                        </div>
+                                                     <!--Search Results UL-->
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL3" style="max-height: 240px;">
+                                                     </ul>
+
+                                                    </div>
+                                                  </div>
+                                                </apex:outputpanel>
+                                            </div>
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+
+                                        <div class="slds-form-element">
+                                           <div>
+                                            <label class="slds-form-element__label" for="text-input-01"> Package </label>
+
+                                              <div class="tooltip">
+                                              <div class="slds-form-element__icon">
+                                                <a href="javascript:void(0);">
+                                                  <svg class="slds-icon slds-icon--x-small slds-icon-text-default" aria-hidden="true">
+                                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#info"></use>
+                                                  </svg>
+
+                                                  <!--<span class="slds-popover slds-popover--tooltip  tooltiptext">Direct Mail Code</span>-->
+
+                                                  <!--<div class="slds-popover slds-popover--tooltip slds-nubbin--bottom-left" role="tooltip" id="help" style="position:absolute;top:0px;left:15px;">
+                                                      <div class="slds-popover__body">Sit nulla est ex deserunt exercitation anim occaecat. Nostrud ullamco deserunt aute id consequat veniam incididunt duis in sint irure nisi.</div>
+                                                  </div>-->
+
+                                                </a>
+                                              </div>
+                                              </div>
+
+                                             </div>
+
+
+
+                                            <div class="slds-form-element__control">
+                                                <div>
+                                                <apex:outputpanel layout="block">
+                                                    <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                        <div class="slds-form-element">
+                                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width: 100%;">
+                                                                <!-- <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <use id="serchicon0" xlink:href="{!$Resource.SLDS0122}/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                                                                </svg> -->
+                                                                <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                    <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                </span>
+                                                            <!-- Input With onkeyup Attribute To Search For Records For Every Value Entered -->
+                                                            <input id="searchInput4" data-isRequired="true" data-requiredFieldName="{!$ObjectType.RD_Allocation__c.fields.Package__c.Name}" class="slds-input" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'{!$ObjectType.RD_Allocation__c.fields.Package__c.referenceTo[0]}','{!$ObjectType.RD_Allocation__c.fields.Package__c.label}','4')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn4" />
+                                                        </div>
+                                                        </div>
+
+                                                    <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn4" style="display:none;">
+                                                        <div class="slds-lookup__item">
+                                                            <span id="searchText4"></span>
+                                                        </div>
+                                                     <!--Search Results UL-->
+                                                     <ul class="slds-lookup__list" role="presentation" id="searchResultsUL4" style="max-height: 240px;">
+                                                     </ul>
+
+                                                    </div>
+                                                  </div>
+                                                </apex:outputpanel>
+                                            </div>
+
+                                            </div>
+                                        </div>
+
+                                        <div class="slds-form-element">
+                                           <div>
+                                            <label class="slds-form-element__label" for="text-input-01"> Custom Allocation Text </label>
+
+                                            <div class="slds-form-element__icon">
+                                                <a href="javascript:void(0);">
+                                                  <svg class="slds-icon slds-icon--x-small slds-icon-text-default" aria-hidden="true">
+                                                    <use xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#info"></use>
+                                                  </svg>
+                                                  <span class="slds-assistive-text">Help</span>
+                                                </a>
+                                              </div>
+
+                                             </div>
+                                            <div class="slds-form-element__control">
+                                                <apex:inputField value="{!RD_Allocation__c.Custom_Allocation_Text__c}" styleClass="slds-input"/>
+                                            </div>
+                                        </div>
+
+
+
+                                  </div>
+
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="slds-form--compound">
+                                <div class="slds-form-element__group">
+                                    <div class="slds-form-element__row">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label" for="text-input-01"> Amount </label>
+                                            <div class="slds-form-element__control">
+                                                <apex:inputField value="{!RD_Allocation__c.Amount__c}" styleClass="slds-input"  style="width:50%" onchange="datachanged()"  />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                        </div>
+                        <div class="slds-modal__footer">
+                            <apex:commandButton value="Cancel" action="{!cancel}"  styleClass="slds-button slds-button--neutral" />
+                            <apex:commandButton onclick="return checkAmountStatus();" value="Save" action="{!save}" styleClass="slds-button slds-button--brand"/>
+                        </div>
+                      </div>
+                </div>
+                <div class="slds-backdrop slds-backdrop--open"></div>
+            </div>
+
+
+               <div id="amountChangeConfirmDivId" style="display:none">
+                      <div aria-hidden="false" role="dialog" class="slds-modal slds-modal--prompt slds-fade-in-open">
+                        <div class="slds-modal__container slds-modal--prompt">
+                          <div class="slds-modal__header slds-theme--error slds-theme--alert-texture">
+                            <button class="slds-button slds-button--icon-inverse slds-modal__close">
+                              <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+                                <use xlink:href="/assets/icons/action-sprite/svg/symbols.svg#close"></use>
+                              </svg>
+                              <span class="slds-assistive-text">Close</span>
+                            </button>
+                            <h2 class="slds-text-heading--medium">CONFIRMATION</h2>
+                          </div>
+                          <div class="slds-modal__content slds-p-around--medium">
+                            <div>
+                                  <p>This update will change the recurring amount and automatically saved to your payment gateway. Click Okay to continue.</p>
+                            </div>
+                          </div>
+                          <div class="slds-modal__footer slds-theme--default">
+
+                            <apex:commandButton value="Okay" action="{!save}" styleClass="slds-button slds-button--brand"/>
+
+
+                            <apex:commandButton value="Cancel" action="{!cancel}"  styleClass="slds-button slds-button--neutral" />
+
+                          </div>
+                        </div>
+                      </div>
+                      <div class="slds-backdrop slds-backdrop--open"></div>
+                </div>
+
+
+   </apex:form>
+
+
+    <style>
+        .bPageBlock th.vfLabelColTextWrap {
+            white-space: nowrap;
+        }
+        .helpOrb {
+            height: 14px !important;
+        }
+        .bPageBlock{
+            box-sizing: content-box !important;
+        }
+    </style>
+    </html>
+</apex:page>

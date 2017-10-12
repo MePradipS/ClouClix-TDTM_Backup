@@ -1,0 +1,825 @@
+<apex:page standardController="Lead" extensions="leadConvertController,RemoteQueryBuilder" action="{!RedirectByTheme}">
+   <head>
+      <apex:slds />
+   </head>
+   <apex:includeScript value="{!$Resource.jQuery172}"/>
+   <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+   <script src="{!URLFOR($Resource.aljsTest3)}"></script>
+   <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+   <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+      <!--<apex:sectionHeader title="Convert {!$ObjectType.Lead.label}" subtitle="{!selectedRecord.Name}"/> -->
+      <!-- ********************* HEDER SECTIION *********************** -->
+      <div class="slds slds-page-header">
+         <div class="slds slds-grid">
+            <div class="slds slds-col slds-has-flexi-truncate">
+               <div class="slds slds-media slds-no-space slds-grow">
+                  <div class="slds slds-media__figure">
+                     <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                        <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#lead"></use>
+                     </svg>
+                  </div>
+                  <div class="slds slds-media__body">
+                     <p class="slds slds-text-title--caps slds-line-height--reset">Convert {!$ObjectType.Lead.label}</p>
+                     <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="this should match the Record Title">{!selectedRecord.Name}</h1>
+                  </div>
+               </div>
+            </div>
+            <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+            </div>
+         </div>
+      </div>
+      <!-- ******************** END OF HEDER SECTION ***************** -->
+      <script>
+         function getValue()
+         {
+             var rdolist = document.getElementsByName("radiogroup");
+             var val = 0;
+             for( i = 0; i < rdolist.length; i++ )
+             {
+                 if( rdolist[i].checked == true )
+                     val = rdolist[i].value;
+             }
+             return val;
+         }
+         function getValue2()
+         {
+             var rdolist = document.getElementsByName("radiogroup2");
+             var val = 0;
+             for( i = 0; i < rdolist.length; i++ )
+             {
+                 if( rdolist[i].checked == true )
+                     val = rdolist[i].value;
+             }
+             return val;
+         }
+         function convert()
+         {
+             var cId = getValue();
+             var aId = getValue2();
+             methodOneInJavascript(cId, aId);
+         }
+      </script>
+      <apex:form >
+         <!-- ******************** SLDS SPINNER SECTIION ************* -->
+         <div role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand" id="statusIndicatorDivId" style="display:none;z-index: 1000;">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+         </div>
+         <apex:outputPanel id="mainForm">
+            <apex:pageMessages ></apex:pageMessages>
+         </apex:outputPanel>
+         <apex:outputPanel layout="none">
+            <!-- <apex:pageblock title="Convert {!$ObjectType.Lead.label}">
+               <apex:pageBlockButtons location="top" >
+                  <apex:outputPanel onclick="convert()" styleClass="btn">Convert</apex:outputPanel>
+                  <apex:commandButton value="Cancel" action="{!cancel}"/>
+               </apex:pageBlockButtons>
+               <apex:pageBlockSection >
+                 <apex:outputField value="{!selectedRecord.FirstName}"/>
+                 <apex:inputField value="{!newContact.OwnerId}" label="Internal Solicitor"/>
+                 <apex:outputField value="{!selectedRecord.LastName}"/>
+                 <apex:inputCheckbox label="Send Email to Owner" value="{!sendEmail}"/>
+                 <apex:outputField value="{!selectedRecord.Company}"/>
+               </apex:pageBlockSection>
+               </apex:pageBlock> -->
+            <article class="slds-card">
+               <div class="slds-card__header slds-grid">
+                  <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                     <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                           <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                              <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#contact"></use>
+                           </svg>
+                        </span>
+                     </div>
+                     <div class="slds-media__body">
+                        <h2>
+                           <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                           <span class="slds-text-heading--small">Convert Prospect</span>
+                           </a>
+                        </h2>
+                     </div>
+                  </header>
+                  <div class="slds-no-flex">
+                     <!--<button class="slds-button slds-button--neutral">New</button>-->
+                     <apex:actionStatus id="conLoading" onstart="showStatus()" onstop="hideStatus()" />
+                     <apex:outputPanel onclick="convert()" styleClass="slds-button slds-button--neutral">Convert</apex:outputPanel>
+                     <apex:commandButton value="Cancel"  styleClass="slds-button slds-button--neutral" action="{!cancel}" status="conLoading"/>
+                  </div>
+               </div>
+               <div class="slds-card__body">
+                  <div class="slds-card" style="background:#FFFFFF;margin-top: 1%;">
+                     <div class="slds-card__header ">
+                        <div class="slds-card__body">
+                           <apex:outputPanel layout="block" styleClass="slds slds-grid" id="OppDetails">
+                              <div class="slds slds-col slds-size--1-of-2">
+                                 <div class="slds  slds-text-align--left">
+                                    <div class="slds-form-element slds-hint-parent slds-has-divider--bottom">
+                                       <span class="slds-form-element__label">
+                                       First Name
+                                       </span>
+                                       <div class="slds-form-element__control">
+                                          <span class="slds-form-element__static">
+                                             <apex:outputField value="{!selectedRecord.FirstName}"/>
+                                          </span>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="slds  slds-text-align--left">
+                                    <div class="slds-form-element slds-hint-parent slds-has-divider--bottom">
+                                       <span class="slds-form-element__label">
+                                       Last Name
+                                       </span>
+                                       <div class="slds-form-element__control">
+                                          <span class="slds-form-element__static">
+                                             <apex:outputField value="{!selectedRecord.LastName}"/>
+                                          </span>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="slds  slds-text-align--left">
+                                    <div class="slds-form-element slds-hint-parent slds-has-divider--bottom">
+                                       <span class="slds-form-element__label">
+                                       Company
+                                       </span>
+                                       <div class="slds-form-element__control">
+                                          <span class="slds-form-element__static">
+                                             <apex:outputField value="{!selectedRecord.Company}"/>
+                                          </span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div style="width: 3%;">
+                                 &nbsp;
+                              </div>
+                              <div class="slds slds-col slds-size--1-of-2">
+                                 <div class="slds  slds-text-align--left">
+                                    <span class="slds-form-element__label">
+                                    Internal Solicitor
+                                    </span>
+                                    <div class="slds-form-element">
+                                       <span class="slds-form-element">
+                                          <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                             <div class="slds-form-element">
+                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" >
+                                                   <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                   <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                   </span>
+                                                   <input id="searchInput1" data-isRequired="true"   data-requiredFieldName="{!$ObjectType.Contact.fields.Internal_Solicitor__c.Name}" class="slds-input lookUpCls" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'User','{!$ObjectType.Contact.fields.Internal_Solicitor__c.label}','1')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn1" />
+                                                   <span class="lookUpOutputFieldCls" style="display:none;">
+                                                      <apex:inputField value="{!newContact.OwnerId}" />
+                                                   </span>
+                                                   <apex:inputText value="{!newContact.OwnerId}" style="display:none"/>
+                                                </div>
+                                             </div>
+                                             <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn1" >
+                                                <div class="slds-lookup__item">
+                                                   <span id="searchText1"></span>
+                                                </div>
+                                                <ul class="slds-lookup__list" role="presentation" id="searchResultsUL1" style="max-height: 240px;">
+                                                </ul>
+                                             </div>
+                                          </div>
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <div class="slds  slds-text-align--left">
+                                    <span class="slds-form-element__label">
+                                    Send Email to Owner
+                                    </span>
+                                    <div class="slds-form-element__row">
+                                       <div class="slds-form-element">
+                                          <label class="slds-checkbox">
+                                             <apex:inputCheckbox value="{!sendEmail}" styleclass="readOnlyCls slds-checkbox"/>
+                                             <span class="slds-checkbox--faux"></span>
+                                          </label>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </apex:outputPanel>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </article>
+            <!-- <apex:pageblock id="oppPB"  title="{!$ObjectType.Opportunity.label}">
+               <apex:pageBlockSection >
+                   <apex:inputCheckbox label="Don't Create an {!$ObjectType.Opportunity.label} for this {!$ObjectType.Contact.label}" value="{!noOpp}">
+                       <apex:actionSupport event="onclick" rerender="oppPanel"/>
+                   </apex:inputCheckbox>
+               </apex:pageBlockSection>
+                   <apex:outputPanel id="oppPanel" layout="none">
+                       <apex:pageBlockSection rendered="{!noOpp == False}" >
+                           <apex:inputField value="{!newOpp.Name}"/>
+                           <apex:inputField value="{!newOpp.CloseDate}"/>
+                       </apex:pageBlockSection>
+                   </apex:outputPanel>
+               </apex:pageBlock> -->
+            <article class="slds-card">
+               <div class="slds-card__header slds-grid">
+                  <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                     <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                           <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                              <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#lead"></use>
+                           </svg>
+                        </span>
+                     </div>
+                     <div class="slds-media__body">
+                        <h2>
+                           <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                           <span class="slds-text-heading--small">Opportunity</span>
+                           </a>
+                        </h2>
+                     </div>
+                  </header>
+                  <div class="slds-no-flex">
+                  </div>
+               </div>
+               <div class="slds-card__body">
+                  <div class="slds-card" style="background:#FFFFFF;margin-top: 1%;">
+                     <div class="slds-card__header ">
+                        <div class="slds-card__body">
+                           <apex:outputPanel layout="block" styleClass="slds slds-grid" id="block">
+                              <div class="slds slds-col slds-size--1-of-2">
+                                 <div class="slds  slds-text-align--left">
+                                    <span class="slds-form-element__label">
+                                    Don't Create an {!$ObjectType.Opportunity.label} for this {!$ObjectType.Contact.label}
+                                    </span>
+                                    <div class="slds-form-element__row">
+                                       <div class="slds-form-element">
+                                          <label class="slds-checkbox">
+                                             <apex:inputCheckbox value="{!noOpp}" styleclass="readOnlyCls slds-checkbox">
+                                                <apex:actionSupport event="onclick" rerender="oppPanel,oppPanel1,block" oncomplete="oncompleteCall();"/>
+                                             </apex:inputCheckbox>
+                                             <span class="slds-checkbox--faux"></span>
+                                          </label>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <apex:outputPanel id="oppPanel" rendered="{!noOpp == False}">
+                                    <div class="slds  slds-text-align--left">
+                                       <span class="slds-form-element__label">
+                                       <abbr class="slds-required" title="required">*</abbr> Opportunity Name
+                                       </span>
+                                       <div class="slds-form-element__control">
+                                          <span class="slds-form-element">
+                                             <apex:inputField value="{!newOpp.Name}" styleclass="slds-input"/>
+                                          </span>
+                                       </div>
+                                    </div>
+                                 </apex:outputPanel>
+                              </div>
+                              <div style="width: 3%;">
+                                 &nbsp;
+                              </div>
+                              <div class="slds slds-col slds-size--1-of-2">
+                                 <div class="slds  slds-text-align--left">
+                                    <span class="slds-form-element__label">
+                                    </span>
+                                    <div class="slds-form-element__control">
+                                       <span class="slds-form-element__static">
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <apex:outputPanel id="oppPanel1"  rendered="{!noOpp == False}">
+                                    <div class="slds  slds-text-align--left">
+                                       <span class="slds-form-element__label">
+                                       Close Date
+                                       </span>
+                                       <div class="slds-form-element slds-size--1-of-3" >
+                                          <div class="slds-form--stacked">
+                                             <div class="slds-form-element" style="width: 300%;margin-top: 2px;">
+                                                <div class="slds-input-has-icon slds-input-has-icon--right dateIconCls">
+                                                   <svg aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!$Asset.SLDS}/assets/icons/utility-sprite/svg/symbols.svg#event"></use>
+                                                   </svg>
+                                                   <apex:inputText value="{!newOpp.CloseDate}" styleclass="slds-input datePickerInputCls" html-placeholder="Pick a Date" />
+                                                   <span class="datePickerOutputFieldCls" style="display:none;">
+                                                      <apex:outputField value="{!newOpp.CloseDate}" />
+                                                   </span>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </apex:outputPanel>
+                              </div>
+                           </apex:outputPanel>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </article>
+            <!--  <apex:pageblock id="pageBlockAcc" title="Look for Existing {!$ObjectType.Account.labelPlural}" rendered="{!isIndividual == False}" >
+               <apex:pageBlockSection id="existAccount" columns="1">
+                   <input type="radio" name="radiogroup2" value="-1" checked="yes">Create New {!$ObjectType.Account.label} (default)</input>
+                   <apex:pageBlockTable id="accountTable" value="{!dupeAccounts}" var="rowItem" rendered="{!accDupes}">
+                       <apex:column >
+                         <input type="radio" name="radiogroup2" value="{!rowItem.Id}" ></input>
+                       </apex:column>
+                       <apex:column value="{!rowItem.Name}" />
+                       <apex:column value="{!rowItem.Phone}" />
+                       <apex:column value="{!rowItem.BillingStreet}" />
+
+                   </apex:pageBlockTable>
+               </apex:pageBlockSection>
+               </apex:pageblock>  -->
+            <!-- PAGE BLOCK ACCOUNT -->
+            <article class="slds-card">
+               <div class="slds-card__header slds-grid">
+                  <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                     <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                           <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                              <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#account"></use>
+                           </svg>
+                        </span>
+                     </div>
+                     <div class="slds-media__body">
+                        <h2>
+                           <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                           <span class="slds-text-heading--small">Look for Existing {!$ObjectType.Account.labelPlural}</span>
+                           </a>
+                        </h2>
+                     </div>
+                  </header>
+                  <div class="slds-no-flex">
+                     <!--<button class="slds-button slds-button--neutral">New</button>-->
+                     <apex:variable value="{!0}" var="acctab" />
+                     <fieldset class="slds-form-element">
+                        <div class="slds-form-element__control">
+                           <span class="slds-radio">
+                           <input type="radio" id="radio-{!acctab}" name="radiogroup2" value="-1" checked="yes"></input>
+                           <label class="slds-radio__label" for="radio-{!acctab}">
+                           <span class="slds-radio--faux"></span>
+                           <span class="slds-form-element__label">Create New {!$ObjectType.Account.label} (default)</span>
+                           </label>
+                           </span>
+                        </div>
+                     </fieldset>
+                     <apex:variable var="acctab" value="{!acctab + 1}" />
+                  </div>
+               </div>
+               <div class="slds-card__body">
+                  <!-- <fieldset class="slds-form-element">
+                     <div class="slds-form-element__control">
+                       <span class="slds-radio">
+                        <input type="radio" id="radio-11" name="radiogroup2" value="-1" checked="yes"></input>
+
+                         <label class="slds-radio__label" for="radio-11">
+                           <span class="slds-radio--faux"></span>
+                              <span class="slds-form-element__label">Create New {!$ObjectType.Account.label} (default)</span>
+                         </label>
+                       </span>
+
+                     </div>
+                     </fieldset> -->
+                  <table class="slds-table slds-table--bordered slds-no-row-hover slds-table--cell-buffer">
+                     <thead>
+                        <tr class="slds-text-title--caps">
+                           <th scope="col">
+                              <div class="slds-truncate" title="Name"></div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Name">Organization Name</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Company">Phone</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Title">Billing Street</div>
+                           </th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <apex:repeat id="accountTable" value="{!dupeAccounts}" var="rowItem" rendered="{!accDupes}">
+                           <tr class="slds-hint-parent">
+                              <td>
+                                 <fieldset class="slds-form-element">
+                                    <div class="slds-form-element__control">
+                                       <span class="slds-radio">
+                                       <input type="radio" id="radio-{!acctab}" name="radiogroup2"  value="{!rowItem.Id}" />
+                                       <label class="slds-radio__label" for="radio-{!acctab}">
+                                       <span class="slds-radio--faux"></span>
+                                       </label>
+                                       </span>
+                                    </div>
+                                 </fieldset>
+                              </td>
+                              <th scope="row">
+                                 <div class="slds-truncate" title="Adam Choi">
+                                    <a href="javascript:void(0);">{!rowItem.Name}</a>
+                                 </div>
+                              </th>
+                              <td>
+                                 <div class="slds-truncate" title="Company One">{!rowItem.Phone}</div>
+                              </td>
+                              <td>
+                                 <div class="slds-truncate" title="Director of Operations">{!rowItem.BillingStreet}</div>
+                              </td>
+                           </tr>
+                           <apex:variable var="acctab" value="{!acctab + 1}" />
+                        </apex:repeat>
+                     </tbody>
+                  </table>
+               </div>
+            </article>
+            <!-- PAGE BLOCK CONTACT ENDS HERE -->
+            <!--  <apex:pageblock id="pageBlock" title="Look for Existing {!$ObjectType.Contact.label}">
+               <apex:pageBlockSection id="pageSection" columns="1">
+                   <input type="radio" name="radiogroup" value="-1" checked="yes">Create New {!$ObjectType.Contact.label} (default)</input>
+                   <apex:pageBlockTable id="contactTable" value="{!dupeContacts}" var="rowItem" rendered="{!Dupes}">
+                       <apex:column >
+                         <input type="radio" name="radiogroup" value="{!rowItem.Id}"></input>
+                       </apex:column>
+                       <apex:column value="{!rowItem.AccountId}" />
+                       <apex:column value="{!rowItem.FirstName}" />
+                       <apex:column value="{!rowItem.LastName}" />
+                       <apex:column value="{!rowItem.MailingStreet}" />
+                       <apex:column value="{!rowItem.Phone}" />
+                       <apex:column value="{!rowItem.Email}" />
+                   </apex:pageBlockTable>
+               </apex:pageBlockSection>
+               </apex:pageblock> -->
+            <!-- PAGE BLOCK ACCOUNT -->
+            <article class="slds-card">
+               <div class="slds-card__header slds-grid">
+                  <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                     <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                           <svg class="slds-icon slds-icon--small" aria-hidden="true">
+                              <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#contact"></use>
+                           </svg>
+                        </span>
+                     </div>
+                     <div class="slds-media__body">
+                        <h2>
+                           <a href="javascript:void(0);" class="slds-card__header-link slds-truncate">
+                           <span class="slds-text-heading--small">Look for Existing {!$ObjectType.Contact.label}</span>
+                           </a>
+                        </h2>
+                     </div>
+                  </header>
+                  <div class="slds-no-flex">
+                     <!--<button class="slds-button slds-button--neutral">New</button>-->
+                     <!-- <input type="radio" name="radiogroup" value="-1" checked="yes"></input> -->
+                     <apex:variable value="{!0}" var="contab" />
+                     <fieldset class="slds-form-element">
+                        <div class="slds-form-element__control">
+                           <span class="slds-radio">
+                           <input type="radio" id="radiocon-{!contab}" name="radiogroup" value="-1" checked="yes"></input>
+                           <label class="slds-radio__label" for="radiocon-{!contab}">
+                           <span class="slds-radio--faux"></span>
+                           <span class="slds-form-element__label">Create New {!$ObjectType.Contact.label} (default)</span>
+                           </label>
+                           </span>
+                        </div>
+                     </fieldset>
+                     <apex:variable var="contab" value="{!contab + 1}" />
+                  </div>
+               </div>
+               <div class="slds-card__body">
+                  <table class="slds-table slds-table--bordered slds-no-row-hover slds-table--cell-buffer">
+                     <thead>
+                        <tr class="slds-text-title--caps">
+                           <th scope="col">
+                              <div class="slds-truncate" title="Name"></div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Name">Organization Name</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Company">First Name</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Company">Last Name</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Company">Mailling Street</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Company">Phone</div>
+                           </th>
+                           <th scope="col">
+                              <div class="slds-truncate" title="Title">Email</div>
+                           </th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <apex:repeat id="contactTable" value="{!dupeContacts}" var="rowItem" rendered="{!accDupes}">
+                           <tr class="slds-hint-parent">
+                              <td>
+                                 <fieldset class="slds-form-element">
+                                    <div class="slds-form-element__control">
+                                       <span class="slds-radio">
+                                       <input type="radio" id="radiocon-{!contab}" name="radiogroup" value="{!rowItem.Id}" />
+                                       <label class="slds-radio__label" for="radiocon-{!contab}">
+                                       <span class="slds-radio--faux"></span>
+                                       </label>
+                                       </span>
+                                    </div>
+                                 </fieldset>
+                              </td>
+                              <th scope="row">
+                                 <div class="slds-truncate" title="Adam Choi">
+                                    <a href="javascript:void(0);">{!rowItem.AccountId}</a>
+                                 </div>
+                              </th>
+                              <td>
+                                 <div class="slds-truncate" title="Company One">{!rowItem.FirstName}</div>
+                              </td>
+                              <td>
+                                 <div class="slds-truncate" title="Director of Operations">{!rowItem.LastName}</div>
+                              </td>
+                              <td>
+                                 <div class="slds-truncate" title="Director of Operations">{!rowItem.MailingStreet}</div>
+                              </td>
+                              <td>
+                                 <div class="slds-truncate" title="Director of Operations">{!rowItem.Phone}</div>
+                              </td>
+                              <td>
+                                 <div class="slds-truncate" title="Director of Operations">{!rowItem.Email}</div>
+                              </td>
+                           </tr>
+                           <apex:variable var="contab" value="{!contab + 1}" />
+                        </apex:repeat>
+                     </tbody>
+                  </table>
+               </div>
+            </article>
+            <apex:actionFunction reRender="mainForm" action="{!convert}" name="methodOneInJavascript" status="conLoading" oncomplete="overridePageMessages();">
+               <apex:param name="paramOne" assignTo="{!selectedCId}" value="" />
+               <apex:param name="paramTwo" assignTo="{!selectedAId}" value="" />
+            </apex:actionFunction>
+         </apex:outputPanel>
+      </apex:form>
+      <script>
+         var j$ = jQuery.noConflict();
+         var currentpicklistObj;
+               function processPicklist(obj){
+                     isPicklistClicked = true;
+                     currentpicklistObj = obj;
+                     j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+               }
+               function processPickValue(obj){
+                   pickedElement = obj;
+                  var currentpicklistObj = j$(pickedElement).closest('.pickListFieldCustomCls');
+                   var pickvalue = j$(pickedElement).attr("data-pickValue");
+                   var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+                   j$(pickedElement).parent().find("img").hide();
+                   j$(pickedElement).find("img").show();
+                   //j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+                   j$(currentpicklistObj).toggleClass("slds-is-open");
+                   j$(currentpicklistObj).find("input").val(pickvalue);
+                   if(toProcessOnServer == 'true'){
+                        rerenderTheTransSection(pickvalue);
+                    }
+
+                   //j$(pickedElement).children().first().children().first().children().first().show();
+               }
+               function showStatus(){
+                   j$('#statusIndicatorDivId').show();
+                   j$('#statusIndicatorDivId').position({
+                       of: j$(window)
+                   });
+               }
+               function hideStatus(){
+                   j$('#statusIndicatorDivId').hide();
+               }
+
+      </script>
+      <!-- LOOKUP CODE STARTS HERE  -->
+      <script>
+         var j$ = jQuery.noConflict();
+         sforce.connection.sessionId='{!GETSESSIONID()}';
+         function searchRecords(key,objectName,objectLabel,iVal){
+             if(!timeUp) return;
+             j$('#'+key.attr('aria-activedescendant')).show();
+             searchKey = key.val();
+             if(searchKey == ''){
+                 j$('#'+key.attr('aria-activedescendant')).hide();
+             }
+
+             j$('#searchText'+iVal).text('\"'+searchKey+'\" In '+objectLabel);
+
+             var fields = "Id,Name";
+             var clause = "Name LIKE '"+searchKey+"%' LIMIT 15";
+
+             RemoteQueryBuilder.ListQueryBuilderWhere(
+               objectName, fields, clause,
+               function(result, event){
+                 records = result;
+
+                 var searchLis ="";
+
+                 if(records.length > 0){
+                     for(var i=0; i<records.length; i++){
+                         searchLis += '<li onclick="recordInfo(\''+records[i].Name+'\',\''+records[i].Id+'\',\''+iVal+'\');"  class="slds-lookup__item"><span id="'+records[i].Id+'" style="cursor:pointer">'+records[i].Name+'</span></li>';
+                     }
+                 }else{
+                     searchLis += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+                 }
+
+                 j$('#searchResultsUL'+iVal).html(searchLis);
+               });
+         }
+
+         function recordInfo(recordName,recordId,iVal){
+
+
+
+             j$('#SrchDrpDwn'+iVal).fadeOut();
+             j$('#searchInput'+iVal).val(recordName);
+             //j$('#searchInput'+iVal).attr('Value',recordId);
+             j$('#searchInput'+iVal).next().next().attr('Value',recordId);
+
+             var idval = 'hiddenId'+iVal;
+             j$("[id$="+idval+"]").val(recordId);
+
+             j$('[id$=searchInputtext]').val(recordName);
+              j$('[id$=searchInputId]').val(recordId);
+            //  prepairmapforalllookup();
+
+
+
+         }
+
+         /*
+         function callSearchRecords(key,objectName,objectLabel,iVal){
+             delay(function(){
+                 searchRecords(key,objectName,objectLabel,iVal);
+             }, 500 );
+         }
+
+         var delay = (function(){
+             var timer = 0;
+             return function(callback, ms){
+                 clearTimeout (timer);
+                 timer = setTimeout(callback, ms);
+             };
+         })();
+         */
+
+         var timeUp = false;
+         function onkeyUpInvoke(key,objectName,objectLabel,iVal){
+             timeUp = false;
+             setTimeout(function(){
+                             timeUp = true;
+                             searchRecords(key,objectName,objectLabel,iVal);
+                             hideStatus();
+             },501);
+
+             setTimeout(function(){
+                             showStatus();
+             },500);
+         }
+
+
+
+         function validateData(){
+             //.slds-has-error to add   Complete this field
+             j$('.requiredFieldCustomErrorMsgCls').hide();
+             j$('[data-isRequired ="true"]').removeClass('slds-has-error');
+             var requiredFieldList = j$('[data-isRequired ="true"]');
+             var isValidationPassed = true;
+             j$(requiredFieldList).each(function(index,item) {
+                 if(j$(this).val().length == 0 || j$(this).val() == '-- None --'){
+                     var errorMsgElementId = 'requiredFieldCustomErrorMsgId_'+j$(item).attr("data-requiredFieldName");
+                     j$(item).addClass('slds-has-error');
+                     j$('#'+errorMsgElementId).show();
+                     isValidationPassed = false;
+                 }
+             });
+             return isValidationPassed;
+         }
+
+         j$(document).ready(function()
+           {
+               var assetsLocation = '{!URLFOR($Asset.SLDS)}';
+                   j$.aljsInit({
+                         assetsLocation: assetsLocation,
+                         scoped: true
+                   });
+
+
+               initDatePicker();
+               setDateFormat();
+
+           });
+         function initDatePicker(){
+             j$('.datePickerInputCls').datepicker(
+                     {
+                         format: 'DD/MM/YYYY',
+                     }
+               );
+         }
+
+         function initALJSINIT(){
+             j$.aljsInit({
+                         assetsLocation: assetsLocation,
+                         scoped: true
+                   });
+         }
+
+         function oncompletedatepicker()
+         {
+               initDatePicker();
+
+         }
+          function setMultiPicklistVal(selectObj){
+             j$(selectObj).parent().prev().children().first().val( j$(selectObj).val() );
+         }
+         function setLookUpFormat(){
+         var allLookUpFields = j$('.lookUpCls');
+         j$(allLookUpFields).each(function() {
+           var nextSpanElement = j$(this).next();
+
+           if(j$(nextSpanElement).hasClass('lookUpOutputFieldCls')){
+             j$(this).val(j$(nextSpanElement).children().first().children().first().html());
+           }
+         });
+         }
+         function oncompleteCall(){
+               insertSVGTag();
+               initDatePicker();
+               setDateFormat();
+         }
+
+            function insertSVGTag(){
+               var sldsBaseUrl= '{!$Asset.SLDS}';
+
+               var svgHtml_DateIcon =   '<svg class="slds-input__icon slds-icon-text-default" aria-hidden="true">'+
+                                       '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="'+sldsBaseUrl+'/assets/icons/utility-sprite/svg/symbols.svg#event"></use>'+
+                                    '</svg>';
+               j$('.dateIconCls').prepend(svgHtml_DateIcon);
+
+               var svgHtml_removeIcon =   '<svg class="slds-button__icon" aria-hidden="true">'+
+                                       '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="'+sldsBaseUrl+'/assets/icons/utility-sprite/svg/symbols.svg#clear"></use>'+
+                                    '</svg>';
+               j$('.removeIconCls').html(svgHtml_removeIcon);
+
+           }
+
+         function setDateFormat(){
+               var allDateFields = j$('.datePickerInputCls');
+               j$(allDateFields).each(function() {
+                   var nextSpanElement = j$(this).next();
+                   if(j$(nextSpanElement).hasClass('datePickerOutputFieldCls') && j$(nextSpanElement).find('span').first().text().trim() != ''){
+                       j$(this).val(j$(nextSpanElement).find('span').first().text());
+                   }
+               });
+               //if any script html then clear()
+           }
+
+            function overridePageMessages(){
+                var textureEffect = '';
+                //Uncomment below line for texture effect on page messages
+                //textureEffect = 'slds-theme--alert-texture';
+
+                j$('.warningM3').addClass('slds-notify slds-notify--toast slds-theme--warning customMessage '+textureEffect);
+                j$('.confirmM3').addClass('slds-notify slds-notify--alert slds-theme--success  customMessage '+textureEffect);
+                j$('.errorM3').addClass('slds-notify slds-notify--alert slds-theme--error customMessage '+textureEffect);
+                j$('.infoM3').addClass('slds-notify slds-notify--toast customMessage '+textureEffect);
+
+                j$('.errorM3').removeClass('errorM3');
+                j$('.confirmM3').removeClass('confirmM3');
+                j$('.infoM3').removeClass('infoM3');
+                j$('.warningM3').removeClass('warningM3');
+            }
+
+      </script>
+      <style>
+         .msgIcon {
+         display: none!important
+         }
+         .customMessage * {
+         color: #fff!important
+         }
+         .customMessage {
+         margin: 5px 0!important;
+         max-width: 1573px;
+         opacity: 1!important;
+         width: 100%;
+         font-size: 12px;
+         border: 0px;
+         padding-left: 10px;
+         }
+         .message {
+         opacity: .1
+         }
+         .selectCls{
+         background-color: rgb(255, 255, 255);
+         color: rgb(22, 50, 92);
+         border: 1px solid rgb(216, 221, 230);
+         border-radius: .25rem;
+         width: 100%;
+         -webkit-transition: border .1s linear,background-color .1s linear;
+         transition: border .1s linear,background-color .1s linear;
+         }
+      </style>
+   </html>
+</apex:page>

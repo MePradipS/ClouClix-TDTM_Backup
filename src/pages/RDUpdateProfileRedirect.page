@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Recurring_Donation__c" extensions="RDUpdateProfileController" id="RDUpdateProfileRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Campaign" extensions="CampaignCompRegController" id="CampaignCompRegRedirect" showHeader="true" sidebar="true" action="{!RedirectCampaign}">
+</apex:page>

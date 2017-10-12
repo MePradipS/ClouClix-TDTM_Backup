@@ -1,0 +1,110 @@
+<apex:page controller="CSearchPos" action="{!RedirectByTheme}">
+    <apex:sectionHeader title="Search" subtitle="Find Me a Volunteer"/>
+    <apex:pageMessages ></apex:pageMessages>  
+    <apex:form rendered="{!wizardStep == 2}">
+        <apex:pageBlock title="Add to Campaign -- Selected Contacts" >            
+            <apex:outputField value="{!campaignRecord.volunteer_Position__c}"/>              
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockTable var="theVol" value="{!selectedContacts}"> 
+                    <apex:column value="{!theVol.FirstName}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.FirstName.label}
+                        </apex:facet>         
+                    </apex:column> 
+                    <apex:column value="{!theVol.LastName}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.LastName.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.Email}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.Email.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.Phone}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.Phone.label}
+                        </apex:facet>         
+                    </apex:column>                                                                                                                     
+                </apex:pageBlockTable>      
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom" >
+                <apex:commandButton value="Add" action="{!addConfirm}"/>  
+                <apex:commandButton value="Back" action="{!back}"/>             
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>  
+    <apex:form rendered="{!wizardStep == 1}">
+        <apex:pageBlock >
+            <apex:pageBlockSection >
+                <apex:outputField value="{!thePosition.Name}"/>
+                <br/>
+                                            
+            </apex:pageBlockSection>
+        </apex:pageBlock>    
+        <apex:pageBlock title="Filter Options" >
+
+            <apex:pageBlockSection >                
+                <apex:inputField value="{!con.Preferred_Locales__c}"/>  
+            </apex:pageBlockSection>                  
+            <br/>               
+            <apex:pageBlockSection title="Skills To Filter By:" >               
+                <apex:repeat var="skill" value="{!filterOptions}">
+                    <apex:inputCheckbox value="{!skill.value}" label="{!skill.key}" />
+                </apex:repeat>
+            </apex:pageBlockSection>        
+            <apex:pageBlockSection title="Languages:" >
+                <apex:repeat var="lang" value="{!filterOptionsLang}">
+                    <apex:inputCheckbox value="{!lang.value}" label="{!lang.key}"/>
+                </apex:repeat>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <apex:inputField value="{!con.Volunteer_Availability__c}"/>
+            </apex:pageBlockSection>
+            <br/>
+            <apex:pageBlockButtons location="bottom" >
+                <apex:commandButton value="Filter" action="{!refreshList}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        <apex:pageBlock title="Matching Volunteers" >
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Add to Email Campaign"  action="{!addToCampaign}"/>
+            </apex:pageBlockButtons>        
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockTable var="theVol" value="{!theVolunteers}"> 
+                    <apex:column >
+                        <apex:inputCheckbox value="{!theVol.isChecked}" />                         
+                    </apex:column>
+                    <apex:column >
+                        <a href="#" onclick="window.open('/_ui/core/email/author/EmailAuthor?p2_lkid={!theVol.theVolunteer.Id}&p3_lkid={!thePosition.Id}&rtype=003', '_blank');">Email Details</a> 
+                    </apex:column>
+                    <apex:column value="{!theVol.theVolunteer.FirstName}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.FirstName.label}
+                        </apex:facet>         
+                    </apex:column> 
+                    <apex:column value="{!theVol.theVolunteer.LastName}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.LastName.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.theVolunteer.Email}">   
+                        <apex:facet name="header">   
+                            {!$ObjectType.Contact.fields.Email.label}
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.theVolunteer.Phone}">   
+                        <apex:facet name="header">   
+                            Primary Phone
+                        </apex:facet>         
+                    </apex:column>     
+                    <apex:column value="{!theVol.theVolunteer.Sys_No_Availability__c}">   
+                        <apex:facet name="header">   
+                            Meets Availability
+                        </apex:facet>         
+                    </apex:column>                                                                                                                     
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>        
+    </apex:form>
+</apex:page>

@@ -1,0 +1,168 @@
+<apex:page sidebar="false" controller="CPlaceApplicant" action="{!RedirectByTheme}">
+	<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+	<script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+	<script src="{!URLFOR($Resource.aljsTest3)}"></script>
+	<apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+ 	<head>
+    	<apex:slds />
+	</head>
+	
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+	   	<apex:form styleclass="slds-scope">
+	   		<apex:actionfunction name="update" action="{!place}"/>
+	    	<div class="slds-page-header">
+		    	<div class="slds-grid">
+		        	<div class="slds-col slds-has-flexi-truncate">
+		          		<div class="slds-media slds-no-space slds-grow">
+		            		<div class="slds-media__figure">
+		            			<svg class="slds-icon slds-icon-standard-user" aria-hidden="true">
+	                				<use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#user"></use>
+	              				</svg>
+		            		</div>
+		            		<div class="slds-media__body">
+		              			<p class="slds-text-title--caps slds-line-height--reset"></p>
+		              			<h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="this should match the Record Title">Place Applicant</h1>
+		            		</div>
+		       			</div>
+		       		</div>
+		   		</div>
+		    </div>
+		    <apex:outputpanel layout="block" styleClass="slds-box slds-theme--default slds-container fieldSetCustomCls2">
+	    		<apex:outputpanel layout="block" styleClass="slds-form-element">
+					<label class="slds-form-element__label" for="text-input-01">
+	   					Availability:
+	   				</label>
+					<div class="slds-form-element__control">
+	                    <span class="slds-form-element__static">
+	                        <apex:outputField value="{!volunteer.Volunteer_Availability__c}"/>   
+	                    </span>
+	                </div>
+				</apex:outputpanel>
+		    </apex:outputpanel>
+		    
+		    <apex:outputpanel layout="block" styleClass="slds-box slds-theme--default slds-container fieldSetCustomCls">
+		    	<div class="slds-no-flex">
+					<apex:outputpanel layout="block" styleclass="slds-button-group slds-align--absolute-center" html-role="group">
+	                    <button type='button' onclick="update();" class="slds-button slds-button--brand" style="">Update</button>
+	                </apex:outputpanel>
+	            </div>
+	            
+	            <div class="slds-card fieldSetCustomCls2">
+			    	<div class="slds-card__header">
+			    		
+			    	</div>
+			    	
+			    	<div class="slds-card__body">
+			            <div class="slds-card__body" style="">
+			            	<apex:outputPanel layout="block" id="gifts1" style="/* width: 950px;height: 300px; */overflow-x: auto;">
+			            		<table class="slds-table slds-table--bordered slds-table--cell-buffer">
+						        	<thead>
+						            	<tr class="slds-text-title--caps">
+						                	<th scope="col">
+							                	<div class="slds-truncate">
+							                		Placed
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		Volunteer Shift Name
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		Start Time
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		End Time
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		Day of the Week
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		Duration (Hours)
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		Frequency
+							                	</div>
+							                </th>
+							                <th scope="col">
+							                	<div class="slds-truncate">
+							                		Location Address
+							                	</div>
+							                </th>
+							           	</tr>
+							      	</thead>
+							      	<tbody>
+							      		<apex:repeat value="{!shift_wrappers}" var="shift">
+							      			<tr>
+							      				<td> 
+							                        <span class="slds-checkbox">
+												    	<apex:inputcheckbox value="{!shift.placed}" id="checkbox-1" styleClass="eachPaymentCheckBoxCls" onclick=""/>
+												      	<apex:outputLabel styleClass="slds-checkbox__label" for="checkbox-1">
+												        	<span class="slds-checkbox--faux"></span>
+												        	<span class="slds-form-element__label">
+												        		
+												        	</span>
+												      	</apex:outputLabel>
+													</span>
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.Name}" />
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.Start_Time__c}" />
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.End_Time__c}" />
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.Day_of_the_Week__c}" />
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.Duration_Hours__c}" />
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.Frequency__c}" />
+							                    </td>
+							                    <td>
+							                        <apex:outputField value="{!shift.shift.Location_Address__c}" />
+							                    </td>
+							      			</tr>
+							      		</apex:repeat>
+							      	</tbody>
+							   	</table>
+			            	</apex:outputPanel>
+			            </div> 
+		    		</div>
+			    	
+		    	</div>
+		    	
+		    	<div class="slds-no-flex">
+					<apex:outputpanel layout="block" styleclass="slds-button-group slds-align--absolute-center" html-role="group">
+	                    <button type='button' onclick="update();" class="slds-button slds-button--brand" style="">Update</button>
+	                </apex:outputpanel>
+                </div>
+		    </apex:outputPanel>
+		</apex:form>
+    </html>
+    <style>
+    	.fieldSetCustomCls{
+	    	margin-bottom: 2% !important;
+	    	margin-top: 2% !important;
+	    }
+	    
+	    .fieldSetCustomCls2{
+	    	margin-bottom: 1% !important;
+	    	margin-top: 1% !important;
+	    }
+    </style>
+</apex:page>

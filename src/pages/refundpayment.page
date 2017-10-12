@@ -1,0 +1,25 @@
+<apex:page controller="refundPaymentController" tabStyle="Payment__c" action="{!RedirectByTheme}">
+  <apex:sectionHeader title="Payment" subtitle="{!payment.Name}"/>
+  <apex:actionStatus id="status2" startText="Processing..."></apex:actionStatus>
+  <apex:form id="mainForm">
+    <apex:pageMessages />
+    <apex:pageBlock title="" mode="edit" rendered="{!wizardStep==1}">
+      <apex:pageBlockButtons >
+        <apex:commandButton value="Submit" action="{!submit}" disabled="{!NOT(isValid)}" status="status2"/>
+        <apex:commandButton value="Cancel" action="{!cancel}"/>
+      </apex:pageBlockButtons>
+      <apex:pageBlockSection columns="1">
+        <apex:inputField value="{!payment.Amount__c}" required="true"/>
+        <apex:inputField id="dropdown" value="{!payment.Refund_Reason__c}">
+           <apex:actionSupport event="onchange"  
+                           action="{!refresh}" 
+                           rerender="mainForm"/>
+        </apex:inputField>
+        <apex:inputField value="{!payment.Refund_Comments__c}" rendered="{!showComments==true}"/>
+      </apex:pageBlockSection>
+
+    </apex:pageBlock>
+    <apex:outputLink value="/{!payment.Donation__c}" rendered="{!wizardStep==2}">Go back to the associated Transaction record</apex:outputLink>
+    
+  </apex:form>
+</apex:page>

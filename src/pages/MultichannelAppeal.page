@@ -1,0 +1,126 @@
+<apex:page standardController="Campaign" recordSetVar="cam" extensions="MultichannelCampaignController">
+  <style>
+    .ui-accordion-header { display:block; padding:5px 0 5px 25px; }
+  </style>
+  <apex:sectionHeader title="Multi-Channel Appeal" subtitle="{!selectedRecord.Name}"/>
+  <apex:pageMessages ></apex:pageMessages>
+  <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+  <apex:form id="mainForm">
+   <apex:outputPanel layout="none" rendered="{!wizardStep =1}">
+    <apex:pageblock title="Parent Appeal Details">
+        <apex:pageBlockButtons location="top" >
+           <apex:commandButton value="Save All" action="{!saveAll}"/>
+           <apex:commandButton value="Cancel" action="{!cancel}"/>
+        </apex:pageBlockButtons>
+        <div class="accordion">
+            <h3>Parent Appeal Details</h3>
+            <div>
+            <apex:pageBlockSection >
+              <apex:inputField label="Appeal Name" value="{!selectedRecord.Name}"/>
+              <apex:inputField value="{!selectedRecord.IsActive}"/>
+              <apex:inputField value="{!selectedRecord.Description}"/>
+              <apex:inputField value="{!selectedRecord.StartDate}"/>
+              <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+              <apex:inputField value="{!selectedRecord.EndDate}"/>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="2" title="Goals">
+                <apex:repeat value="{!goalFields}" var="gf">
+                    <apex:inputField value="{!campaignGoal[SUBSTITUTE(SUBSTITUTE(gf,':ro',''),':insBlnk','')]}" rendered="{!NOT(CONTAINS(gf,':ro'))}"/>
+                    <apex:outputField value="{!campaignGoal[SUBSTITUTE(SUBSTITUTE(gf,':ro',''),':insBlnk','')]}" rendered="{!CONTAINS(gf,':ro')}"/>
+                    <apex:pageBlockSectionItem rendered="{!CONTAINS(gf,':insBlnk')}"></apex:pageBlockSectionItem>
+                </apex:repeat>
+            </apex:pageBlockSection>
+           </div>
+       </div>
+     </apex:pageblock>
+  
+     <apex:pageBlock title="Child Appeals">
+         <div class="accordion">
+            <h3>New Appeal</h3>
+            <div>
+                <apex:pageBlockSection columns="2">
+                    <apex:inputField value="{!newAppeal.Name}" label="Appeal Name"/>
+                    <apex:repeat value="{!appealFields}" var="f">
+                        <apex:inputField value="{!newAppeal[SUBSTITUTE(f,':ro','')]}" rendered="{!NOT(CONTAINS(f,':ro'))}"/>
+                        <apex:outputField value="{!newAppeal[SUBSTITUTE(f,':ro','')]}" rendered="{!CONTAINS(f,':ro')}"/>
+                    </apex:repeat>
+                </apex:pageBlockSection> 
+                
+                <apex:pageBlockSection columns="2" title="Goals">
+                    <apex:repeat value="{!goalFields}" var="gf">
+                        <apex:inputField value="{!newGoal[SUBSTITUTE(SUBSTITUTE(gf,':ro',''),':insBlnk','')]}"/>
+                        <apex:pageBlockSectionItem rendered="{!CONTAINS(gf,':insBlnk')}"></apex:pageBlockSectionItem>
+                    </apex:repeat>
+               </apex:pageBlockSection>
+          </div>
+  
+          <apex:repeat value="{!existingAppeals}" var="wrapper">
+            <h3>{!wrapper.appeal.Name}</h3>
+            <div>
+              <div style="padding:4px; margin-bottom:4px;" class="ui-state-default">
+                 <input type="button" class="btn" value="Add Goal" onclick='addGoal("{!JSENCODE(wrapper.appeal.Id)}");'/>
+              </div>
+              <apex:pageBlockSection columns="2">
+                <apex:inputField value="{!wrapper.appeal.Name}" label="Appeal Name"/>
+                <apex:repeat value="{!appealFields}" var="f">
+                   <apex:inputField value="{!wrapper.appeal[SUBSTITUTE(f,':ro','')]}" rendered="{!NOT(CONTAINS(f,':ro'))}"/>
+                   <apex:outputField value="{!wrapper.appeal[SUBSTITUTE(f,':ro','')]}" rendered="{!CONTAINS(f,':ro')}"/>
+                </apex:repeat>
+              </apex:pageBlockSection> 
+              
+              <apex:repeat value="{!wrapper.Goals}" var="goal">
+              <apex:pageBlockSection columns="2" title="Goals">
+                <apex:repeat value="{!goalFields}" var="gf">
+                    <apex:inputField value="{!goal[SUBSTITUTE(SUBSTITUTE(gf,':ro',''),':insBlnk','')]}" />
+                    <apex:pageBlockSectionItem rendered="{!CONTAINS(gf,':insBlnk')}"></apex:pageBlockSectionItem>
+                </apex:repeat>
+              </apex:pageBlockSection>
+              </apex:repeat>
+              
+            </div>
+          </apex:repeat>
+        </div>  
+      </apex:pageBlock>
+      <div class="ui-state-active">
+        <table width="100%">
+          <tr>
+            <td style="width:30%">&nbsp;</td>
+            <td>
+              <apex:commandButton value="Save All" action="{!saveAll}"/>
+              <apex:commandButton value="Cancel" action="{!cancel}"/>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <script>
+        $(function() { initJ(); });
+        function initJ() { $(".accordion").accordion({collapsible:true,alwaysOpen: false});  }
+      </script>
+  </apex:outputPanel>
+  
+  <!------------------------------- NEW GOAL --------------------------------------->
+  <apex:outputPanel layout="none" rendered="{!wizardStep =2}">
+   
+   <apex:pageBlock title="New Goal">
+     <apex:pageBlockButtons >
+       <apex:commandButton action="{!addGoal}" value="Save"/>
+       <apex:commandButton action="{!cancelLastAction}" value="Cancel" immediate="true"/>
+     </apex:pageBlockButtons>
+     <apex:pageBlockSection columns="2" title="Goals">
+        <apex:repeat value="{!goalFields}" var="gf">
+            <apex:inputField value="{!newGoal[SUBSTITUTE(SUBSTITUTE(gf,':ro',''),':insBlnk','')]}" />
+            <apex:pageBlockSectionItem rendered="{!CONTAINS(gf,':insBlnk')}"></apex:pageBlockSectionItem>
+        </apex:repeat>
+     </apex:pageBlockSection>
+   </apex:pageBlock>
+  </apex:outputPanel>
+  
+  <apex:actionFunction name="addGoal" action="{!newGoal}" reRender="mainForm" immediate="true">
+       <apex:param name="appealId" value="" assignTo="{!selectedAppealId}"/>
+  </apex:actionFunction>
+  </apex:form>
+  
+  
+</apex:page>
