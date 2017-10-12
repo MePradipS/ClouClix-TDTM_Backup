@@ -1,0 +1,57 @@
+<apex:page standardController="RD_Allocation__c" extensions="RDAllocationURLUpdate" action="{!RedirectByTheme}">
+    <apex:sectionHeader title="{!$ObjectType.RD_Allocation__c.Label}" subtitle="{!RD_Allocation__c.Name}" />
+    <script type="text/javascript">
+        var gateWay ='{!JSENCODE(gateWay)}';
+        var newUrl = window.top.location.href;
+
+        if (newUrl.indexOf('&gateway=') == -1) {
+            newUrl += '&gateway=' + gateWay;
+            window.top.location = newUrl;
+        }
+    </script>
+    <apex:form >
+        <apex:pageBlock title="Edit {!RD_Allocation__c.Name}">
+            <apex:pageblockButtons >
+                <apex:commandButton value="Save" action="{!save}" onclick="return checkStatus()" />
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageblockButtons>
+            <apex:pageBlockSection columns="2">
+                <apex:outputField value="{!RD_Allocation__c.Recurring_Gift__c}" />
+                <apex:outputField value="{!RD_Allocation__c.Name}" />
+                <apex:inputField value="{!RD_Allocation__c.Active__c}" />
+                <apex:inputField value="{!RD_Allocation__c.Amount__c}" onchange="datachanged()" styleclass="amount" />
+                <apex:inputField value="{!RD_Allocation__c.Campaign__c}" />
+                <apex:inputField value="{!RD_Allocation__c.Parent_Appeal__c}" />
+                <apex:inputField value="{!RD_Allocation__c.New_Campaign__c}" />
+                <apex:inputField value="{!RD_Allocation__c.Fund__c}" />
+                <apex:inputField value="{!RD_Allocation__c.Package__c}" />
+                <apex:inputfield value="{!RD_Allocation__c.Custom_Allocation_Text__c}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+
+        <script type="text/javascript">
+            var ischanaged = false;
+
+            function datachanged() {
+                ischanged = true;
+            }
+
+            function checkStatus() {
+                if (ischanged) {
+                    return window.confirm('This update will change the recurring amount and automatically saved to your payment gateway. Click Okay to continue.');
+                } else {
+                    return true;
+                }
+            }
+
+            var referenceNumber = '{!JSENCODE(RD_Allocation__c.Recurring_Gift__r.Reference__c)}';
+            if (IsReferenceNumberIats(referenceNumber)) {
+                document.getElementsByClassName("amount")[0].disabled = true;
+            }
+
+            function IsReferenceNumberIats(referenceNumber) {
+                return /[A-Z][0-9]+/.test(referenceNumber);
+            }
+        </script>
+    </apex:form>
+</apex:page>

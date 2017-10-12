@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Receipt__c" extensions="ReceiptPrintController" id="ReceiptPrintRedirect" showHeader="true" sidebar="true" action="{!Redirect}">	
+</apex:page>

@@ -1,0 +1,190 @@
+<apex:page controller="CustomFundLookupController"
+  title="Search" 
+  showHeader="false" 
+  sideBar="false" 
+  tabStyle="Fund__c" 
+  id="pg">
+<script type='text/javascript'>
+    function searchFund(ev)  {
+        if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+            Search();
+            return false;
+         } else {
+              return true;
+         }
+     }
+     
+     var getEscapedString = function(str) {
+         return str.replace(/'/g, '\\\'');
+     }
+     
+     
+</script>
+
+  <apex:form style="font-size:12px">
+  <apex:outputPanel id="page" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+    <apex:tabPanel switchType="client" selectedTab="name1" id="tabbedPanel" >
+ 
+      <!-- SEARCH TAB -->
+      <apex:tab label="Search" name="tab1" id="tabOne" style="font-size:12px">         
+          <apex:facet name="label">
+            <apex:outputPanel style="font-weight:bold;">Search</apex:outputPanel>
+          </apex:facet>
+         <apex:actionFunction name="Search" action="{!Search}" />
+        <apex:actionRegion >  
+
+          <!-- Fund -->
+        <apex:pageBlock id="searchResults" title="Fund Lookup" rendered="{!results != null}"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" onkeypress="return searchFund(event);"/>
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!Search}" rerender="searchResults"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+              <apex:pageBlockTable value="{!results}" var="a" id="tblResults">
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Name</apex:outputPanel>
+                  </apex:facet>
+                   <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!a.Id}','{!a.Name}', false)" rendered="{!NOT(ISNULL(a.Id))}">{!a.Name}</apex:outputLink>     
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Fund__c.fields.Fund_Name__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Fund_Name__c}"/>
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Fund__c.fields.Fund_Code__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Fund_Code__c}"/>
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Fund__c.fields.Notes__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Notes__c}"/>
+                </apex:column>
+              </apex:pageBlockTable>
+          </apex:outputPanel>
+        </apex:pageBlock> 
+
+          <!-- Letter -->
+        <apex:pageBlock id="LetterSearchResults" title="Letter Lookup" rendered="{!letterResults != null}"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" onkeypress="return searchFund(event);"/>
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!Search}" rerender="LetterSearchResults"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+              <apex:pageBlockTable value="{!letterResults}" var="a" id="tblResults">
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Letter Number</apex:outputPanel>
+                  </apex:facet>
+                   <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!a.Id}','{!a.Fund_Name__c}', false)" rendered="{!NOT(ISNULL(a.Id))}">{!a.Name}</apex:outputLink>     
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Letter__c.fields.Name__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Name__c}"/>
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Letter__c.fields.Description__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Description__c}"/>
+                </apex:column>
+              </apex:pageBlockTable>
+          </apex:outputPanel>
+        </apex:pageBlock> 
+
+          <!-- Account -->
+        <apex:pageBlock id="AccountSearchResults" title="Organization Lookup" rendered="{!accountResults != null}"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" onkeypress="return searchFund(event);"/>
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!Search}" rerender="AccountSearchResults"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+              <apex:pageBlockTable value="{!accountResults}" var="a" id="tblResults">
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Organization Name</apex:outputPanel>
+                  </apex:facet>
+                   <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!a.Organization_ID__c}','{!a.AccountNumber}', false)" rendered="{!NOT(ISNULL(a.Id))}">{!a.Name}</apex:outputLink>     
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Account.fields.Organization_ID__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Organization_ID__c}"/>
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Account.fields.Email__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Email__c}"/>
+                </apex:column>
+                <apex:column value="{!a.Phone}"/>
+                <apex:column value="{!a.BillingCity}"/>
+                <apex:column value="{!a.ShippingCity}"/>
+                <apex:column value="{!a.BillingState}"/>
+                <apex:column value="{!a.BillingStreet}"/>
+                <apex:column value="{!a.BillingPostalCode}"/>
+              </apex:pageBlockTable>
+          </apex:outputPanel>
+        </apex:pageBlock> 
+
+          <!-- Contact -->
+        <apex:pageBlock id="ContactSearchResults" title="Individual Lookup" rendered="{!contactResults != null}"> 
+          <apex:outputPanel id="top" layout="block" style="margin:5px;padding:10px;padding-top:2px;">
+            <apex:outputLabel value="Search" style="font-weight:Bold;font-size:12px;padding-right:10px;" for="txtSearch"/>
+            <apex:inputText id="txtSearch" value="{!searchString}" onkeypress="return searchFund(event);"/>
+              <span style="padding-left:5px"><apex:commandButton id="btnGo" value="Go" action="{!Search}" rerender="ContactSearchResults"></apex:commandButton></span>
+          </apex:outputPanel>
+ 
+          <apex:outputPanel id="pnlSearchResults" style="margin:10px;height:350px;overflow-Y:auto;" layout="block">
+              <apex:pageBlockTable value="{!contactResults}" var="a" id="tblResults">
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >Individual Name</apex:outputPanel>
+                  </apex:facet>
+                   <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!a.Constituent_ID__c}','{!a.AssistantName}', false)" rendered="{!NOT(ISNULL(a.Id))}">{!a.Name}</apex:outputLink>     
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Contact.fields.Constituent_ID__c.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Constituent_ID__c}"/>
+                </apex:column>
+                <apex:column >
+                  <apex:facet name="header">
+                    <apex:outputPanel >{!$ObjectType.Contact.fields.Email.label}</apex:outputPanel>
+                  </apex:facet>
+                  <apex:outputField value="{!a.Email}"/>
+                </apex:column>
+                <apex:column value="{!a.Phone}"/>
+                <apex:column value="{!a.FirstName}"/>
+                <apex:column value="{!a.LastName}"/>
+                <apex:column value="{!a.MailingCity}"/>
+                <apex:column value="{!a.MailingState}"/>
+                <apex:column value="{!a.MailingStreet}"/>
+                <apex:column value="{!a.MailingPostalCode}"/>
+              </apex:pageBlockTable>
+          </apex:outputPanel>
+        </apex:pageBlock> 
+
+        </apex:actionRegion>
+      </apex:tab>
+ 
+   
+    </apex:tabPanel>
+  </apex:outputPanel>
+  </apex:form>
+</apex:page>

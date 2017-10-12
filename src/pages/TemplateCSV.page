@@ -1,0 +1,82 @@
+<apex:page standardController="Batch_Template__c" extensions="BatchPresetController_moc" showheader="false" contenttype="application/x-excel#Template-{!template.name}.xls" cache="true" sidebar="false"  >
+    <table id="myTable" border="1">
+        <tr>
+            <apex:repeat value="{!contactFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>          
+            </apex:repeat>
+            <apex:repeat value="{!accountFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!RecurringGiftFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!TransactionFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!PaymentFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+                <apex:outputPanel rendered="{!if(a.fieldName == NamespacedPaymentType, true, false)}">           
+                    <td><apex:outputtext value="Expiry_Date__x" /></td>              
+                </apex:outputPanel>
+            </apex:repeat>
+            <apex:repeat value="{!ReceiptFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!GiftDetailFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldName}" /></td>
+            </apex:repeat>
+        </tr>
+        <tr>
+            <apex:repeat value="{!contactFields}" var="a"> 
+                <td><apex:outputtext value="Con_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>          
+            </apex:repeat>
+            <apex:repeat value="{!accountFields}" var="a"> 
+                <td><apex:outputtext value="Acc_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!RecurringGiftFields}" var="a"> 
+                <td><apex:outputtext value="RGift_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!TransactionFields}" var="a"> 
+                <td><apex:outputtext value="Tran_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!PaymentFields}" var="a"> 
+                <td><apex:outputtext value="Pay_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+                <apex:outputPanel rendered="{!if(a.fieldName == NamespacedPaymentType, true, false)}">           
+                    <td><apex:outputtext value="Expiry Date" /></td>              
+                </apex:outputPanel>
+            </apex:repeat>
+            <apex:repeat value="{!ReceiptFields}" var="a"> 
+                <td><apex:outputtext value="Recei_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+            <apex:repeat value="{!GiftDetailFields}" var="a"> 
+                <td><apex:outputtext value="Alloc_{!a.fieldLable}" />{!(if(a.isRequired==true, '*',''))}</td>
+            </apex:repeat>
+        </tr>
+        <tr>
+            <apex:repeat value="{!contactFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>          
+            </apex:repeat>
+            <apex:repeat value="{!accountFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!RecurringGiftFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!TransactionFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!PaymentFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+                <apex:outputPanel rendered="{!if(a.fieldName == NamespacedPaymentType, true, false)}">           
+                    <td><apex:outputtext value="" /></td>              
+                </apex:outputPanel>
+            </apex:repeat>
+            <apex:repeat value="{!ReceiptFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+            <apex:repeat value="{!GiftDetailFields}" var="a"> 
+                <td><apex:outputtext value="{!a.fieldValue}" /></td>
+            </apex:repeat>
+        </tr>    
+    </table>
+</apex:page>

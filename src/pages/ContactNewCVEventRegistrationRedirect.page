@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Contact" extensions="ContactNewEventRegistrationController" id="ContactNewCVEventRegistrationRedirect" showHeader="true" sidebar="true" action="{!Redirect}">
+</apex:page>

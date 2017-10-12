@@ -1,0 +1,4 @@
+<apex:page renderAs="PDF">
+         <c:ConsolidatedReceiptPDFTemplate _recipientType="Contact" _relatedToType="Receipt__c" 
+            _recipientId="{!$CurrentPage.Parameters.cid}" _relatedToId="{!$CurrentPage.Parameters.rid}" _dupe="{!$CurrentPage.Parameters.isdupe}"/>
+</apex:page>

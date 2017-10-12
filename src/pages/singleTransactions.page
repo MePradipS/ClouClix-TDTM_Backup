@@ -1,0 +1,33 @@
+<apex:page controller="SingleTransactionController">
+ <!--<apex:sectionHeader title="Gift Forms"/>
+ <apex:form >
+  <apex:pageBlock title="Forms">
+     <apex:pageblockButtons location="top">
+        <apex:selectList size="1" value="{!selectedOption}">
+           <apex:selectOptions value="{!options}"/>
+        </apex:selectList>
+        <apex:commandButton value="Go!" action="{!loadForm}"/>
+     </apex:pageblockButtons>
+     <center>
+     <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" id="gp" width="{!widgetWidth}" height="{!widgetHeight}"
+          codebase="https://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
+      <param name="movie" value="{!URLFOR($Resource.gpWidget,'GivingPower.swf')}" />
+      <param name="quality" value="high" />
+      <param name="bgcolor" value="#f8f8f8" />
+      <param name="allowScriptAccess" value="sameDomain" />
+      <param name="flashvars" value="formid={!formId}&serviceurl={!serviceUrl}&bgcolor=#F8F8F8;" />
+      <embed src="{!URLFOR($Resource.gpWidget,'GivingPower.swf')}" quality="high" bgcolor="#f8f8f8"
+        width="{!widgetWidth}" height="{!widgetHeight}" name="gp" align="middle"
+        play="true"
+        loop="false"
+        flashvars="formid={!formId}&serviceurl={!serviceUrl}&bgcolor=#F8F8F8;"  
+        allowScriptAccess="sameDomain"
+        type="application/x-shockwave-flash"
+        pluginspage="https://www.adobe.com/go/getflashplayer">
+      </embed>
+    </object>
+    </center>
+  </apex:pageBlock>
+ </apex:form>-->
+ Deprecated 
+</apex:page>

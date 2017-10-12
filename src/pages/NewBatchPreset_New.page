@@ -1,0 +1,730 @@
+<apex:page standardController="Batch_Template__c" extensions="BatchPresetController_New" tabStyle="Batch_Presets__tab">
+<apex:includeScript value="{!$Resource.jQuery}"/>
+
+    <apex:form >
+        <apex:actionFunction name="openBatchPresetsTab" action="{!openBatchPresetsTab}"/>
+    </apex:form>
+    <script>if({!isMyBatchPresets} == true) {openBatchPresetsTab();}</script>
+
+    <script type="text/javascript">
+      var NamespacePrefix = '{!PackageNamespace}'; 
+      function loading(val) {
+        if (val) {
+          document.getElementById('contentLoading').style.display = 'block';
+          document.getElementById('contentLoaded').style.display = 'none';
+        }
+        else {
+          document.getElementById('contentLoading').style.display = 'none';
+          document.getElementById('contentLoaded').style.display = 'block';
+        }
+      }
+    </script>
+
+
+    <apex:sectionHeader subtitle="Edit Batch Presets" title="Batch Transactions" rendered="{!isPresetSaved}"/>
+    <apex:sectionHeader subtitle="New Batch Presets" title="Batch Transactions" rendered="{!isPresetSaved == false}"/>
+    <apex:pageMessages />
+
+    <apex:form id="form" rendered="{!isMyBatchPresets == false}" styleClass="form">
+        <apex:pageBlock id="pBlock">
+            <div id="contentLoading" style="display: none;">
+                <apex:outputPanel styleClass="popupBackground" layout="block" />
+                <div style="text-align: center;" class="custPopup">
+                    <img src="/img/loading.gif" alt="Loading graphic" /> <b>Processing....</b>
+                </div>
+            </div>
+
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!saveBatchPreset}"/>
+                <apex:outputPanel id="cloneBatchPreset">            
+                    <apex:commandButton value="Clone" action="{!cloneBatchPreset}" rendered="{!isPresetSaved}"/>
+                    <apex:commandButton value="New Batch" action="{!createNewBatch}" rendered="{!isPresetSaved}"/>
+                </apex:outputPanel>
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection title="Preset Template Detail">
+                <apex:inputField value="{!template.Name}" />
+                <apex:inputField value="{!template.Type__c}" id="tempTYpe" required="true"/>
+<!--                <script>document.getElementById('{!$Component.tempTYpe}').disabled = true; </script>
+-->            </apex:pageBlockSection>
+            
+            <!-- ########### Indiviuals ########### -->
+            <apex:pageblockSection id="contactSection" title="{!$ObjectType.Contact.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell"><apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                <table class="layout">
+                                    <tr>
+                                        <td class="selectCell">
+                                            <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Contact.label} Fields </apex:outputPanel>
+                                            <apex:selectList id="conSel1" value="{!conSelected}" multiselect="true" style="width:250px" size="25">
+                                                <apex:selectOptions value="{!ConPickListOptions}" />
+                                            </apex:selectList>
+                                        </td>
+                                        <td class="buttonCell">
+                                            <apex:actionStatus id="conLoading" onstart="loading(true)" onstop="loading(false)" />
+                                            <apex:commandButton value="Add To Preset" action="{!addInPreset}" reRender="ConDetail, conSel1, cloneBatchPreset" status="conLoading">
+                                                <apex:param name="ObjectType" value="Contact"/>
+                                            </apex:commandButton>
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel></td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="ConDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="conRowNum" />
+                                            <apex:repeat value="{!contactFields}" var="con" id="contactRepeat">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="ConDetail, conSel1, cloneBatchPreset" status="conLoading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="Contact"/>
+                                                            <apex:param name="index" value="{!conRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!con.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!con.sObjectType[con.fieldName]}" required="false" /></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!con.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!con.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!con.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="conRowNum" value="{!conRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Org ########### -->
+            <apex:pageblockSection id="Organization" title="{!$ObjectType.Account.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Account.label} Fields </apex:outputPanel> 
+                                                <apex:selectList id="AccSel1" value="{!accSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!AccPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="Accloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value="Add To Preset" action="{!addInPreset}" reRender="AccDetail, AccSel1, cloneBatchPreset" status="Accloading">
+                                                    <apex:param name="ObjectType" value="Account"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="AccDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="accRowNum" />
+                                            <apex:repeat value="{!accountFields}" var="acc">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="AccDetail, AccSel1, cloneBatchPreset" status="Accloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="Account"/>
+                                                            <apex:param name="index" value="{!accRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!acc.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!acc.sObjectType[acc.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!acc.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!acc.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!acc.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="accRowNum" value="{!accRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Recurring ########### -->
+            <apex:pageblockSection id="Recurring" title="{!$ObjectType.Recurring_Donation__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Recurring_Donation__c.label} Fields </apex:outputPanel> 
+                                                <apex:selectList id="rfgSel1" value="{!rgfSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!RgfPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="Rfgloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add To Preset" action="{!addInPreset}" reRender="RfgDetail, rfgSel1, cloneBatchPreset" status="Rfgloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedRecurringDonation}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="RfgDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="rfgRowNum" />
+                                            <apex:repeat value="{!RecurringGiftFields}" var="rfg">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="RfgDetail, rfgSel1, cloneBatchPreset" status="Rfgloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedRecurringDonation}"/>
+                                                            <apex:param name="index" value="{!rfgRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!rfg.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!rfg.sObjectType[rfg.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!rfg.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!rfg.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!rfg.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="rfgRowNum" value="{!rfgRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Gift ########### -->
+            <apex:pageblockSection id="Gift" title="Gift Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> Gift Fields </apex:outputPanel> 
+                                                <apex:selectList id="giftSel1" value="{!trnxSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!TrnxPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="giftloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add To Preset" action="{!addInPreset}" reRender="giftDetail, giftSel1, cloneBatchPreset" status="giftloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedGift}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="giftDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="giftRowNum" />
+                                            <apex:repeat value="{!TransactionFields}" var="gift">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="giftDetail, giftSel1, cloneBatchPreset" status="giftloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedGift}"/>
+                                                            <apex:param name="index" value="{!giftRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!gift.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!gift.sObjectType[gift.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!gift.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!gift.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!gift.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="giftRowNum" value="{!giftRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Payment ########### -->
+            <apex:pageblockSection id="Payment" title="{!$ObjectType.Payment__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Payment__c.label} Fields </apex:outputPanel> 
+                                                <apex:selectList id="pymtSel1" value="{!pymtSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!PymtPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="pymtloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add To Preset" action="{!addInPreset}" reRender="pymtDetail, pymtSel1, cloneBatchPreset" status="pymtloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedPayment}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="pymtDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="pymtRowNum" />
+                                            <apex:repeat value="{!PaymentFields}" var="pymt">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="pymtDetail, pymtSel1, cloneBatchPreset" status="pymtloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedPayment}"/>
+                                                            <apex:param name="index" value="{!pymtRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!pymt.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!pymt.sObjectType[pymt.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!pymt.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!pymt.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!pymt.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="pymtRowNum" value="{!pymtRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Receipt ########### -->
+            <apex:pageblockSection id="Receipt" title="{!$ObjectType.Receipt__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Receipt__c.label} Fields </apex:outputPanel> 
+                                                <apex:selectList id="rcptSel1" value="{!rcptSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!RcptPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="rcptloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add To Preset" action="{!addInPreset}" reRender="rcptDetail, rcptSel1, cloneBatchPreset" status="rcptloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedReceipt}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="rcptDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="rcptRowNum" />
+                                            <apex:repeat value="{!ReceiptFields}" var="rcpt">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="rcptDetail, rcptSel1, cloneBatchPreset" status="rcptloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedReceipt}"/>
+                                                            <apex:param name="index" value="{!rcptRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!rcpt.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!rcpt.sObjectType[rcpt.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!rcpt.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!rcpt.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!rcpt.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="rcptRowNum" value="{!rcptRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Gift Detail ########### -->
+            <apex:pageblockSection id="GiftDetail" title="{!$ObjectType.Gift_Detail__c.label} Presets" collapsible="true" columns="1">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Gift_Detail__c.label} Fields </apex:outputPanel> 
+                                                <apex:selectList id="giftDetailSel1" value="{!giftDetailSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!DGPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="giftDetailloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add To Preset" action="{!addInPreset}" reRender="gdDetail, giftDetailSel1, cloneBatchPreset" status="giftDetailloading">
+                                                    <apex:param name="ObjectType" value="{!NamespacedGiftDetail}"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="gdDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="gdRowNum" />
+                                            <apex:repeat value="{!GiftDetailFields}" var="gftDel">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="gdDetail, giftDetailSel1, cloneBatchPreset" status="giftDetailloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="{!NamespacedGiftDetail}"/>
+                                                            <apex:param name="index" value="{!gdRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!gftDel.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!gftDel.sObjectType[gftDel.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!gftDel.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!gftDel.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!gftDel.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="gdRowNum" value="{!gdRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+            
+            <!-- ########### Event Detail ########### -->
+<!--            <apex:pageblockSection id="Event" title="{!$ObjectType.Event_Registration__c.label} Presets" collapsible="true" columns="1" rendered="{!isEventPreset}">
+                <apex:outputPanel >
+                    <table width="100%">
+                        <tr>
+                            <td width="25%" class="selectCell">
+                                <apex:outputPanel id="multiselectPanel" layout="block" styleClass="duelingListBox">
+                                    <table class="layout">
+                                        <tr>
+                                            <td class="selectCell">
+                                                <apex:outputPanel layout="block" styleClass="selectTitle"> {!$ObjectType.Event_Registration__c.label} Fields </apex:outputPanel> 
+                                                <apex:selectList id="eventSel1" value="{!eventRegSelected}" multiselect="true" style="width:250px" size="25">
+                                                    <apex:selectOptions value="{!EventPickListOptions}" />
+                                                </apex:selectList>
+                                            </td>
+                                            <td class="buttonCell">
+                                                <apex:actionStatus id="eventloading" onstart="loading(true)" onstop="loading(false)" />
+                                                <apex:commandButton value=" Add To Preset" action="{!addInPreset}" reRender="eventDetail, eventSel1, cloneBatchPreset" status="eventloading">
+                                                    <apex:param name="ObjectType" value="causeview__Event_Registration__c"/>
+                                                </apex:commandButton>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+
+                            <td width="75%">
+                                <apex:outputPanel id="eventDetail">
+                                    <table id="table" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                        <thead class="headerLabel">
+                                            <tr>
+                                                <th class="up"></th>
+                                                <th class="down"></th>
+                                                <th class="col2">Field Name</th>
+                                                <th class="col3">Default Value</th>
+                                                <th class="col4">Read Only</th>
+                                                <th class="col5">Show in Summary</th>
+                                                <th class="col6">Hide</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:variable value="{!0}" var="eventRowNum" />
+                                            <apex:repeat value="{!eventRegFields}" var="event">
+                                                <tr class="row">
+                                                    <td class="up"></td>
+                                                    <td class="down">
+                                                        <apex:commandLink action="{!removeFromPreset}" reRender="eventDetail, eventSel1, cloneBatchPreset" status="eventloading">
+                                                            <apex:image value="{!$Resource.RemoveItemImg}" alt="Remove" styleClass="remove" title="Remove"/>
+                                                            <apex:param name="ObjectType" value="causeview__Event_Registration__c"/>
+                                                            <apex:param name="index" value="{!eventRowNum}" />
+                                                        </apex:commandLink></td>
+                                                    <td class="col2"><b>{!event.fieldLable}</b></td>
+                                                    <td class="col3"><apex:inputField value="{!event.sObjectType[event.fieldName]}" required="false"/></td>
+                                                    <td class="col4"><apex:inputCheckbox value="{!event.isReadOnly}" /></td>
+                                                    <td class="col5"><apex:inputCheckbox value="{!event.isForSummary}" /></td>
+                                                    <td class="col6"><apex:inputCheckbox value="{!event.isHidden}" /></td>
+                                                </tr>
+                                                <apex:variable var="eventRowNum" value="{!eventRowNum + 1}" />
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageblockSection>
+-->
+        </apex:pageBlock>
+    </apex:form>
+
+    <style type="text/css">
+        .form {
+            width: 100%;
+        }
+
+        .custPopup {
+            background-color: white;
+            border-width: 0px;
+            border-style: solid;
+            left: 50%;
+            top: 50%;
+            width: 150px;
+            padding: 10px;
+            position: fixed;
+            z-index: 9999;
+        }
+        
+        .popupBackground {
+            background-color: black;
+            opacity: 0.20;
+            filter: alpha(opacity = 
+                                                                         
+                   20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        
+        .col1 {
+            width: 5%;
+            padding: 3px 3px 3px 3px;
+        }
+        
+        .col2 {
+            width: 13%;
+            text-align: right;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 120px;
+        }
+        
+        .col3 {
+            width: 32%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 350px;
+        }
+        
+        .col4 {
+            width: 9%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 80px;
+        }
+        
+        .col5 {
+            width: 9%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 3px 3px 3px 3px;
+            min-width: 80px;
+        }
+        
+        .col6 {
+            width: 9%;
+            padding: 3px 3px 3px 3px;
+        }
+        
+        .up {
+            width: 2%;
+            padding: 3px 3px 3px 3px;
+        }
+        
+        .down {
+            width: 3%;
+            padding: 3px 3px 3px 3px;
+        }
+
+        .remove {
+            height: 7%;            
+        }
+        
+        .row {
+            
+        }
+        
+        .row:hover {
+            background-color: #ebebeb;
+            border: solid 1px #dcdcdc;
+        }
+        
+        .headerLabel {
+            color: #800000;
+            font-size: 1em;
+            font-weight: bold;
+            padding: 5px 2px 4px 5px;
+            border-bottom: solid 1px #dcdcdc;
+        }
+        
+        .rich-tabhdr-side-border {
+            width: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+        
+        .rich-tabhdr-side-border img {
+            width: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+    </style>
+    <link type="text/css" rel="stylesheet" href="/sCSS/20.0/sprites/1288206287000/Theme3/default/versioning.css" />
+</apex:page>

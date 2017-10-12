@@ -1,0 +1,1107 @@
+<apex:page tabStyle="Account" controller="HouseHoldLtng" extensions="RemoteQueryBuilder" sidebar="false" showHeader="true" action="{!RedirectByTheme}">
+
+<apex:includeScript value="{!$Resource.jQuery172}"/>
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+      <script src="/soap/ajax/39.0/connection.js" type="text/javascript"></script>
+      <script src="{!URLFOR($Resource.aljsTest3)}"></script>
+        <head>
+           <apex:slds />
+        </head>
+
+        <apex:outputPanel >
+        <apex:form >
+            <div role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand" id="statusIndicatorDivId" style="display:none;z-index: 1000;">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+           </div>
+           <!-- ********** HEDER SECTION ************* -->
+           <div class="slds slds-page-header">
+              <div class="slds slds-grid">
+                 <div class="slds slds-col slds-has-flexi-truncate">
+                    <div class="slds slds-media slds-no-space slds-grow">
+                       <div class="slds slds-media__figure">
+                          <svg class="slds slds-icon slds-icon-standard-user" aria-hidden="true">
+                             <use xlink:href="{!$Asset.SLDS}/assets/icons/standard-sprite/svg/symbols.svg#orders"></use>
+                          </svg>
+                       </div>
+                       <div class="slds slds-media__body">
+                          <p class="slds slds-text-title--caps slds-line-height--reset">Households</p>
+                          <h1 class="slds slds-page-header__title slds-m-right--small slds-align-middle slds-truncate" title="adjustment">Households</h1>
+                       </div>
+                    </div>
+                 </div>
+                 <div class="slds slds-col slds-no-flex slds-grid slds-align-top">
+                 </div>
+              </div>
+           </div>
+           <!-- HEDER SECTION ENDS HERE -->
+           <apex:actionFunction name="delMember" action="{!delMember}" rerender="page" status="pageStatus">
+              <apex:param name="ActionMemberId" assignTo="{!ActionMemberId}" value="" />
+           </apex:actionFunction>
+           <apex:outputPanel id="page">
+              <div id="overDiv" style="top:0px;left:0px;position:absolute;display:{!JSENCODE(HTMLENCODE(DisplayBackBlock))}">
+              </div>
+              <div class="slds-media slds-media--center slds-has-flexi-truncate">
+                 <div class="slds-media__figure">
+                    <span class="slds-icon_container slds-icon-standard-contact" title="description of icon when needed">
+                    </span>
+                 </div>
+                 <div class="slds-media__body">
+                 </div>
+              </div>
+              <div class="slds-no-flex">
+                 <div class="slds-button-group" role="group">
+                 </div>
+              </div>
+              <!-- </div> -->
+              <div class="slds-card__body">
+
+                 <!-- ******************* THE NEW SECTION ADDED HERE **************** -->
+                 <div class="slds-box slds-theme--default slds-container fieldSetCustomCls" id="individualSectionGroupSingleId">
+                    <div class="SectionGroupSingle" >
+                       <div class="slds-section slds-is-open">
+                          <div class="slds-section__title">
+                             <div class="slds-button slds-section__title-action">
+                                <span aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                                </span>Households
+                             </div>
+                          </div>
+                          <div class="slds-section__content">
+                             <apex:outputpanel layout="block" style="padding: 0 1% 0 1%;">
+                                <apex:repeat value="{!HouseHoldFieldListOfList}" var="fieldListTemp">
+                                   <div class="slds-form--compound">
+                                      <div class="slds-form-element__group">
+                                         <div class="slds-form-element__row">
+                                            <apex:repeat value="{!fieldListTemp}" var="f">
+                                               <apex:outputpanel layout="block" styleClass="slds-form-element" >
+                                                  <apex:outputPanel rendered="{!f =='Name'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01"><span  class="slds-required" title="required" style="display:''">* </span>Orgnization Name</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{! f == 'Phone'}">
+                                                     <apex:outputPanel rendered="{! f == 'Phone'}">
+                                                        <div class="slds-form-element">
+                                                           <label class="slds-form-element__label" for="text-input-01">Phone</label>
+                                                           <div class="slds-form-element__control">
+                                                              <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                                 required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                           </div>
+                                                        </div>
+                                                     </apex:outputPanel>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='Email__c'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Email</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='BillingStreet'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Billing Street</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='BillingCity'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Billing City</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='BillingState'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Billing State/Province</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='BillingCountry'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Billing Country</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='BillingPostalCode'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Billing Zip/Postal Code</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='Household_Addressee__c'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Household Addressee</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='Solicit_Codes__c'}">
+                                                     <!--<div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Billing Zip/Postal Code</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div> -->
+
+
+                                                            <label class="slds-form-element__label" for="text-input-01">Solicit Codes</label>
+
+                                                            <div id="multiPicklist2Hidden" style="display:none">
+                                                               <apex:inputField value="{!houseHold[f.fieldPath]}"/>
+                                                             </div>
+
+                                                             <div>
+
+
+                                                              <select class="select selectCls" size="8" multiple="multiple" style="width: 100%;margin-top:2px" id="multiPicklist3" onchange="setMultiPicklistVal(this)">
+
+                                                                <apex:repeat value="{!SolicitCodes}" var="item">
+
+                                                                  <apex:outputpanel rendered="{!ISBLANK(houseHold[f.fieldPath])}">
+                                                                      <option label="{!item}" value="{!item}">{!item}</option>
+                                                                  </apex:outputpanel>
+                                                                  <apex:outputpanel rendered="{!NOT(ISBLANK(houseHold[f.fieldPath]))}">
+                                                                  <apex:outputpanel rendered="{!contains(houseHold[f.fieldPath],item)}">
+                                                                      <option label="{!item}" value="{!item}" selected="selected">{!item}</option>
+                                                                  </apex:outputpanel>
+                                                                  <apex:outputpanel rendered="{!NOT(contains(houseHold[f.fieldPath],item))}">
+                                                                      <option label="{!item}" value="{!item}">{!item}</option>
+                                                                  </apex:outputpanel>
+                                                                  </apex:outputpanel>
+
+                                                                </apex:repeat>
+                                                              </select>
+
+                                                              </div>
+
+
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='Household_Salutation__c'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Household Salutation</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                                  <apex:outputPanel rendered="{!f =='Description'}">
+                                                     <div class="slds-form-element">
+                                                        <label class="slds-form-element__label" for="text-input-01">Description</label>
+                                                        <div class="slds-form-element__control">
+                                                           <apex:inputField value="{!houseHold[f.fieldPath]}"
+                                                              required="{!OR(f.required, f.dbrequired)}" styleclass="slds-input"  />
+                                                        </div>
+                                                     </div>
+                                                  </apex:outputPanel>
+                                               </apex:outputpanel>
+                                            </apex:repeat>
+                                         </div>
+                                      </div>
+                                   </div>
+                                </apex:repeat>
+                             </apex:outputpanel>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+                 <!-- ******************* THE ADDED NEW SECTION ENDS HERE *********** -->
+              </div>
+              <!-- ************************ MEMBER LIST ******************** -->
+
+              <!-- MAIN CARD -->
+               <apex:pageMessages />
+              <div style="display:{!DisplayHiddenPopUp}">
+
+              </div>
+              <article class="slds slds-card">
+                 <div class="slds slds-page-header" id="scrolltable" style="max-width:1545px;overflow:auto;">
+                    <div class="slds slds-card__header slds slds-grid">
+                       <header class="slds-media slds-media--center slds-has-flexi-truncate">
+                          <div class="slds-media__figure">
+
+                          </div>
+                          <div class="slds-media__body slds-truncate">
+                             <a href="javascript:void(0);" class="slds-text-link--reset">
+                             <span class="slds-text-heading--small">Member List</span>
+                             </a>
+                          </div>
+                       </header>
+                       <div class="slds-no-flex">
+                          <div class="slds-button-group" role="group">
+                             <div style="text-align:left">
+                                <a href="#"  class="button slds-button slds-button--neutral"  id="toggleBtn1" onclick="newMember()">Add New Member</a>
+
+
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                    <!-- CARD BODY = TABLE -->
+                    <div class="slds-card__body" style="max-width:1545px;overflow:auto;">
+                    <apex:outputPanel >
+                       <table class="slds-table slds-table--bordered slds-table--resizable-cols slds-table--resizable-cols-layout">
+                          <thead>
+                             <tr class="slds-text-heading--label slds-line-height--reset">
+
+                                <th scope="col" class="slds-text-align--left">Action</th>
+                                <apex:repeat value="{!MemberFieldList}" var="f">
+                                   <th scope="col"  class="slds-text-align--left">{!f.label}</th>
+                                </apex:repeat>
+                                <th scope="col"></th>
+                             </tr>
+                          </thead>
+
+                          <apex:repeat value="{!MyMemberList}" var="mm" id="theTable" >
+                             <tbody>
+                                <tr class="slds-hint-parent">
+                                   <th class="slds-size--1-of-4" scope="row">
+                                      <table >
+                                         <tr>
+                                            <td>
+                                               <apex:actionStatus id="editMember" onstart="showStatus()" onstop="hideStatus()" />
+                                               <apex:commandLink action="{!editMember}" value="Edit" immediate="true" reRender="page" status="editMember" oncomplete="setLookUpFormat()">
+                                                  <apex:param name="ActionMemberId" value="{!mm.Id}"/>
+                                               </apex:commandLink>
+                                            </td>
+                                            <td>
+                                               <apex:actionStatus id="cloneMember" onstart="showStatus()" onstop="hideStatus()" />
+                                               <apex:commandLink action="{!cloneMember}" value="Clone" immediate="true" reRender="page" status="cloneMember" oncomplete="setLookUpFormat()">
+                                                  <apex:param name="ActionMemberId" value="{!mm.Id}"/>
+                                               </apex:commandLink>
+                                            </td>
+                                            <td>
+                                               <a href="#none" onclick="delMyMember('{!mm.Id}');">Remove</a>
+                                            </td>
+                                         </tr>
+                                      </table>
+                                   </th>
+
+                                   <apex:repeat value="{!MemberFieldList}" var="f">
+
+                                      <td class="slds-size--1-of-4">
+                                         <apex:outputfield style="width=20px" value="{!mm.Member[f.fieldPath]}" />
+                                      </td>
+
+
+                                   </apex:repeat>
+
+
+                                </tr>
+                             </tbody>
+                          </apex:repeat>
+                       </table>
+                    </apex:outputPanel>
+                    </div>
+                 </div>
+                 <!-- / CARD BODY = SECTION + TABLE -->
+              </article>
+              <!-- / MAIN CARD -->
+              <!-- ******************** ENDS MEMBER LIST PAGE ****************** -->
+              <div style="text-align:center;margin-left:auto;margin-right:auto;">
+                 <a href="#" class="button slds-button slds-button--neutral" onclick="saveAll()">Save All</a>
+                 <a href="#" class="button slds-button slds-button--neutral" onclick="cancelAll()" >Cancel</a>
+              </div>
+              <apex:outputText value="{!Msg}"/>
+              <br/>
+              <apex:actionStatus id="pageStatus">
+                 <apex:facet name="start">
+                    <h1>Loading...</h1>
+                 </apex:facet>
+                 <apex:facet name="stop">
+                 </apex:facet>
+              </apex:actionStatus>
+              <div  style='padding:20px 0 20px 0;text-align:left;display:{!DisplayPopUp}'>
+              <apex:outputPanel id="member">
+              <div  aria-hidden="false" role="dialog" id="modal"  tabindex="-1"  class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container" style="width: 80%;max-width: 80%">
+                <div class="slds-modal__header">
+                    <button type="button" class="slds-button slds-button--icon-inverse slds-modal__close" onclick="cancel()">
+                      <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+                        -<use xlink:href="{!$Resource.SLDS0122}/assets/icons/action-sprite/svg/symbols.svg#close"></use>
+                      </svg>
+                      <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading--medium">Member Management</h2>
+
+                  </div>
+                  <div class="slds-modal__content slds-p-around--medium">
+                    <apex:pageMessages />
+                    <div>
+
+
+                       <div id="DivMember" style='padding:20px 0 20px 0;text-align:left;display:{!DisplayMemberDetails}'>
+
+
+                                      <div class="slds-box slds-theme--default slds-container fieldSetCustomCls" id="individualSectionGroupSingleId">
+                                         <div class="SectionGroupSingle" >
+                                            <div class="slds-section slds-is-open">
+                                               <div class="slds-section__title">
+                                                  <div class="slds-button slds-section__title-action">
+                                                     <span aria-hidden="true" class="slds-section__title-action-icon slds-button__icon slds-button__icon--left">
+                                                     </span>
+
+                                                     {!MemberOperation}
+                                                  </div>
+                                               </div>
+                                               <div class="slds-section__content">
+                                                  <apex:outputpanel layout="block" style="padding: 0 1% 0 1%;">
+                                                     <apex:repeat value="{!MemberFieldListOfList}" var="fieldListTemp">
+                                                        <div class="slds-form--compound">
+                                                           <div class="slds-form-element__group">
+                                                              <div class="slds-form-element__row">
+                                                                 <apex:repeat value="{!fieldListTemp}" var="f">
+                                                                    <apex:outputpanel layout="block" styleClass="slds-form-element" >
+                                                                       <apex:outputPanel rendered="{!f =='FirstName'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">First Name</label>
+                                                                             <div class="slds-form-element__control">
+                                                                                <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                   required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-input"  />
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f == 'LastName'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01"><span  class="slds-required" title="required" style="display:''">* </span>Last Name</label>
+                                                                             <div class="slds-form-element__control">
+                                                                                <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                   required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-input"  />
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Title'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">Title</label>
+                                                                             <div class="slds-form-element__control">
+                                                                                <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                   required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-input"  />
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Email'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">Email</label>
+                                                                             <div class="slds-form-element__control">
+                                                                                <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                   required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-input"  />
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='MobilePhone'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">Mobile Phone</label>
+                                                                             <div class="slds-form-element__control">
+                                                                                <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                   required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-input"  />
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Phone'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">Phone</label>
+                                                                             <div class="slds-form-element__control">
+                                                                                <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                   required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-input"  />
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Birthdate'}">
+
+                                                                           <div class="slds-form-element slds-hint-parent " style="margin-top: 10px;">
+                                                                           <span class="slds-form-element__label">
+                                                                            Birthdate
+                                                                           </span>
+                                                                           <div class="slds-form-element__control">
+
+                                                                              <div class="slds-form-element slds-size--1-of-3">
+                                                                                 <div class="slds-form-element">
+                                                                                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" style="width:100%;    height: 31px;">
+
+
+                                                                                        <span class="slds-input__icon slds-icon-text-default" aria-hidden="true" onclick="showDatepickerBox(this)">
+                                                                                            <img src="{!$Asset.SLDS}/assets/icons/utility/event_60.png"></img>
+                                                                                        </span>
+                                                                                       <apex:inputText id="checkdatePickerInputId" styleclass="slds-input datePickerInputCls" html-data-isRequired="true" html-data-requiredFieldName="{!$ObjectType.Contact.fields.Birthdate.Name}" html-placeholder="Pick Date" />
+                                                                                       <apex:outputField id="checkdatehidden" value="{!Member[f.fieldPath]}" style="display: none;" />
+                                                                                    </div>
+                                                                                 </div>
+                                                                              </div>
+
+
+                                                                           </div>
+                                                                        </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Same_as_Household__c'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">   {!$ObjectType.Contact.fields.Same_as_Household__c.label}   </label>
+                                                                             <div class="slds-form-element__control">
+                                                                              <div class="slds-form-element__row">
+                                                                                 <div class="slds-form-element">
+                                                                                    <label class="slds-checkbox">
+                                                                                        <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                           required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-checkbox"  />
+                                                                                         <span class="slds-checkbox--faux"></span>
+                                                                                    </label>
+                                                                                 </div>
+                                                                               </div>
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Use_Household_Salutation_Addressee__c'}">
+                                                                          <div class="slds-form-element">
+                                                                             <label class="slds-form-element__label" for="text-input-01">{!$ObjectType.Contact.fields.Use_Household_Salutation_Addressee__c.label}</label>
+                                                                             <div class="slds-form-element__control">
+
+                                                                              <div class="slds-form-element__row">
+                                                                                 <div class="slds-form-element">
+                                                                                    <label class="slds-checkbox">
+                                                                                        <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                          required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-checkbox"  />
+                                                                                           <span class="slds-checkbox--faux"></span>
+                                                                                    </label>
+                                                                                 </div>
+                                                                               </div>
+
+
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Household_Role__c'}">
+
+                                                                          <div class="slds-form-element__row">
+                                                                           <div class="slds-form-element">
+
+
+
+                                                                               <div class="slds-form-element__control">
+
+                                                                               <div class="slds-picklist slds-dropdown-trigger slds-dropdown-trigger--click pickListFieldCustomCls" style="width: 100%;margin-top:2px;">
+                                                                                      <div class="slds-form-element" onclick="processPicklist(this);">
+                                                                                          <label class="slds-form-element__label" for="text-input-02"></label>
+                                                                                          <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right slds-picklist__input" style="width: 100%;">
+
+                                                                                              <apex:inputText style="cursor: pointer;"  value="{!Member[f.fieldPath]}" id="text-input-02" styleclass="slds-lookup__search-input slds-input" html-placeholder="Select an Option" html-aria-owns="option-list-01" html-role="combobox"  html-aria-expanded="false" />
+                                                                                          <span class="slds-button slds-input__icon slds-text-color--default" aria-expanded="false" tabindex="-1">
+
+                                                                                                  <img class="slds-button__icon slds-button__icon" aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/down_60.png"></img>
+                                                                                              </span>
+                                                                                          </div>
+                                                                                      </div>
+                                                                                      <div class="slds-dropdown slds-dropdown--left" role="listbox" style="width:100%" >
+                                                                                          <ul id="option-list-02" class="slds-dropdown__list slds-dropdown--length-5" role="presentation">
+                                                                                            <li role="presentation" onclick="processPickValue(this)" data-pickValue="-- None --">
+                                                                                                <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option--- None --">
+                                                                                                    <span style="width: 10%;">
+                                                                                                      <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(Member[f.fieldPath] == '','block','none')};opacity: 1;"></img>
+                                                                                                    </span>
+                                                                                                    <span class="slds-truncate">-- None --</span>
+                                                                                                </span>
+                                                                                            </li>
+                                                                                              <apex:repeat value="{!HouseholdRole}"   var="item">
+                                                                                                  <li role="presentation" onclick="processPickValue(this)" data-pickValue="{!item}" data-toProcessOnServer="true">
+                                                                                                      <span style="padding-left: 0px;" class="slds-lookup__item-action slds-lookup__item-action--label" role="option" tabindex="0" id="listbox-option-{!item}">
+
+                                                                                                          <span style="width: 15%;">
+                                                                                                              <img class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small slds-shrink-none" aria-hidden="true" src="{!$Resource.SLDS221}/assets/icons/utility/check_60.png" style="display:{!IF(Member[f.fieldPath] == item,'block','none')};opacity: 1;"></img>
+                                                                                                          </span>
+                                                                                                          <span class="slds-truncate">{!item}</span>
+                                                                                                      </span>
+                                                                                                  </li>
+                                                                                              </apex:repeat>
+                                                                                          </ul>
+                                                                                      </div>
+
+                                                                                  </div>
+                                                                            </div>
+
+                                                                           </div>
+                                                                    </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='Household_Primary_Contact__c'}">
+                                                                          <div class="slds-form-element">
+                                                                          <label class="slds-form-element__label" for="text-input-01">Head Of Household</label>
+                                                                             <div class="slds-form-element__control">
+                                                                               <div class="slds-form-element__row">
+                                                                                 <div class="slds-form-element">
+                                                                                    <label class="slds-checkbox">
+                                                                                        <apex:inputField value="{!Member[f.fieldPath]}"
+                                                                                       required="{!AND(OR(f.required, f.dbrequired), MemberRequired)}" styleclass="slds-checkbox"  />
+                                                                                         <span class="slds-checkbox--faux"></span>
+                                                                                    </label>
+                                                                                 </div>
+                                                                               </div>
+                                                                             </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                       <apex:outputPanel rendered="{!f =='AccountId'}">
+
+                                                                           <div class="slds-lookup" data-select="multi" data-scope="single" data-typeahead="true">
+                                                                              <div class="slds-form-element">
+                                                                                  <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon--right" >
+
+                                                                                      <span aria-hidden="true" class="slds-input__icon slds-icon-text-default">
+                                                                                          <img aria-hidden="true" src="{!$Resource.SLDS0122}/assets/icons/utility/search_60.png"></img>
+                                                                                      </span>
+
+                                                                                      <input id="searchInput1" data-isRequired="true"   data-requiredFieldName="{!$ObjectType.Contact.fields.Household__c.Name}" class="slds-input lookUpCls" type="text" placeholder="Search Records" onkeyup="onkeyUpInvoke(j$(this),'Account','{!$ObjectType.Contact.fields.AccountId.label}','1')" aria-autocomplete="list" role="combobox" aria-expanded="true" aria-activedescendant="SrchDrpDwn1" />
+                                                                                      <span class="lookUpOutputFieldCls" style="display:none;">
+                                                                                       <apex:outputField value="{!Member[f.fieldPath]}" />
+                                                                                     </span>
+                                                                                      <apex:inputText value="{!Member[f.fieldPath]}" style="display:none"/>
+                                                                                  </div>
+
+                                                                              </div>
+
+                                                                              <div class="slds-lookup__menu" role="listbox" id="SrchDrpDwn1" style="display:none;width: 50%;">
+                                                                                  <div class="slds-lookup__item">
+                                                                                    <span id="searchText1"></span>
+                                                                                  </div>
+
+                                                                                  <ul class="slds-lookup__list" role="presentation" id="searchResultsUL1" style="max-height: 240px;">
+
+                                                                                  </ul>
+
+                                                                              </div>
+                                                                          </div>
+                                                                       </apex:outputPanel>
+                                                                    </apex:outputpanel>
+                                                                 </apex:repeat>
+                                                              </div>
+                                                           </div>
+                                                        </div>
+                                                     </apex:repeat>
+                                                  </apex:outputpanel>
+                                               </div>
+                                            </div>
+                                         </div>
+                                      </div>
+
+                                       <apex:outputPanel style="display:{!DisplayExistingMemberList}">
+                                   <fieldset class="slds-box slds-theme--default slds-container">
+
+                                      <article class="slds slds-card">
+                                         <div class="slds slds-page-header">
+                                            <div class="slds slds-card__header slds slds-grid">
+                                               <header class="slds-media slds-media--center slds-has-flexi-truncate">
+
+                                                  <div class="slds-media__body slds-truncate">
+                                                     <a href="javascript:void(0);" class="slds-text-link--reset">
+                                                     <span class="slds-text-heading--small">Existing Member List</span>
+                                                     </a>
+                                                  </div>
+                                               </header>
+                                               <div class="slds-no-flex">
+                                                  <div class="slds-button-group" role="group">
+                                                  </div>
+                                               </div>
+                                            </div>
+
+                                            <div class="slds-card__body">
+                                               <table class="slds-table slds-table--bordered slds-no-row-hover">
+                                                  <thead>
+                                                     <tr class="slds-text-heading--label">
+                                                        <th class="slds-size--1-of-2" scope="col">Action</th>
+                                                        <th class="slds-size--1-of-4" scope="col">First Name</th>
+                                                        <th class="slds-size--1-of-4" scope="col">Last Name</th>
+                                                        <th class="slds-size--1-of-4" scope="col">Email</th>
+                                                        <th class="slds-size--1-of-4" scope="col">Phone</th>
+                                                        <th class="slds-size--1-of-4" scope="col">Mailing Address</th>
+                                                        <th class="slds-size--1-of-4" scope="col">Household Name</th>
+
+                                                        <th scope="col"></th>
+                                                     </tr>
+                                                  </thead>
+                                                  <apex:repeat value="{!ExistingMemberList}" var="em" >
+                                                     <tbody>
+                                                        <tr class="slds-hint-parent">
+                                                           <td class="slds-size--1-of-4">
+                                                             <div class="slds-form-element__row">
+                                                                <div class="slds-form-element">
+                                                                  <label class="slds-checkbox">
+                                                                    <apex:inputcheckbox value="{!em.Checked}" />
+                                                                     <span class="slds-checkbox--faux"></span>
+                                                                  </label>
+                                                                </div>
+                                                              </div>
+                                                           </td>
+                                                           <td class="slds-size--1-of-4">
+                                                              <apex:outputText value="{!em.Member.FirstName}" />
+                                                           </td>
+                                                           <td class="slds-size--1-of-4">
+                                                              <apex:outputText value="{!em.Member.LastName}" />
+                                                           </td>
+                                                           <td class="slds-size--1-of-4">
+                                                              <apex:outputText value="{!em.Member.Email}" />
+                                                           </td>
+                                                           <td class="slds-size--1-of-4">
+                                                              <apex:outputText value="{!em.Member.Phone}" />
+                                                           </td>
+                                                           <td class="slds-size--1-of-4">
+                                                              <apex:outputText value="{!em.Member.MailingStreet} {!em.Member.MailingCity} {!em.Member.MailingState} {!em.Member.MailingPostalCode} {!em.Member.MailingCountry}" />
+                                                           </td>
+                                                           <td class="slds-size--1-of-4">
+                                                              <a href="/{!em.Member.Household__c}" target="_blank">{!em.Member.Household__r.Name}</a>
+                                                           </td>
+                                                        </tr>
+                                                     </tbody>
+                                                  </apex:repeat>
+                                               </table>
+                                            </div>
+                                         </div>
+
+                                      </article>
+
+                                       <div align="right"  style="display:{!JSENCODE(HTMLENCODE(DisplayPageIndex))}">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <h1>Total count: {!TotalCount}</h1>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <font size="1pt">
+                                           Page #:&nbsp;
+                                           <apex:outputLabel value="{!PageIndex}"/>
+                                           &nbsp;out of&nbsp;
+                                           <apex:outputLabel value="{!TotalPageNumber}"/>
+                                           &nbsp;&nbsp;&nbsp;&nbsp;
+                                        </font>
+                                        <apex:commandButton styleClass="slds-button slds-button--neutral"  value="Previous" action="{!previousBtnClick}" disabled="{!PreviousButtonDisabled}" reRender="member" status="memberStatus"></apex:commandButton>
+                                        <apex:commandButton styleClass="slds-button slds-button--neutral"  value="Next" action="{!nextBtnClick}" disabled="{!NextButtonDisabled}" reRender="member" status="memberStatus"></apex:commandButton>
+                                      </div>
+
+                                    </fieldset>
+                                   </apex:outputPanel>
+
+                      </div>
+
+                    </div>
+                  </div>
+                  <div class="slds-modal__footer">
+
+                               <table style="display:{!JSENCODE(HTMLENCODE(DisplaySearchKeywords))}">
+                                      <tr align="left">
+                                         <td>
+                                            <strong>Search by Last Name:</strong>
+                                         </td>
+                                         <td>
+                                            <apex:inputText value="{!Keywords}" onkeypress="return searchExistingMemberKeyPress(event);"/>
+                                            <a href="#" class="button slds-button slds-button--neutral" onclick="searchExistingMember()">Search</a>
+                                         </td>
+                                      </tr>
+                                </table>
+
+
+
+                                   <!-- <div style="text-align:center;margin-left:auto;margin-right:auto;">
+                                      <br/>  -->
+                                      <div style="display:{!JSENCODE(HTMLENCODE(DisplayNewMemberButton))}">
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="showSuggestedMember()">Search Existing Individuals</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="cancel()">Cancel</a>
+                                      </div>
+                                      <div style="display:{!JSENCODE(HTMLENCODE(DisplaySuggestedMemberButton))}">
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="addSelectedMember()" style="display:{!DisplayAddSelectedMemberButton}" >Add Selected to Household</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="save()">Save New Member</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="saveAndNewMember()">Save and Create Another Member</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="showSuggestedMember()">Search Existing Individuals</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="cancel()">Cancel</a>
+                                      </div>
+                                      <div style="display:{!JSENCODE(HTMLENCODE(DisplayEditMemberButton))}">
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="save()">Save</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="saveAndNewMember()">Save and Create Another Member</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="cancel()">Cancel</a>
+                                      </div>
+                                      <div style="display:{!JSENCODE(HTMLENCODE(DisplayExistingMemberButton))}">
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="addSelectedMember()" style="display:{!DisplayAddSelectedMemberButton}" >Add Selected to Household2</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="newMember()">Save New Member</a>
+                                         <a href="#" class="button slds-button slds-button--neutral" onclick="cancel()">Cancel</a>
+                                      </div>
+                                 <!--     <br/>
+                                   </div> -->
+
+
+                    <!--<button type="button" class="slds-button slds-button--neutral" onclick="cancel()">Cancel</button>
+                    <button type="button" class="slds-button slds-button--neutral slds-button--brand">Save</button> -->
+                  </div>
+                </div>
+                </div>   </apex:outputPanel>
+                <div class="slds-backdrop" id="backdrop"></div>
+
+                </div>
+              <apex:actionStatus id="memberStatus" onstart="showStatus()" onstop="hideStatus()" />
+              <apex:actionFunction name="showSuggestedMember" action="{!showSuggestedMember}" rerender="page" status="memberStatus" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+              <apex:actionFunction name="cancel" action="{!cancel}" rerender="page" status="memberStatus" immediate="true" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+              <apex:actionFunction name="addSelectedMember" action="{!addSelectedMember}" rerender="page" status="memberStatus" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+              <apex:actionFunction name="save" action="{!save}" rerender="page" status="memberStatus" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+              <apex:actionFunction name="saveAndNewMember" action="{!saveAndNewMember}" rerender="page" status="memberStatus" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+
+              <apex:actionFunction name="newMember" action="{!newMember}" rerender="page,member" status="memberStatus"  oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+
+
+              <apex:actionFunction name="searchExistingMember" action="{!searchExistingMember}" rerender="page" status="memberStatus" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+              <apex:actionStatus id="pageStatusslds" onstart="showStatus()" onstop="hideStatus()" />
+              <apex:actionFunction name="saveAll" action="{!saveAll}" rerender="page" status="pageStatusslds" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+              <apex:actionFunction name="cancelAll" action="{!cancelAll}" rerender="page" status="pageStatusslds" immediate="true" oncomplete="oncompletedatepicker();overridePageMessages();">
+              </apex:actionFunction>
+
+
+
+
+           </apex:outputPanel>
+        </apex:form>
+    </apex:outputPanel>
+
+
+    <script>
+    var j$ = jQuery.noConflict();
+    var currentpicklistObj;
+          function processPicklist(obj){
+                isPicklistClicked = true;
+                currentpicklistObj = obj;
+                j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+          }
+          function processPickValue(obj){
+              pickedElement = obj;
+             var currentpicklistObj = j$(pickedElement).closest('.pickListFieldCustomCls');
+              var pickvalue = j$(pickedElement).attr("data-pickValue");
+              var toProcessOnServer = j$(pickedElement).attr("data-toProcessOnServer");
+              j$(pickedElement).parent().find("img").hide();
+              j$(pickedElement).find("img").show();
+              //j$(currentpicklistObj).parent().toggleClass("slds-is-open");
+              j$(currentpicklistObj).toggleClass("slds-is-open");
+              j$(currentpicklistObj).find("input").val(pickvalue);
+              if(toProcessOnServer == 'true'){
+                   rerenderTheTransSection(pickvalue);
+               }
+
+              //j$(pickedElement).children().first().children().first().children().first().show();
+          }
+          function showStatus(){
+              j$('#statusIndicatorDivId').show();
+              j$('#statusIndicatorDivId').position({
+                  of: j$(window)
+              });
+          }
+          function hideStatus(){
+              j$('#statusIndicatorDivId').hide();
+          }
+     </script>
+     <!-- LOOKUP CODE STARTS HERE  -->
+     <script>
+          var j$ = jQuery.noConflict();
+          sforce.connection.sessionId='{!GETSESSIONID()}';
+          function searchRecords(key,objectName,objectLabel,iVal){
+              if(!timeUp) return;
+              j$('#'+key.attr('aria-activedescendant')).show();
+              searchKey = key.val();
+              if(searchKey == ''){
+                  j$('#'+key.attr('aria-activedescendant')).hide();
+              }
+
+              j$('#searchText'+iVal).text('\"'+searchKey+'\" In '+objectLabel);
+
+              var fields = "Id,Name"
+              var clause = "Name LIKE '"+searchKey+"%' LIMIT 15";
+
+              RemoteQueryBuilder.ListQueryBuilderWhere(
+                objectName, fields, clause,
+                function(result, event){
+                  records = result;
+                  
+                  var searchLis ="";
+
+                  if(records.length > 0){
+                      for(var i=0; i<records.length; i++){
+                          searchLis += '<li onclick="recordInfo(\''+records[i].Name+'\',\''+records[i].Id+'\',\''+iVal+'\');"  class="slds-lookup__item"><span id="'+records[i].Id+'" style="cursor:pointer">'+records[i].Name+'</span></li>';
+                      }
+                  }else{
+                      searchLis += '<li class="slds-lookup__item" style="margin-left: 10px;color: #54698d;">No Records Found</li>';
+                  }
+
+                  j$('#searchResultsUL'+iVal).html(searchLis);
+                });
+          }
+
+          function recordInfo(recordName,recordId,iVal){
+
+
+
+              j$('#SrchDrpDwn'+iVal).fadeOut();
+              j$('#searchInput'+iVal).val(recordName);
+              //j$('#searchInput'+iVal).attr('Value',recordId);
+              j$('#searchInput'+iVal).next().next().attr('Value',recordId);
+
+              var idval = 'hiddenId'+iVal;
+              j$("[id$="+idval+"]").val(recordId);
+
+              j$('[id$=searchInputtext]').val(recordName);
+               j$('[id$=searchInputId]').val(recordId);
+          }
+
+          var timeUp = false;
+          function onkeyUpInvoke(key,objectName,objectLabel,iVal){
+              timeUp = false;
+              setTimeout(function(){
+                              timeUp = true;
+                              searchRecords(key,objectName,objectLabel,iVal);
+                              hideStatus();
+              },501);
+
+              setTimeout(function(){
+                              showStatus();
+              },500);
+          }
+
+
+
+          function validateData(){
+              //.slds-has-error to add   Complete this field
+              j$('.requiredFieldCustomErrorMsgCls').hide();
+              j$('[data-isRequired ="true"]').removeClass('slds-has-error');
+              var requiredFieldList = j$('[data-isRequired ="true"]');
+              var isValidationPassed = true;
+              j$(requiredFieldList).each(function(index,item) {
+                  if(j$(this).val().length == 0 || j$(this).val() == '-- None --'){
+                      var errorMsgElementId = 'requiredFieldCustomErrorMsgId_'+j$(item).attr("data-requiredFieldName");
+                      j$(item).addClass('slds-has-error');
+                      j$('#'+errorMsgElementId).show();
+                      isValidationPassed = false;
+                  }
+              });
+              return isValidationPassed;
+          }
+
+          j$(document).ready(function()
+            {
+                var assetsLocation = '{!URLFOR($Asset.SLDS)}';
+                j$.aljsInit({
+                      assetsLocation: assetsLocation,
+                      scoped: true
+                });
+
+
+                initDatePicker();
+
+            });
+          function initDatePicker(){
+              j$('.datePickerInputCls').datepicker(
+                      {
+                          format: 'DD/MM/YYYY',
+                      }
+                );
+          }
+
+          function initALJSINIT(){
+              j$.aljsInit({
+                      assetsLocation: assetsLocation,
+                      scoped: true
+                });
+          }
+
+          function oncompletedatepicker()
+          {
+                initDatePicker();
+
+          }
+           function setMultiPicklistVal(selectObj){
+              j$(selectObj).parent().prev().children().first().val( j$(selectObj).val() );
+          }
+          function setLookUpFormat(){
+          var allLookUpFields = j$('.lookUpCls');
+          j$(allLookUpFields).each(function() {
+            var nextSpanElement = j$(this).next();
+
+            if(j$(nextSpanElement).hasClass('lookUpOutputFieldCls')){
+              j$(this).val(j$(nextSpanElement).children().first().children().first().html());
+            }
+          });
+        }
+
+     </script>
+     <!--  APEX PAGE MESSAGE DISPLAY  -->
+
+     </html>
+        <!-- Modal Toggle Script -->
+<script>
+j$ = jQuery.noConflict();
+
+//Modal Open
+j$('#toggleBtn').click(function(){
+  j$('#backdrop').addClass('slds-backdrop--open');
+  j$('#modal').addClass('slds-fade-in-open');
+});
+
+//Modal Close
+function closeModal(){
+  j$('#modal').removeClass('slds-fade-in-open');
+  j$('#backdrop').removeClass('slds-backdrop--open');
+}
+ function showStatus()
+ {
+            j$('#statusIndicatorDivId').show();
+            j$('#statusIndicatorDivId').position({
+                of: j$(window)
+            });
+        }
+ function hideStatus(){
+            j$('#statusIndicatorDivId').hide();
+        }
+
+
+</script>
+<script>
+ var j$ = jQuery.noConflict();
+    j$(document).ready(function(){
+        //j$('#scrolltable').css("maxWidth",j$('.slds-card__body').width());
+       overridePageMessages();
+
+
+    });
+
+    function overridePageMessages(){
+        var textureEffect = '';
+        //Uncomment below line for texture effect on page messages
+        // textureEffect = 'slds-theme--alert-texture';
+
+        j$('.warningM3').addClass('slds-notify slds-notify--toast slds-theme--warning customMessage '+textureEffect);
+        j$('.confirmM3').addClass('slds-notify slds-notify--alert slds-theme--success  customMessage '+textureEffect);
+        j$('.errorM3').addClass('slds-notify slds-notify--alert slds-theme--error customMessage '+textureEffect);
+        j$('.infoM3').addClass('slds-notify slds-notify--toast customMessage '+textureEffect);
+
+        j$('.errorM3').removeClass('errorM3');
+        j$('.confirmM3').removeClass('confirmM3');
+        j$('.infoM3').removeClass('infoM3');
+        j$('.warningM3').removeClass('warningM3');
+    }
+</script>
+<!-- ****** SLDS Date picker  ****** -->
+<style>
+
+            .msgIcon {
+                display: none!important
+            }
+            .customMessage * {
+                color: #fff!important
+            }
+            .customMessage {
+                margin: 5px 0!important;
+                max-width: 134580px;
+                opacity: 1!important;
+                width: 100%;
+                font-size: 12px;
+                border: 0px;
+                padding-left: 10px;
+            }
+            .message {
+                opacity: .1
+            }
+            .row {
+
+              margin-top: 3px;
+              height: 35px;
+            }
+
+          .selectCls{
+              background-color: rgb(255, 255, 255);
+              color: rgb(22, 50, 92);
+              border: 1px solid rgb(216, 221, 230);
+              border-radius: .25rem;
+              width: 100%;
+              -webkit-transition: border .1s linear,background-color .1s linear;
+              transition: border .1s linear,background-color .1s linear;
+           }
+           #overDiv{
+           background-color: #000;
+           width: 100%;
+           height: 100%;
+           left:0;
+           top:0;/*FF IE7*/
+           filter:alpha(opacity=40);/*IE*/
+           opacity:0.4;/*FF*/
+           z-index:1;
+           position:fixed!important;/*FF IE7*/
+           position:absolute;/*IE6*/
+           }
+           .button {
+           display: inline-block;
+           position: relative;
+           margin: 10px;
+           padding: 0 20px;
+           text-align: center;
+           text-decoration: none;
+           font: bold 12px/25px Arial, sans-serif;
+           text-shadow: 1px 1px 1px rgba(255,255,255, .22);
+           -webkit-border-radius: 30px;
+           -moz-border-radius: 30px;
+           border-radius: 30px;
+           -webkit-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);
+           -moz-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);
+           box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);
+           -webkit-transition: all 0.15s ease;
+           -moz-transition: all 0.15s ease;
+           -o-transition: all 0.15s ease;
+           -ms-transition: all 0.15s ease;
+           transition: all 0.15s ease;
+           font-weight:bold;
+           background-image:url({!$Resource.ButtonBackImg});
+           background-repeat:repeat-x;
+           color: #000000;
+           }
+           .green
+           {
+           color: #3e5706;
+           background: #a5cd4e; /* Old browsers */
+           background: -moz-linear-gradient(top,  #a5cd4e 0%, #6b8f1a 100%); /* FF3.6+ */
+           background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a5cd4e), color-stop(100%,#6b8f1a)); /* Chrome,Safari4+ */
+           background: -webkit-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* Chrome10+,Safari5.1+ */
+           background: -o-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* Opera 11.10+ */
+           background: -ms-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* IE10+ */
+           background: linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* W3C */
+           }
+        </style>
+        <script type='text/javascript'>
+           function delMyMember(ActionMemberId){
+               f = confirm("Confirm to remove it?");
+               if(f){
+                   delMember(ActionMemberId);
+               }
+           }
+           function searchExistingMemberKeyPress(ev)  {
+               if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                   searchExistingMember();
+                   return false;
+                } else {
+                     return true;
+                }
+            }
+        </script>
+  </apex:page>

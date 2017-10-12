@@ -1,0 +1,1096 @@
+<apex:page id="thePage" standardController="Gift__c" extensions="GiftControllerExtension"  tabStyle="Gift__c" docType="html-5.0">
+    
+    <style>
+        
+        .hideinputfield{display:none !important;  }
+    </style>
+    
+    <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+    
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/> 
+    
+    <script type="text/javascript">
+    
+    //commented for user story : Inherit the "Lookup Dialog" configuration on the Fund object
+    
+    /*function openLookup(baseURL, width, modified, searchParam){
+
+    //alert(baseURL);
+
+    var originalbaseURL = baseURL;
+
+    var originalwidth = width;
+
+    var originalmodified = modified;
+
+    var originalsearchParam = searchParam;
+
+ 
+
+    var lookupType = baseURL.substr(baseURL.length-3, 3);
+
+    if (modified == '1') baseURL = baseURL + searchParam;
+
+ 
+
+    var isCustomLookup = false;
+
+    // Following "001" is the lookup type for Account object so change this as per your standard or custom object
+
+    // following "003"  for 
+
+    if(lookupType == "{!JSENCODE(FundKeyPrefix)}"){
+
+ 
+
+    //alert(lookupType);
+
+    //alert(baseURL);
+
+      var urlArr = baseURL.split("&");
+
+      var txtId = '';
+
+      if(urlArr.length > 2) {
+
+        urlArr = urlArr[1].split('=');
+
+        txtId = urlArr[1];
+
+      }
+
+ 
+
+      // Following is the url of Custom Lookup page. You need to change that accordingly
+
+      baseURL = "/apex/causeview__CustomFundLookup?txt=" + txtId;
+
+      //baseURL = "/apex/CustomLetterLookup?txt=" + txtId;
+
+ 
+
+      // Following is the id of apex:form control "myForm". You need to change that accordingly
+
+      baseURL = baseURL + "&frm=" + escapeUTF("{!$Component.myForm}");
+
+      if (modified == '1') {
+
+        baseURL = baseURL + "&lksearch=" + searchParam;
+
+      }
+
+ 
+
+      // Following is the ID of inputField that is the lookup to be customized as custom lookup
+
+    //alert(txtId);
+
+      if(txtId.indexOf('Fund') > -1 ){
+
+        isCustomLookup = true;
+
+      }
+
+      //if(txtId.indexOf('3') > -1 ){
+
+      //  isCustomLookup = true;
+
+      //}
+
+    }
+
+ 
+
+ 
+
+    if(isCustomLookup == true){
+
+      openPopup(baseURL, "lookup", 350, 480, "width="+width+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+
+    }
+
+    else {
+
+      if (modified == '1') originalbaseURL = originalbaseURL + originalsearchParam;
+
+      openPopup(originalbaseURL, "lookup", 350, 480, "width="+originalwidth+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+
+    } 
+
+  } */
+    
+    var j$ = jQuery.noConflict();        
+    
+    j$(document).ready(function() { 
+        j$("#tabs").tabs(); 
+        j$("[id$='pType'] option[value='ACH/PAD']").remove(); 
+    });
+    
+    function addPayment() { addPaymentRecord(); }
+    
+    function tabs() { j$("#tabs").tabs(); }
+    
+    function updateAllocationAmount() { j$("[id*='allocs:0:alcAmount']").val(j$("[id*='gift_amount']").val()); j$("[id*='receiptAmount']").val(j$("[id*='gift_amount']").val()); }
+    
+    function jShowBusy() { document.body.style.cursor = "wait"; }
+    
+    function jHideBusy() { document.body.style.cursor = "default"; }
+    
+    function showBusy() { j$("<div class=\"dialog\"><h1>Submitting Payment...<h1></div>").appendTo("body"); j$(".dialog").dialog({title:"Progress", modal:true}); }
+    
+    function hideBusy() { j$(".dialog").dialog("close"); j$(".dialog").remove(); tabs(); }
+    
+    function updatePaymentTypes(elem) {
+        
+        if (elem.value == 'Pledge') {
+            
+            j$("[id$='pType'] option[value='Credit Card']").remove();
+            j$("[id$='pType'] option[value='Credit Card - Offline']").remove(); 
+            j$("[id$='pType'] option[value='ACH/PAD']").remove();//Remove 'ACH/PAD' for all types                      
+            
+        }
+        else {
+            j$("[id$='pType'] option[value='ACH/PAD']").remove();//Remove 'ACH/PAD' for all types  
+            j$("[id$='pType']").append($('< option > </option>').val(1).html('Credit Card'));
+            j$("[id$='pType']").append($('< option > </option>').val(1).html('Credit Card - Offline'));
+            
+        }        
+        
+    }
+    
+    function removePaymentTypes(giftType) {        
+        j$("[id$='pType'] option[value='ACH/PAD']").remove();//Remove 'ACH/PAD' for all types  
+        if(giftType == 'Pledge'){
+            j$("[id$='pType'] option[value='Credit Card']").remove();
+            j$("[id$='pType'] option[value='Credit Card - Offline']").remove();            
+        }
+    }
+    
+    
+    function fieldsetvalues() { filter(); }
+    
+    function applyAppealDefaults(elem) {
+        
+        
+        var appealId = document.getElementById(elem.id + '_lkid').value;
+        
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.GiftControllerExtension.GetAppealDefaults}', appealId, 
+                                                  
+                                                  function(result, event){
+                                                      
+                                                      if (event.status) {
+                                                          
+                                                          var letterComponentId = 'thePage:theForm:theTransBlock:theTransSection:letter';
+                                                          
+                                                          if (result.FundId) {
+                                                              
+                                                              var fundControlId = elem.id.replace(':alcAppeal', ':alcFund');
+                                                              
+                                                              if (!hasValue(fundControlId))
+                                                                  
+                                                                  setlookupValue(fundControlId, result.FundId, result.FundName);
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                          }
+                                                          
+                                                          if (result.LetterId && !hasValue(letterComponentId)) {
+                                                              
+                                                              setlookupValue(letterComponentId, result.LetterId, result.LetterName);
+                                                              
+                                                          }
+                                                          
+                                                          //alert(result.FundName); 
+                                                          
+                                                      } else if (event.type === 'exception') {
+                                                          
+                                                          alert('Error: ' +event.message);
+                                                          
+                                                      } else {
+                                                          
+                                                          alert('Error: ' +event.message);
+                                                          
+                                                      }
+                                                      
+                                                  }, 
+                                                  
+                                                  {escape: true}
+                                                  
+                                                 );
+        
+    }
+    
+    
+    
+    
+    
+    function hasValue(target) {
+        
+        return (document.getElementById(target) && document.getElementById(target).value);
+        
+    }
+    
+    function setlookupValue(target, id, name) {
+        
+        if (document.getElementById(target)) {
+            
+            document.getElementById(target).value = name;
+            
+            document.getElementById(target+'_lkid').value = id;
+            
+            document.getElementById(target+'_lkold').value = name;
+            
+        }
+        
+    }
+    
+    //Visually mark required fields(having styleClass as "required_elements") as required (Add a red bar to mark it as required).
+    
+    function markRequired() {
+        
+        j$(".required_elements").wrap("<div class='requiredInput required_elements_wrap'></div>");
+        
+        j$(".required_elements_wrap").prepend("<div class='requiredBlock'></div>");
+        
+    }
+    
+    markRequired();
+    
+    var newWin;
+    
+    
+    
+    function openLookupPopup(ObjectName,selected, Elem){ 
+        var url;
+        var namespacePrefix = "{!NamespaceField}";
+        
+        if(ObjectName=='Contact')
+        { var searchParam =document.getElementById('thePage:theForm:newcontact:thenewcontact:hiddenInputName').value;
+         url ="/apex/" + namespacePrefix + "CustomContactLookup?oName="+ObjectName+"&displayType="+selected+"&orgId=" + '{!cId}'+"&lksearch="+searchParam;
+         
+        }
+        
+        else{            
+            var nodeId= Elem.previousElementSibling.attributes['id'].nodeValue;
+            var searchParam1 = document.getElementById(nodeId).value;
+            url ="/apex/" + namespacePrefix + "CustomContactLookup?oName="+ObjectName+"&displayType="+selected+"&lksearch="+searchParam1+"&nodeId="+nodeId;
+        }
+        
+        
+        newWin=window.open(url, 'Popup','height=500,width=650,left=400,top=150,resizable=no,scrollbars=yes,toolbar=no,status=no');
+        
+        //return true;
+        
+    }
+    
+    
+    
+    function closeLookupPopup(type){
+        
+        if (null!=newWin)
+            
+        {
+            
+            newWin.close();
+            
+        }
+        
+        //callBackFunction();
+        
+    }
+    
+    
+    function test() {alert('hi');  }
+    
+    </script> 
+    
+    
+    
+    <apex:sectionHeader title="New Donation" subtitle="{!IF(isOrg, theOrg.Name, theIndividual.FirstName & " " & theIndividual.LastName )}"/>
+    
+    <apex:form id="theForm">
+        
+        <apex:actionFunction name="callBackFunction" reRender="theForm"/>
+        <apex:pageBlock id="HouseHold" title="Error" rendered="{!if(theOrg.RecordType.Name == 'Household', true,false)}"> 
+            <br>Please process the new gift against the Household member.</br>
+        <apex:commandButton action="{!GoBack}" value="Back" dir="RTL"/>
+    </apex:pageBlock>
+    
+    <!--<apex:actionFunction action="{!contactName}" name="ConDetails" rerender="none" >
+
+<apex:param name="firstParam" assignTo="{!conId}" value=""/>
+
+</apex:actionFunction> -->
+    
+    <apex:actionPoller action="{!submitPayment}" enabled="{!if(And(shouldSubmit, !paymentReference), true, false)}" interval="5" reRender="theForm" onsubmit="jShowBusy()" oncomplete="hideBusy()"/>
+    
+    <apex:pageMessages id="msgId"></apex:pageMessages> 
+    
+    <apex:outputPanel id="progress" rendered="{!if(And(shouldSubmit, !paymentReference), true, false)}">
+        
+        <center>
+            
+            <div style="padding:8px; border:1px solid #ccc; border-radius:5px;"> 
+                
+                <apex:image url="{!URLFOR($Resource.gpAssets,'loader.gif')}"/>
+                
+                <div style="font-size:1.6em">Processing the payment...</div> 
+                
+            </div>
+            
+        </center>
+        
+    </apex:outputPanel>
+    
+    <apex:pageBlock id="navigateButtons" rendered="{!if((thePayment.id !=null && paymentReference) || (thePayment.id !=null && (thePayment.Payment_Type__c!='Credit Card' && thePayment.Payment_Type__c!='ACH/PAD')) || (theGift.Gift_Type__c=='Pledge' && theGift.id!=null), true, false)}"> 
+        
+        <!--apex:outputText value="Thank You!!!  Your submission has been processed successfully." rendered="{!if(thePayment.Status__c != 'Declined', true, false)}"></apex:outputText> --> 
+        
+        <h1>Thank You!!!  Your submission has been processed successfully.</h1><br /><br />              
+        
+    </apex:pageBlock>
+    
+    <apex:pageBlock id="navigateButtons1" rendered="{!if((thePayment.id !=null && !shouldSubmit) || (thePayment.id !=null && (thePayment.Payment_Type__c!='Credit Card' && thePayment.Payment_Type__c!='ACH/PAD')) || (theGift.Gift_Type__c=='Pledge' && theGift.id!=null), true, false)}">              
+        
+        <apex:outputText value="Confirmation Number:- {!thePayment.CC_Reference__c}"  rendered="{!if(thePayment.CC_Reference__c !=null, true, false)}"></apex:outputText>
+        
+        <center>       
+            
+            <apex:commandButton action="{!GoBack}" value="Back" dir="RTL"/>
+            
+            <apex:commandButton action="{!GoToPayment}" value="Payment Created" rendered="{!if(theGift.Gift_Type__c!='Pledge', true,false)}" />
+            
+            <apex:commandButton action="{!GoToRecurringGift}" value="Recurring Gift Created" rendered="{!if(theGift.Gift_Type__c=='Recurring', true,false)}" />
+            
+            <apex:commandButton action="{!GoToGift}" value="Gift Created" dir="LTR"/>
+            
+        </center>
+        
+    </apex:pageBlock>
+    
+    <apex:pageBlock id="navigateButtons2" rendered="{!if(((thePayment.id ==null && theGift.id!=null)&& paymentReference), true, false)}"> 
+        
+        <!--apex:outputText value="Thank You!!!  Your submission has been processed successfully." rendered="{!if(thePayment.Status__c != 'Declined', true, false)}"></apex:outputText> --> 
+        
+        <h1>Thank You!!!  Your submission has been processed successfully.</h1><br /><br />              
+        
+    </apex:pageBlock>
+    
+    <apex:pageBlock id="navigateButtons4" rendered="{!if(((thePayment.id == null && theGift.id != null)&& paymentReference), true, false)}">              
+        
+        <center>       
+            
+            <apex:commandButton action="{!GoBack}" value="Back" dir="RTL"/>
+            
+            <apex:commandButton action="{!GoToGift}" value="Gift Created" dir="LTR"/>
+            
+        </center>
+        
+    </apex:pageBlock>
+    
+    <apex:pageBlock id="theTransBlock" title="Transaction Details" rendered="{!if(thePayment.id ==null && not(shouldSubmit) && theGift.id==null, true, false) && if(theOrg.RecordType.Name != 'Household', true,false)}">
+        
+        <apex:pageblockSection id="theTransSection" columns="2">
+            
+            <apex:outputField rendered="{!!isOrg}" value="{!theGift.Constituent__c}"/>                                   
+            
+            <apex:outputField rendered="{!isOrg}" value="{!theGift.Organization__c}"/>                                                       
+            
+            <apex:inputField id="letter" value="{!theGift.Letter__c}"/>
+            
+            <apex:pageBlockSectionItem >
+                
+                <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Gift_Type__c.label}"></apex:outputLabel>
+                
+                <apex:outputPanel layout="none">
+                    
+                    <apex:actionRegion >
+                        
+                        <apex:inputField required="true" id="gType" value="{!theGift.Gift_Type__c}" >
+                            
+                            <apex:actionSupport oncomplete="tabs();updatePaymentTypes(this);markRequired();" event="onchange" reRender="theForm" action="{!changeReceipttype}"/>
+                            
+                        </apex:inputField>
+                        
+                    </apex:actionRegion>
+                    
+                </apex:outputPanel>
+                
+            </apex:pageBlockSectionItem>      
+            
+            <apex:inputField value="{!theGift.Channel__c}"/>                    
+            
+            <apex:inputField value="{!theGift.Gift_Date__c}" required="true"/>                     
+            
+            <apex:inputField value="{!theGift.Receipt_Type__c}" required="true"/>                     
+            
+            <apex:inputField id="gift_amount" required="true" label="Amount" value="{!theGift.Expected_Amount__c}" onchange="updateAllocationAmount()" />                    
+            
+            <!--<apex:outputField value="{!theGift.Expected_Amount__c}" label="Amount1"/>-->       
+            
+            <apex:inputField value="{!theReceipt.Auto_Email_Receipt__c}"/>  
+            
+            
+            <apex:repeat value="{!$ObjectType.Gift__c.FieldSets.Single_Transation_Custom_Fields}" var="f">  
+                
+                <apex:inputfield value="{!theGift[f]}"/>
+                
+            </apex:repeat>
+            
+        </apex:pageblockSection> 
+        
+    </apex:pageBlock> 
+    
+    
+    
+    <!--added by nitin-->
+    
+    <!-- <apex:pageBlock id="mycustompicklist" rendered="{!multiCurrenyEnable}"> 
+
+<apex:pageblockSection > 
+
+<apex:pageBlockSectionItem >
+
+<apex:outputLabel value="Currency Code" for="ccode" />
+
+<apex:selectList multiselect="false" size="1" value="{!selectedCurrencyCode}">
+
+<apex:selectOptions value="{!PicklistValues}"/>
+
+</apex:selectList> 
+
+</apex:pageBlockSectionItem>
+
+</apex:pageblockSection> 
+
+</apex:pageBlock> -->
+    
+    <!--till here-->
+    
+    
+    
+    <apex:pageBlock id="newcontact" title="Contact Details" rendered="{!isOrg && thePayment.id ==null && not(shouldSubmit) && theGift.id==null && if(theOrg.RecordType.Name != 'Household', true,false)}">     
+        
+        
+        
+        <apex:actionRegion >
+            
+            <apex:pageblockSection id="thenewcontact" columns="2">                    
+                
+                
+                
+                <apex:outputText label="Individual">
+                    
+                    <apex:input id="searchStr" value="{!hiddenInputValue}" rendered="{!isOrg}" onblur="disableFn()">
+                        
+                        <apex:actionFunction action="{!contactFieldSet}" name="disableFn" reRender="newcontact"/>
+                        
+                    </apex:input>      
+                    
+                    <a href="#" id="acc3_lkwgt" onclick="openLookupPopup('Contact','Multi');" tabindex="2" title="Parent Lookup (New Window)" style="text-decoration: none;">
+                        
+                        <img src="/s.gif" alt="Parent Lookup (New Window)" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Parent Lookup (New Window)"/>
+                        
+                    </a>
+                    
+                </apex:outputText>
+                
+                
+                
+                <br />
+                
+                <apex:inputText id="firstNameid" label="FirstName" value="{!FirstName}"  disabled="{!IF((hiddenInputValue==null),"false","true")}" />                    
+                
+                <apex:inputText id="lastNameid" label="Lastname" value="{!lastName}" disabled="{!IF((hiddenInputValue==null),"false","true")}"/>
+                
+                <apex:inputHidden id="hiddenInputId" value="{!hiddenInputId}"   />
+                
+                <apex:inputHidden id="hiddenInputName" value="{!hiddenInputValue}"   />
+                
+            </apex:pageblockSection>
+            
+            <center> 
+                
+                <apex:commandButton id="savecontactBtn" action="{!savecontact}" value="Save" reRender="newcontact,msgId" oncomplete="tabs()" status="pageStatus" disabled="{!IF((hiddenInputValue==null),"false","true")}"/>
+                
+            </center>
+            
+        </apex:actionRegion>
+        
+    </apex:pageBlock>
+    
+    
+    <apex:pageBlock id="paymentBlock" title="Payment Details" rendered="{!if(thePayment.id ==null && not(shouldSubmit) && theGift.id==null, true, false) && if(theOrg.RecordType.Name != 'Household', true,false)}">
+        
+        <apex:pageBlockSection id="thePledgeSection" columns="1" >
+            
+            <apex:pageBlockSection id="multiCurrencySection">
+                
+                <apex:pageBlockSectionItem rendered="{!multiCurrenyEnable}">
+                    
+                    <apex:outputLabel value="Currency Code" for="ccode" />
+                    
+                    <apex:selectList multiselect="false" size="1" value="{!selectedCurrencyCode}">
+                        
+                        <apex:selectOptions value="{!PicklistValues}"/>
+                        
+                    </apex:selectList> 
+                    
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>       
+            
+            <apex:inputField required="false" rendered="{!theGift.Gift_Type__c == 'Recurring' && !isOrg}" value="{!theIndividual.Email}"/>                                            
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& !isOrg}" value="{!theIndividual.MailingStreet}"/>
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& !isOrg}" value="{!theIndividual.MailingCity}"/>                
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& !isOrg}" value="{!theIndividual.MailingState}"/>                
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& !isOrg}" value="{!theIndividual.MailingPostalCode}"/>
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& !isOrg}" value="{!theIndividual.MailingCountry}"/>
+            
+            <apex:inputField required="false" rendered="{!theGift.Gift_Type__c == 'Recurring' && isOrg}" value="{!theOrg.Email__c}"/>                                            
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& isOrg}" value="{!theOrg.BillingStreet}"/>
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& isOrg}" value="{!theOrg.BillingCity}"/>                
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& isOrg}" value="{!theOrg.BillingState}"/>                
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& isOrg}" value="{!theOrg.BillingPostalCode}"/>
+            
+            <apex:inputField required="true" rendered="{!theGift.Gift_Type__c == 'Recurring'&& isOrg}" value="{!theOrg.BillingCountry}"/> 
+            
+            <!---->           
+            <apex:pageBlockSection id="pfieldset" columns="1" >
+                
+                <apex:repeat rendered="{!theGift.Gift_Type__c != 'Pledge'}" value="{!FilteredPaymentFieldList}" var="f">                          
+                    
+                    <apex:inputField styleClass="{!f.fieldPath}" rendered="{!theGift.Gift_Type__c != 'Pledge'}" value="{!thePayment[f.fieldPath]}" required="{!f.required}"/>
+                    
+                </apex:repeat>                
+                
+            </apex:pageBlockSection>
+            <apex:pageBlockSectionItem rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable == false}">    <!--render this section item if Gift Type = Pledge and Enable_Pledge_Installment_Model is false-->
+                
+                <apex:outputLabel value="Payment Structure"/>
+                
+                <apex:actionRegion >
+                    
+                    <apex:selectList value="{!payment_structure}" required="true" size="1" styleClass="required_elements">
+                        
+                        <apex:selectOption itemValue="# of Payments" />
+                        
+                        <apex:selectOption itemValue="Per Payment Amount" />
+                        
+                        <apex:actionSupport event="onchange" oncomplete="removePaymentTypes('{!theGift.Gift_Type__c}');markRequired();" reRender="paymentBlock"/>
+                        
+                    </apex:selectList> 
+                    
+                </apex:actionRegion>        
+                
+            </apex:pageBlockSectionItem>
+            
+            <!--added by nitin, render this section item if Gift Type = Pledge and Enable_Pledge_Installment_Model is true-->
+            
+            <apex:pageBlockSectionItem rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable == true}">
+                
+                <apex:outputLabel value="Installment Structure"/>
+                
+                <apex:actionRegion >
+                    
+                    <apex:selectList value="{!payment_structure}" required="true" size="1" styleClass="required_elements">
+                        
+                        <apex:selectOption itemValue="# of Installment" />
+                        
+                        <apex:selectOption itemValue="Per Installment Amount" />
+                        
+                        <apex:actionSupport event="onchange" oncomplete="removePaymentTypes('{!theGift.Gift_Type__c}');markRequired();" reRender="paymentBlock"/>
+                        
+                    </apex:selectList> 
+                    
+                </apex:actionRegion>        
+                
+            </apex:pageBlockSectionItem>
+            
+            <!--till here--> 
+            
+            <apex:inputField rendered="{!theGift.Gift_Type__c == 'Pledge' && payment_structure == '# of Payments' && pledgeInstallmentEnable == false}" value="{!theRecurring.of_Payments__c}" required="true" />    <!--condition to check Enable_Pledge_Installment_Model added by nitin-->
+            
+            <apex:inputText rendered="{!theGift.Gift_Type__c == 'Pledge' && payment_structure == '# of Installment' && pledgeInstallmentEnable == true}" value="{!fixedNumberInstallment}" label="Fixed Number of Installments" required="true" styleClass="required_elements"/>    <!--added by nitin, for installment-->                  
+            
+            <apex:inputText rendered="{!theGift.Gift_Type__c == 'Pledge' && payment_structure == 'Per Payment Amount' && pledgeInstallmentEnable == false}" value="{!per_payment_amount}" label="Per Payment Amount" required="true" styleClass="required_elements"/>    <!--condition to check Enable_Pledge_Installment_Model added by nitin-->
+            
+            <apex:inputText rendered="{!theGift.Gift_Type__c == 'Pledge' && payment_structure == 'Per Installment Amount' && pledgeInstallmentEnable == true}" value="{!per_payment_amount}" label="Per Installment Amount" required="true" styleClass="required_elements"/>    <!--added by nitin, for installment-->
+            
+            <apex:inputField rendered="{!theGift.Gift_Type__c == 'Pledge' || theGift.Gift_Type__c == 'Recurring'}" required="true" value="{!theRecurring.Frequency__c}" />
+            
+            <apex:inputField rendered="{!theGift.Gift_Type__c == 'Pledge' || theGift.Gift_Type__c == 'Recurring'}" value="{!theRecurring.Start_Date__c}" />   
+            
+            <apex:pageBlockSectionItem rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable == false}" >    <!--condition to check Enable_Pledge_Installment_Model added by nitin-->
+                
+                <apex:outputLabel value="Default Payment Status" />
+                
+                <apex:selectList value="{!default_payment_status}"  size="1">
+                    
+                    <apex:selectOption itemValue="Pending" />
+                    
+                    <apex:selectOption itemValue="Committed" />
+                    
+                    <apex:selectOption itemValue="Approved" />
+                    
+                </apex:selectList>    
+                
+            </apex:pageBlockSectionItem> 
+            
+            
+            
+        </apex:pageBlockSection>      
+        
+        <br/>
+        
+        <br/>    
+        
+        <apex:pageBlockSection id="paymentsection" columns="1" rendered="{!(theGift.Gift_Type__c != 'Pledge' && (payment_structure != '# of Installment' || payment_structure != 'Per Installment Amount')) || (theGift.Gift_Type__c == 'Pledge' && (payment_structure == '# of Payments' || payment_structure == 'Per Payment Amount'))}">    <!--added condition rendered condition, This section will not be display if payment is pledge and installment to create-->
+            
+            <apex:pageBlockSectionItem rendered="{!(theGift.Gift_Type__c != 'Pledge')}">
+                
+                <apex:outputLabel id="pTypeLabel" value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+                
+                <apex:outputPanel layout="none">
+                    
+                    <apex:actionRegion >
+                        
+                        <apex:inputField required="true" id="pType" value="{!thePayment.Payment_Type__c}">
+                            <apex:actionSupport oncomplete="tabs();updateAllocationAmount();removePaymentTypes('{!theGift.Gift_Type__c}');" event="onchange" reRender="theTransSection2,paymentsection,multiCurrencySection"/>
+                        </apex:inputField>
+                        
+                    </apex:actionRegion>
+                    
+                </apex:outputPanel>
+                
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!(theGift.Gift_Type__c == 'Pledge')}">
+                
+                <apex:outputLabel id="pTypeLabel" value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+                
+                <apex:outputPanel layout="none">
+                    
+                    <apex:actionRegion >
+                        
+                        <apex:inputField required="true" id="pType" value="{!thePayment.Payment_Type__c}">
+                            <apex:actionSupport oncomplete="tabs();updateAllocationAmount();removePaymentTypes('{!theGift.Gift_Type__c}');" event="onchange" reRender="theTransSection2,paymentsection,multiCurrencySection,pfieldset"/>
+                        </apex:inputField>
+                        
+                    </apex:actionRegion>
+                    
+                </apex:outputPanel>
+                
+            </apex:pageBlockSectionItem> 
+            
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection id="theTransSection2" columns="1">
+            
+            
+            <apex:inputField required="true" rendered="{!(thePayment.Payment_Type__c == 'Credit Card' && !contains(stringSTR,'Credit_Card_Type__c'))}" id="ccType" value="{!thePayment.Credit_Card_Type__c}" />
+            
+            <apex:inputField required="true" rendered="{!(thePayment.Payment_Type__c == 'Credit Card' && !contains(stringSTR,'Credit_Card_Number__c'))}" id="ccNum" value="{!thePayment.Credit_Card_Number__c}" />                    
+            
+            <apex:pageBlockSectionItem rendered="{!thePayment.Payment_Type__c == 'Credit Card'}" >
+                
+                <apex:outputLabel value="Month" />
+                
+                <apex:outputPanel >
+                    
+                    <apex:selectList required="true" size="1" value="{!ccExpM}">
+                        
+                        <apex:selectOptions value="{!months}" />
+                        
+                    </apex:selectList>                        
+                    
+                </apex:outputPanel>        
+                
+            </apex:pageBlockSectionItem>  
+            
+            <apex:pageBlockSectionItem rendered="{!thePayment.Payment_Type__c == 'Credit Card'}" >
+                
+                <apex:outputLabel value="Year" />
+                
+                <apex:outputPanel >
+                    
+                    <apex:selectList required="true" size="1" value="{!ccExpY}">
+                        
+                        <apex:selectOptions value="{!years}" />
+                        
+                    </apex:selectList>                           
+                    
+                </apex:outputPanel>        
+                
+            </apex:pageBlockSectionItem>   
+            
+            <apex:pageBlockSectionItem rendered="{!thePayment.Payment_Type__c == 'Credit Card'}" >
+                
+                <apex:outputLabel for="ccCVV" value="CVV" />               
+                
+                <apex:inputText id="ccCVV" value="{!ccCVV}" />                                                        
+                
+            </apex:pageBlockSectionItem>                       
+            
+            <!--<apex:inputField value="{!thePayment.Status__c}" rendered="{!theGift.Gift_Type__c!='Pledge' && thePayment.Payment_Type__c!=''&& thePayment.Payment_Type__c!='Credit Card'}" required="true"/>                -->
+            
+            <apex:inputField value="{!thePayment.Cheque_Num__c}" rendered="{!(thePayment.Payment_Type__c=='Check' || thePayment.Payment_Type__c == 'Cheque') && theGift.Gift_Type__c != 'Pledge' && !contains(stringSTR,'Cheque_Num__c')}" required="true"/>                
+            
+            <apex:inputField value="{!thePayment.Cheque_Date__c}" rendered="{!(thePayment.Payment_Type__c=='Check' || thePayment.Payment_Type__c == 'Cheque') && theGift.Gift_Type__c != 'Pledge' && !contains(stringSTR,'Cheque_Date__c')}" required="true"/>
+            
+            <apex:inputField value="{!thePayment.Date_Deposited__c}" rendered="{!thePayment.Payment_Type__c<>'Credit Card' && thePayment.Payment_Type__c<>'' && thePayment.Payment_Type__c<>'Credit Card - Offline' && theGift.Gift_Type__c != 'Pledge' && !contains(stringSTR,'Date_Deposited__c')}"/>       
+            
+            <apex:inputField value="{!thePayment.Description__c}" rendered="{!thePayment.Payment_Type__c=='Stock' && !contains(stringSTR,'Description__c')}"/>             
+            
+            <apex:pageBlockSectionItem rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable == false}" >    <!--rendered added by nitin-->
+                
+                <apex:outputLabel value="" />
+                
+                <apex:commandButton action="{!GeneratePaymentSched}" value="Generate Payment Schedule"/>    
+                
+            </apex:pageBlockSectionItem>
+            
+            <!--pageblocksection added by nitin-->
+            
+            <apex:pageBlockSectionItem rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable == true}" >
+                
+                <apex:outputLabel value="" />
+                
+                <apex:commandButton action="{!generateInstallments}" value="Generate Installment Schedule" rendered="{!pledgeInstallmentEnable == true}" reRender="theForm" oncomplete="tabs()"/>    
+                
+            </apex:pageBlockSectionItem>
+            
+            <!--till here-->
+            
+        </apex:pageBlockSection>
+        
+        <script>
+        
+        markRequired();
+        
+        </script>
+        
+    </apex:pageBlock>
+    
+    
+    
+    
+    
+    <apex:pageBlock id="alloBlock" title="Additional Details" rendered="{!if(thePayment.id ==null && not(shouldSubmit) && theGift.id==null, true, false) && if(theOrg.RecordType.Name != 'Household', true,false)}">
+        
+        
+        
+        <div id="tabs">
+            
+            <ul>
+                
+                <li><a href="#tabs-panel1">Allocations</a></li>
+                
+                <li><apex:outputLink rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable = false}" value="#thePage:theForm:alloBlock:tabs-panel3">Payments</apex:outputLink></li>     <!--pledgeInstallmentEnable condition added by nitin-->
+                
+                <li><apex:outputLink rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable = true}" value="#thePage:theForm:alloBlock:tabs-panel4">Installments</apex:outputLink></li>    <!--added by nitin-->                                     
+                
+                <li><a href="#tabs-panel2">Soft Credits</a></li>
+                
+            </ul>
+            
+            
+            
+            <div id="tabs-panel1">
+                
+                <apex:pageBlockTable id="allocs" value="{!theGiftDetails}" var="item" >
+                    
+                    <apex:column id="alcAmountCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.Amount__c.label}">
+                        
+                        <apex:inputField id="alcAmount" value="{!item.Amount__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column rendered="{!theGift.Gift_Type__c != 'Pledge'}" headerValue="{!$ObjectType.Gift_Detail__c.fields.Allocation_Date__c.label}">
+                        
+                        <apex:inputField id="alcDate" value="{!item.Allocation_Date__c}"/>
+                        
+                    </apex:column>
+                    <apex:column id="alcAppealCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.New_Campaign__c.label}*">
+                        <apex:inputField id="alcAppeal" value="{!item.New_Campaign__c}" onchange="applyAppealDefaults(this)"/>
+                    </apex:column>
+                    
+                    <!-- <apex:column id="alcAppealCol"  headerValue="{!$ObjectType.Gift_Detail__c.fields.New_Campaign__c.label}*" >
+
+<!--<apex:input id="alcAppeal" onchange="applyAppealDefaults(this)"/>
+
+<apex:inputfield id="hiddenAppeal"  value="{!item.Description__c}" styleclass="hideinputfield" /> 
+
+<!-- causeview__Custom_Allocation_Text__c & causeview__Description__c are using only as a intermediate field to resolve some bug, which will made null in submit function. story #102212988 
+<apex:inputfield id="alcAppeal" value="{!item.Custom_Allocation_Text__c}" > 
+</apex:inputfield> 
+
+<a href="#" id="acc3_lkwgt" onclick="openLookupPopup('Campaign', 'multi', this);" tabindex="2" title="Parent Lookup (New Window)" style="text-decoration: none;">
+
+<img src="/s.gif" alt="Parent Lookup (New Window)" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Parent Lookup (New Window)"/>
+
+</a>
+
+</apex:column> -->
+                    
+                    <apex:column id="alcFundCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.Fund__c.label}*">
+                        
+                        <apex:inputField id="alcFund" value="{!item.Fund__c}"/>
+                        
+                    </apex:column>
+                    
+                    <!--<apex:column id="alcFundName" headerValue="{!$ObjectType.Gift_Detail__c.fields.picklist_Test__c.label}*">
+
+<apex:inputField id="alcpicklist" value="{!item.picklist_Test__c}"/>
+
+</apex:column>-->
+                    
+                    <!--<apex:column id="alcFundNameCol" headerValue="{!$ObjectType.Gift_Detail__c.fields.Product__c.label}*">
+
+<apex:inputField id="alcFundName" value="{!item.Product__c}"/>
+
+</apex:column>-->
+                    
+                    <!--<apex:column headerValue="{!$ObjectType.Gift_Detail__c.fields.Package__c.label}">
+
+<apex:inputField value="{!item.Package__c}"/>
+
+</apex:column>
+
+<apex:column headerValue="{!$ObjectType.Gift_Detail__c.fields.Tribute__c.label}">
+
+<apex:inputField value="{!item.Tribute__c}"/>
+
+</apex:column>-->
+                    
+                    <apex:repeat value="{!AllocationFieldList}" var="f">
+                        
+                        <apex:column >
+                            
+                            <apex:facet name="header">{!f.label}</apex:facet>
+                            
+                            <apex:inputfield value="{!item[f.fieldPath]}"/>
+                            
+                        </apex:column>
+                        
+                    </apex:repeat>                 
+                    
+                </apex:pageBlockTable>
+                
+                <div style="padding:6px;">
+                    
+                    <apex:commandLink value="Add New Allocation" action="{!addGiftDetail}" immediate="true" reRender="allocs" />
+                    <!--<apex:commandLink value="Add New Allocation" action="{!addGiftDetail}" immediate="true" />-->
+                    
+                </div>
+                
+            </div>
+            
+            <apex:outputPanel rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable = false}" layout="block" id="tabs-panel3">    <!--pledgeInstallmentEnable condition added by nitin-->
+                
+                <apex:pageBlockTable id="paymentsCredits" value="{!thePayments}" var="item">
+                    
+                    <apex:column headerValue="{!$ObjectType.Payment__c.fields.Amount__c.label}">
+                        
+                        <apex:inputField value="{!item.Amount__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Payment__c.fields.Date__c.label}">
+                        
+                        <apex:inputField value="{!item.Date__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}">
+                        
+                        <apex:inputField value="{!item.Payment_Type__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Payment__c.fields.Status__c.label}">
+                        
+                        <apex:inputField value="{!item.Status__c}"/>
+                        
+                    </apex:column>     
+                    
+                    <apex:column rendered="{!(thePayment.Payment_Type__c=='Check' || thePayment.Payment_Type__c == 'Cheque')}" headerValue="{!$ObjectType.Payment__c.fields.Cheque_Date__c.label}">
+                        
+                        <apex:inputField value="{!item.Cheque_Date__c}"/>
+                        
+                    </apex:column>   
+                    
+                    <apex:column rendered="{!(thePayment.Payment_Type__c=='Check' || thePayment.Payment_Type__c == 'Cheque')}" headerValue="{!$ObjectType.Payment__c.fields.Cheque_Num__c.label}">
+                        
+                        <apex:inputField value="{!item.Cheque_Num__c}"/>
+                        
+                    </apex:column>   
+                    
+                    <apex:column rendered="{!(thePayment.Payment_Type__c=='Check' || thePayment.Payment_Type__c == 'Cheque')}" headerValue="{!$ObjectType.Payment__c.fields.Date_Deposited__c.label}">
+                        
+                        <apex:inputField value="{!item.Date_Deposited__c}"/>
+                        
+                    </apex:column>                                                   
+                    
+                    <apex:repeat value="{!PaymentFieldList}" var="f">
+                        
+                        <apex:column >
+                            
+                            <apex:facet name="header">{!f.label}</apex:facet>
+                            
+                            <apex:inputfield value="{!item[f.fieldPath]}"/>
+                            
+                        </apex:column>
+                        
+                    </apex:repeat>                                                
+                    
+                </apex:pageBlockTable>
+                
+                <div style="padding:6px;">
+                    
+                    <apex:commandLink value="Add New Payment" action="{!addPayment}" immediate="true" reRender="paymentsCredits"/>
+                    
+                </div>
+                
+            </apex:outputPanel>  
+            
+            <!--added by nitin-->
+            
+            <apex:outputPanel rendered="{!theGift.Gift_Type__c == 'Pledge' && pledgeInstallmentEnable = true}" layout="block" id="tabs-panel4">
+                
+                <apex:pageBlockTable id="installmentCredits" value="{!theInstallments}" var="item">
+                    
+                    <apex:column headerValue="{!$ObjectType.Installment__c.fields.Inst_No__c.label}">
+                        
+                        <apex:inputField value="{!item.Inst_No__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Installment__c.fields.Installment_Amount__c.label}">
+                        
+                        <apex:inputField value="{!item.Installment_Amount__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Installment__c.fields.Installment_Date__c.label}">
+                        
+                        <apex:inputField value="{!item.Installment_Date__c}"/>
+                        
+                    </apex:column>
+                    
+                    <!--<apex:column headerValue="{!$ObjectType.causeview__Installment__c.fields.Status__c.label}">
+
+<apex:inputField value="{!item.Status__c}"/>
+
+</apex:column>   -->                                                  
+                    
+                </apex:pageBlockTable>
+                
+                <div style="padding:6px;">
+                    
+                    <apex:commandLink value="Add New Installment" action="{!addInstallment}" immediate="true" reRender="installmentCredits"/>
+                    
+                </div>
+                
+            </apex:outputPanel>
+            
+            <!--till here-->     
+            
+            <div id="tabs-panel2">
+                
+                <apex:pageBlockTable id="softCredits" value="{!softCredits}" var="item">
+                    
+                    <apex:column headerValue="{!$ObjectType.Solicitor__c.fields.Solicitor__c.label}">
+                        
+                        <apex:inputField value="{!item.Solicitor__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Solicitor__c.fields.Organization_Solicitor__c.label}">
+                        
+                        <apex:inputField value="{!item.Organization_Solicitor__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Solicitor__c.fields.Role__c.label}">
+                        
+                        <apex:inputField value="{!item.Role__c}"/>
+                        
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!$ObjectType.Solicitor__c.fields.Custom_Amount__c.label}">
+                        
+                        <apex:inputField value="{!item.Custom_Amount__c}"/>
+                        
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                <div style="padding:6px;">
+                    
+                    <apex:commandLink value="Add New Soft Credit" action="{!addSoftCredit}" immediate="true" reRender="softCredits"/>
+                    
+                </div>
+                
+                
+                
+            </div>      
+            
+        </div>                                                 
+        
+        <apex:pageBlockButtons location="bottom" >
+            
+            
+            
+            <apex:commandButton action="{!Submit}" value="Submit" reRender="theForm" oncomplete="tabs()" status="pageStatus" >
+                
+                <apex:actionStatus id="pageStatus">
+                    
+                    <apex:facet name="start" >    
+                        
+                        <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;opacity:0.65; height:100%;width:100%;">
+                            
+                            <div class="waitingHolder" style="top: 100px; width: 91px;">
+                                
+                                <img class="waitingImage" src="/img/loading.gif" />
+                                
+                                <span class="waitingDescription">Loading...</span>
+                                
+                            </div>
+                            
+                        </div>
+                        
+                    </apex:facet>
+                    
+                </apex:actionStatus> 
+                
+            </apex:commandButton>
+            
+            
+            
+            <!--<apex:commandButton action="{!Cancel}" value="Cancel"/>-->
+            
+            <apex:commandButton action="{!goBack}" immediate="true" value="Cancel"/> 
+            
+        </apex:pageBlockButtons>   
+        
+        
+        
+    </apex:pageBlock> 
+</apex:form>                  
+
+</apex:page>

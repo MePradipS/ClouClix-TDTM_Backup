@@ -1,0 +1,27 @@
+<apex:page controller="TopDonorListController" title="Homepage Graphs">
+<apex:includeLightning />
+<apex:variable var="sr" value="{!0}"/>
+      <apex:slds />
+      <div class="slds-scope">
+        <table data-reactroot="" class="slds-table slds-table_bordered slds-table_resizable-cols slds-table_fixed-layout slds-no-row-hover" role="grid" style="padding-left:10px; padding-right:10px;">
+            <tr>
+                <td>
+                    <apex:dataTable bgcolor="GhostWhite" style="padding:20px;" value="{!transactions}" var="transaction" id="theTable" rowClasses="odd,even" styleClass="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <apex:facet name="header"><div style="text-align:center"><b>Top 10 Donors For Fiscal Year</b></div></apex:facet>
+                        <apex:column style="text-align:center">
+                            <apex:variable var="sr" value="{!sr + 1}"/>
+                            <apex:facet name="header"><div style="text-align:center">Rank</div></apex:facet>
+                            <apex:outputText style="text-align:center" value="{!sr}"/>
+                        </apex:column>
+                        <apex:column style="text-align:center">
+                            <apex:facet name="header"><div style="text-align:center">Name</div></apex:facet>
+                            <a href="/one/one.app#/sObject/{!transaction.Id}/view">
+                              <apex:outputText style="text-align:center" value="{!transaction.Name}"/>
+                            </a>
+                        </apex:column>
+                    </apex:dataTable>
+                </td>
+            </tr>
+        </table>
+      </div>
+</apex:page>

@@ -1,0 +1,14 @@
+<apex:page standardcontroller="Recurring_Donation__c" extensions="RecurringDonationCancelController" id="RecurringDonationCancelRedirect" showHeader="true" sidebar="true">
+<apex:form >
+    <apex:actionFunction name="ReloadRecurringDonation" action="{!ReloadRecurringDonation}" />
+    <apex:actionFunction name="CancelRecurringDonation" action="{!Redirect}" />
+</apex:form>
+<script type="text/javascript">
+    if (window.confirm('Are you sure you would like to cancel this recurring gift?')) {
+        CancelRecurringDonation();
+    }
+    else {
+        ReloadRecurringDonation();
+    }
+</script>
+</apex:page>

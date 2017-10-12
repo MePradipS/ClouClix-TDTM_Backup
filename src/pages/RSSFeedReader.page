@@ -1,0 +1,66 @@
+<apex:page id="RSSPage" title="RSS Update" controller="RSSFeedReaderController" showHeader="false" cache="false" standardStylesheets="false" sidebar="true" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0" >
+    <head>
+    <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+    <apex:slds />
+    <style>
+        table  {
+            table-layout:fixed;
+            width: 100%;
+        }
+        .footer{
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            padding: 1rem;
+            background-color: #FDFDFD;
+            text-align: center;
+        }
+    </style>
+    <script>
+    </script>
+    </head>
+    <body class="slds-scope" style="width: inherit;">
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr class="slds-text-title_caps" >
+                            <th scope="col" style="width: 80%;">
+                                <div class="slds-truncate" title="Title">
+                                    <span>Article</span>
+                                </div>
+                            </th>
+                            <th class="slds-text-align_right" scope="col" style="width: 20%;">
+                                <div class="slds-truncate" title="Publish Date">Publish Date</div>
+                            </th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <apex:repeat value="{!RSSFeed.items}" var="i" rows="5" id="buildItems">
+                        <tr>
+                            <td scope="row" data-label="Title">
+                                <div title="Article Title" style="width:100%;">
+                                    <a href="{!i.link}">{!i.title}</a>
+                                    <div class="slds-text-body_regular">
+                                      <p style="white-space: normal;">{!i.description} &#8230;</p>
+                                    </div>
+                                </div>
+
+                            </td>
+
+
+                            <td class="slds-text-align_right" data-label="Publish Date">
+                                <apex:outputText value="{0,date,MM/dd/yy}" >
+                                    <apex:param value="{!i.PublishedDateTime}" />
+                                </apex:outputText>
+                            </td>
+
+                        </tr>
+                    </apex:repeat>
+                    </tbody>
+                </table>
+                <br/>
+                <br/>
+                <div class="footer"><a href="http://causeview.com/blog/">More articles...</a></div>
+    </body>
+</apex:page>

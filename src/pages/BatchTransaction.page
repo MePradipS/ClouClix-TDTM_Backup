@@ -1,0 +1,876 @@
+<apex:page id="giftBatch" standardController="Gift_Batch__c" extensions="GiftBatchController" >
+
+ <apex:form >
+     <apex:actionFunction name="toNewInterface" action="{!newBatchItemInterface}"/>
+ </apex:form>
+ <script>
+     var launchNewInterface = {!launchNewInterface};
+     if (launchNewInterface == true) {
+         toNewInterface();
+     }
+ </script>
+
+ <apex:sectionHeader title="{!$ObjectType.Gift_Batch__c.Label} Edit" subtitle="{!Gift_Batch__c.Name}" rendered="{!WizardStep=3}"/>
+ <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery.js')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.gpAssets, 'jquery-ui.js')}"/>
+  <apex:stylesheet value="{!URLFOR($Resource.gpAssets, 'jquery-ui.css')}"/>
+ <style type="text/css">
+  .actionStatus
+  {
+     padding:5px 5px;
+     background-color:#444444;
+     color:#ffffff;
+     position:absolute;
+     left:10px;
+     top:10px;
+     -moz-border-radius:4px 4px 4px 4px;
+     border-bottom-left-radius: 4px 4px;
+     border-bottom-right-radius: 4px 4px;
+     border-top-left-radius: 4px 4px;
+     border-top-right-radius: 4px 4px;
+  }
+  .actionStatus2
+  {
+     padding:5px 5px;
+     background-color:#444444;
+     color:#ffffff;
+     -moz-border-radius:4px 4px 4px 4px;
+     border-bottom-left-radius: 4px 4px;
+     border-bottom-right-radius: 4px 4px;
+     border-top-left-radius: 4px 4px;
+     border-top-right-radius: 4px 4px;
+  }
+  .progressBar {
+     background: rgb(246,248,249); /* Old browsers */
+background: -moz-linear-gradient(top, rgba(246,248,249,1) 0%, rgba(229,235,238,1) 50%, rgba(215,222,227,1) 51%, rgba(245,247,249,1) 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(246,248,249,1)), color-stop(50%,rgba(229,235,238,1)), color-stop(51%,rgba(215,222,227,1)), color-stop(100%,rgba(245,247,249,1))); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top, rgba(246,248,249,1) 0%,rgba(229,235,238,1) 50%,rgba(215,222,227,1) 51%,rgba(245,247,249,1) 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top, rgba(246,248,249,1) 0%,rgba(229,235,238,1) 50%,rgba(215,222,227,1) 51%,rgba(245,247,249,1) 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top, rgba(246,248,249,1) 0%,rgba(229,235,238,1) 50%,rgba(215,222,227,1) 51%,rgba(245,247,249,1) 100%); /* IE10+ */
+background: linear-gradient(top, rgba(246,248,249,1) 0%,rgba(229,235,238,1) 50%,rgba(215,222,227,1) 51%,rgba(245,247,249,1) 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f6f8f9', endColorstr='#f5f7f9',GradientType=0 ); /* IE6-9 */
+   border:1px solid #bbb;
+   border-radius:5px;
+   padding:8px;
+   width:300px;
+  }
+ </style>
+ <script>
+function openLookup(baseURL, width, modified, searchParam){
+    var cvNamespace = '{!CvNamespace}';
+    //alert(baseURL);
+    var originalbaseURL = baseURL;
+    var originalwidth = width;
+    var originalmodified = modified;
+    var originalsearchParam = searchParam;
+
+    var lookupType = baseURL.substr(baseURL.length-3, 3);
+    if (modified == '1') baseURL = baseURL + searchParam;
+
+    var isCustomLookup = false;
+    // Following "001" is the lookup type for Account object so change this as per your standard or custom object
+    if(lookupType == "{!JSENCODE(FundKeyPrefix)}"){
+
+    //alert(lookupType);
+    //alert(baseURL);
+      var urlArr = baseURL.split("&");
+      var txtId = '';
+      if(urlArr.length > 2) {
+        urlArr = urlArr[1].split('=');
+        txtId = urlArr[1];
+      }
+
+      // Following is the url of Custom Lookup page. You need to change that accordingly
+      baseURL = "/apex/"+cvNamespace+"CustomFundLookup?txt=" + txtId;
+      //baseURL = "/apex/CustomLetterLookup?txt=" + txtId;
+
+      // Following is the id of apex:form control "myForm". You need to change that accordingly
+      baseURL = baseURL + "&frm=" + escapeUTF("{!$Component.myForm}");
+      if (modified == '1') {
+        baseURL = baseURL + "&lksearch=" + searchParam;
+      }
+
+      // Following is the ID of inputField that is the lookup to be customized as custom lookup
+    //alert(txtId);
+      if(txtId.indexOf('Fund') > -1 ){
+        isCustomLookup = true;
+      }
+      //if(txtId.indexOf('3') > -1 ){
+      //  isCustomLookup = true;
+      //}
+    }
+
+
+    if(isCustomLookup == true){
+      openPopup(baseURL, "lookup", 350, 480, "width="+width+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+    }
+    else {
+      if (modified == '1') originalbaseURL = originalbaseURL + originalsearchParam;
+      openPopup(originalbaseURL, "lookup", 350, 480, "width="+originalwidth+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollable=no", true);
+    }
+  }
+  var j$ = jQuery.noConflict();
+  j$(document).ready(function()
+  {
+      packageAutoComplete();
+  });
+  function packageAutoComplete() {
+      var packages = '{!(thePackages)}';
+      var pArray = packages.substring(1,packages.length-1);
+      var theSplit = pArray.split(',');
+      var finalSource = new Array();
+      var selector = '{!$Component.MainForm.newItemBlock.giftSection.packageIn.pckgIn}';
+      var finalSelector = '#' + selector.replace(/:/g,"\\:").replace(/\./g,"\\.");
+      for (var i = 0; i < theSplit.length; i++) {
+          finalSource.push(theSplit[i].replace(/\s/g, ''));
+      }
+      var input = j$("#giftBatch\\:MainForm\\:newItemBlock\\:giftSection\\:packageIn\\:pckgIn");
+      if (input.length > 0) {
+          input.autocomplete({
+                     source:finalSource
+                 });
+      }
+  }
+  var gAppealId = '{!curr_wrapper.giftDetail.New_Campaign__c}';
+  function applyAppealDefaults(elem) {
+        var appealId = document.getElementById(elem.id + '_lkid').value;
+        gAppealId = appealId;
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.GiftBatchController.GetAppealDefaults}', appealId,
+            function(result, event){
+                if (event.status) {
+                    var letterComponentId = 'giftBatch:MainForm:newItemBlock:receiptSection:receiptLetter';
+                    if (result.FundId) {
+                       var fundControlId = elem.id.replace(':allocAppeal', ':allocFund');
+                       if (!hasValue(fundControlId))
+                           setlookupValue(fundControlId, result.FundId, result.FundName);
+                    }
+                    if (result.LetterId && !hasValue(letterComponentId)) {
+                       setlookupValue(letterComponentId, result.LetterId, result.LetterName);
+                    }
+                    //alert(result.FundName);
+                } else if (event.type === 'exception') {
+                    alert('Error: ' +event.message);
+                } else {
+                    alert('Error: ' +event.message);
+                }
+            },
+            {escape: true}
+        );
+   }
+   function hasValue(target) {
+      return (document.getElementById(target) && document.getElementById(target).value);
+   }
+   function setlookupValue(target, id, name) {
+     if (document.getElementById(target)) {
+         document.getElementById(target).value = name;
+         document.getElementById(target+'_lkid').value = id;
+         document.getElementById(target+'_lkold').value = name;
+     }
+   }
+ </script>
+
+ <apex:actionStatus id="status" startText="Working..." stopText="" startStyleClass="actionStatus" onstart="jShowBusy()" onstop="jHideBusy()"/>
+ <apex:form id="MainForm">
+
+    <apex:pageMessages ></apex:pageMessages>
+    <!--  edit page -->
+    <apex:pageBlock title="{!$ObjectType.Gift_Batch__c.Label} Edit" rendered="{!WizardStep=3}" mode="edit">
+       <apex:pageBlockButtons >
+          <apex:commandButton value="Save" action="{!saveBatch}" reRender="MainForm" status="status"/>
+          <apex:commandButton value="Cancel" action="{!cancel}" reRender="MainForm" status="status"/>
+       </apex:pageBlockButtons>
+       <apex:pageBlockSection title="Information">
+          <apex:inputField value="{!SelectedBatch.Name__c}" required="true"/>
+          <apex:inputField value="{!SelectedBatch.Open_Date__c}"/>
+          <apex:inputField value="{!SelectedBatch.Description__c}"/>
+          <apex:outputField value="{!SelectedBatch.Close_Date__c}"/>
+<!--     -->     <apex:outputField value="{!SelectedBatch.Template_Name__c}"/>
+       </apex:pageBlockSection>
+       <apex:pageBlockSection title="{!$ObjectType.Gift__c.label} Summary">
+          <apex:inputField value="{!SelectedBatch.Cash_Gifts__c}"/>
+          <apex:inputField value="{!SelectedBatch.Cash__c}"/>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="# of Check Gifts" />
+              <apex:inputField value="{!SelectedBatch.Cheque_Gifts__c}"/>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+              <apex:outputLabel value="Check $" />
+          <apex:inputField value="{!SelectedBatch.Cheque__c}"/>
+          </apex:pageBlockSectionItem>
+          <apex:inputField value="{!SelectedBatch.Credit_Card_Gifts__c}"/>
+          <apex:inputField value="{!SelectedBatch.Credit_Card__c}"/>
+          <apex:inputField value="{!SelectedBatch.Direct_Deposit_Gifts__c}"/>
+          <apex:inputField value="{!SelectedBatch.Direct_Deposit__c}"/>
+          <apex:inputField value="{!SelectedBatch.Other_Gifts__c}"/>
+          <apex:inputField value="{!SelectedBatch.Other__c}"/>
+          <apex:inputField value="{!SelectedBatch.Shareplan_Gifts__c}"/>
+          <apex:inputField value="{!SelectedBatch.Shareplan__c}"/>
+       </apex:pageBlockSection>
+    </apex:pageBlock>
+
+    <!-- batch detail -->
+    <apex:actionFunction name="commitBatch" action="{!commitBatch}" reRender="MainForm" status="status"/>
+    <apex:actionFunction name="submitBatch" action="{!MakePaymentsClicked}" reRender="MainForm" status="status"/>
+
+    <apex:pageBlock title="{!$ObjectType.Gift_Batch__c.Label} Detail" rendered="{!wizardStep==1 && NOT(isSubmitEnabled) }">
+     <apex:pageBlockButtons location="top">
+        <apex:commandButton value="Edit" action="{!editBatch}" rendered="{!NOT(isBatchClosed)}" reRender="MainForm" status="status"/>
+        <apex:commandButton value="New Batch Item" action="{!newGift}" rendered="{!NOT(isBatchClosed)}" reRender="MainForm" status="status" oncomplete="packageAutoComplete();"/>
+        <apex:outputPanel layout="none" rendered="{!NOT(isBatchClosed)}">
+          <input type="button" class="btn" value="Submit Payments" onclick="if (window.confirm('You are about to submit: \nTotal credit card transactions: # {!Recon.ccPendingCount}\nTotal transaction amount: '+ formatCurrency({!JSENCODE(Text(Recon.creditCardTotalPending))})+'\n Are you sure?')) submitBatch(); else return false;" />
+          <input type="button" class="btn" value="Commit Batch" onclick="jCommitBatch()"/>
+        </apex:outputPanel>
+        <apex:commandButton value="Report" onclick="window.open('/{!JSENCODE(BatchSettings.BatchReportId__c)}?pv0={!JSENCODE(selectedBatchId)}','_blank');" reRender="MainForm"/>
+<!--        <apex:commandButton value="New Batch Item Interface" action="{!newBatchItemInterface}" rendered="{!NOT(isBatchClosed)}"/>    -->
+     </apex:pageBlockButtons>
+     <apex:pageBlockSection title="{!$ObjectType.Gift_Batch__c.Label} Summary">
+       <apex:outputField value="{!SelectedBatch.Name}"/>
+       <apex:outputField value="{!SelectedBatch.Open_Date__c}"/>
+       <apex:outputField value="{!SelectedBatch.Name__c}"/>
+       <apex:outputField value="{!SelectedBatch.Close_Date__c}"/>
+       <apex:outputField value="{!SelectedBatch.Description__c}"/>
+<!--    -->       <apex:outputField value="{!SelectedBatch.Template_Name__c}"/>
+       <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+       <apex:outputField value="{!SelectedBatch.Cash_Gifts__c}"/>
+       <apex:outputField value="{!SelectedBatch.Cash__c}"/>
+       <apex:outputField value="{!SelectedBatch.Cheque_Gifts__c}"/>
+       <apex:pageBlockSectionItem >
+           <apex:outputLabel >Check $</apex:outputLabel>
+           <apex:outputField value="{!SelectedBatch.Cheque__c}"/>
+       </apex:pageBlockSectionItem>
+       <apex:outputField value="{!SelectedBatch.Credit_Card_Gifts__c}"/>
+       <apex:outputField value="{!SelectedBatch.Credit_Card__c}"/>
+       <apex:outputField value="{!SelectedBatch.Direct_Deposit_Gifts__c}"/>
+       <apex:outputField value="{!SelectedBatch.Direct_Deposit__c}"/>
+       <apex:outputField value="{!SelectedBatch.Other_Gifts__c}"/>
+       <apex:outputField value="{!SelectedBatch.Other__c}"/>
+       <apex:outputField value="{!SelectedBatch.Total_Gift__c}"/>
+       <apex:outputField value="{!SelectedBatch.Total_Gift_Amount__c}"/>
+       <apex:outputField value="{!SelectedBatch.Shareplan_Gifts__c}"/>
+       <apex:outputField value="{!SelectedBatch.Shareplan__c}"/>
+     </apex:pageBlockSection>
+     <apex:pageBlockSection title="Batch Reconciliation" rendered="{!hasItems}">
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="# Recurring Sign-ups"></apex:outputLabel>
+          <apex:outputLabel value="{!Recon.sharePlanCount}"></apex:outputLabel>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="Cash Total $"></apex:outputLabel>
+          <c:CurrencyOutputField value="{!Recon.cashTotal}"/>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+         <apex:outputLabel value="# Credit Card Approved"></apex:outputLabel>
+         <apex:outputLabel value="{!Recon.ccApprovedCount}"></apex:outputLabel>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+         <apex:outputLabel value="Check Total $"></apex:outputLabel>
+         <c:CurrencyOutputField value="{!Recon.chequeTotal}"/>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="# Credit Card Declined"></apex:outputLabel>
+          <apex:outputLabel value="{!Recon.ccDeclinedCount}"></apex:outputLabel>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="Credit Card Total $"></apex:outputLabel>
+          <c:CurrencyOutputField value="{!Recon.creditCardTotal}"/>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="Direct Deposit Total $"></apex:outputLabel>
+          <c:CurrencyOutputField value="{!Recon.DirectDipositTotal}"/>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="Other Total $"></apex:outputLabel>
+          <c:CurrencyOutputField value="{!Recon.OtherTotal}"/>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="Grand Total $"></apex:outputLabel>
+          <c:CurrencyOutputField value="{!Recon.grandTotal}"/>
+       </apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+       <apex:pageBlockSectionItem >
+          <apex:outputLabel value="Recurring Total $"></apex:outputLabel>
+          <c:CurrencyOutputField value="{!Recon.ShareplanTotal}"/>
+       </apex:pageBlockSectionItem>
+     </apex:pageBlockSection>
+   </apex:pageBlock>
+
+   <!-- transaction list -->
+   <apex:actionFunction action="{!EditBatchItem}" name="jsEditBatchItem" reRender="MainForm" status="status2" oncomplete="packageAutoComplete();">
+          <apex:param name="paramOne" assignTo="{!selectedGiftId}" value="" />
+   </apex:actionFunction>
+   <apex:outputPanel rendered="{!wizardStep==1 && NOT(isSubmitEnabled)}" layout="none">
+    <!-- List of items -->
+    <div style="width:100%; height:400px; display:inline; over-flow:auto;">
+      <c:BatchTransactionList batchId="{!Gift_Batch__c.Id}" editFunction="EditBatchItem" value="{!giftItems}" isBatchOpen="{!NOT(isBatchClosed)}" />
+    </div>
+    <br/><br/>
+   </apex:outputPanel>
+
+
+    <!--  submit progress -->
+    <apex:outputPanel layout="none" rendered="{!isSubmitEnabled}">
+       <br/><br/>
+       <center>
+       <div class="progressBar">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+         <tr>
+           <td valign="middle" align="center">
+                <apex:image url="{!URLFOR($Resource.gpAssets,'loader.gif')}"/>
+           </td>
+         </tr>
+         <tr>
+          <td valign="middle" align="center" style="width:80%; font-size:14pt; height:100%;">
+           <apex:outputPanel layout="none" rendered="{!progress<>0}"> {!progress} out of {!Recon.totalCount} - Processing Payments...</apex:outputPanel>
+           <apex:outputPanel layout="none" rendered="{!progress=0}">Processing the first: {!IF(Recon.totalCount>maxItemPerBatch, maxItemPerBatch ,Recon.totalCount)} item(s)...</apex:outputPanel>
+          </td>
+         </tr>
+         </table>
+       </div>
+     </center>
+     </apex:outputPanel>
+    <apex:actionPoller enabled="{!isSubmitEnabled}" interval="5" action="{!submit}" rerender="MainForm" status="status3"></apex:actionPoller>
+
+    <!-- new item -->
+    <script type="text/javascript">
+        var frequencyElemId = '';
+        var paymentTypeElemId = ''; var startDateElemId = '';
+        var loadingEdit = false;
+        function EditBatchItem(itemId)
+        {
+           loadingEdit = true;
+           jsEditBatchItem(itemId);
+        }
+
+        function updateFormStatus() {
+          frequencyElem = document.getElementById(frequencyElemId);
+          paymentTypeElem  = document.getElementById(paymentTypeElemId);
+          if (  frequencyElem &&
+                paymentTypeElem  &&
+                frequencyElem.options[frequencyElem.selectedIndex].value != '' &&
+                paymentTypeElem.options[paymentTypeElem.selectedIndex].value == 'Credit Card')
+          {
+              startDateElem = document.getElementById(startDateElemId);
+              var now = new Date();
+              var thisDay = now.getDate();
+              var thisMonth = now.getMonth();
+              var thisYear = now.getFullYear();
+              if (thisDay <= 15) {
+                 thisDay = 15;
+                 thisMonth = thisMonth + 1;
+              }
+              else  {
+                  thisDay = 15;
+                  thisMonth = thisMonth + 2;
+                  if (thisMonth >= 12) {
+                      thisMonth = 1;
+                      thisYear = thisYear + 1;
+                  }
+              }
+          }
+          else
+          {
+          }
+        }//end func
+
+        function jShowBusy() {
+          document.body.style.cursor = "wait";
+        }
+        function jHideBusy() {
+         document.body.style.cursor = "default";
+        }
+
+        function jCommitBatch() {
+           if (window.confirm('Are you sure, after closing you no longer will be able to modify the batch items.')) {
+               commitBatch();
+           }
+        }
+
+        function formatCurrency(num) {
+            num = num.toString().replace(/\$|\,/g,'');
+            if(isNaN(num)) num = "0";
+            var sign = (num == (num = Math.abs(num)));
+            num = Math.floor(num*100+0.50000000001);
+            var cents = num%100;
+            num = Math.floor(num/100).toString();
+            if ( cents < 10 ) { cents = "0" + cents; }
+            for (var i = 0; i < Math.floor((num.length-(1+i))/3); i++)
+                  num = num.substring(0,num.length-(4*i+3))+','+
+            num.substring(num.length-(4*i+3));
+            return (((sign)?'':'-') + '$' + num + '.' + cents);
+        }
+
+        function populateAmount(elem) {
+            j$("[id$='allo_amount']").val(elem.value);
+            j$("[id$='rd_allo_amount']").val(elem.value);
+            jsPopulateAmount();
+        }
+        function populateDates(elem) {
+            j$("[id$='cheque_date']").val(elem.value);
+            j$("[id$='payment_date']").val(elem.value);
+            jsPopulateDate();
+        }
+
+
+    </script>
+    <apex:pageBlock rendered="{!hasPledge}" >
+        <apex:pageBlockSection >
+            <apex:pageBlockTable title="Outstanding Pledges" var="item" value="{!outstanding_pledges}">
+                <apex:column headerValue="Pledge">
+                     <a href="javascript: void(0)" onclick="window.open('/{!item.Id}');">{!item.Name}</a>
+                 </apex:column>
+                <apex:column headerValue="Pledge Date">
+                     <apex:outputField value="{!item.Gift_Date__c}"/>
+                 </apex:column>
+                <apex:column headerValue="Pledge Amount">
+                     <apex:outputField value="{!item.Expected_Amount__c}"/>
+                 </apex:column>
+                <apex:column headerValue="Number of Outstanding Payments">
+                     <apex:outputField value="{!item.No_of_Outstanding_Payments__c}"/>
+                 </apex:column>
+                <apex:column headerValue="Outstanding Amount">
+                     <apex:outputField value="{!item.Outstanding_Amount__c}"/>
+                 </apex:column>
+                <apex:column headerValue="Next Payment Due">
+                     <apex:outputField value="{!item.Next_Payment_Due__c}"/>
+                 </apex:column>
+                <apex:column headerValue="Per Payment Amount">
+                     <apex:outputField value="{!item.Per_Payment_Amount__c}"/>
+                 </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:pageBlock title="New {!$ObjectType.Gift_Batch__c.Label} Item" rendered="{!wizardStep==2 && NOT(isSubmitEnabled)}" id="newItemBlock">
+       <apex:pageBlockButtons >
+         <apex:commandButton value="{!curr_wrapper.SaveTitle}" action="{!saveItem}" reRender="MainForm" status="status" oncomplete="scroll(0,0);"/>
+         <apex:commandButton value="{!curr_wrapper.SaveAndNewTitle}" action="{!saveItemAndNew}" reRender="MainForm" status="status" oncomplete="scroll(0,0);"/>
+         <apex:commandButton value="Cancel" immediate="true" action="{!cancel}" reRender="MainForm" status="status" oncomplete="scroll(0,0);"/>
+       </apex:pageBlockButtons>
+
+       <apex:pageBlockSection rendered="{!isGiftTypeVisible}">
+        <apex:pageBlockSectionItem >
+           <apex:outputLabel value="{!$ObjectType.Gift__c.Label} Type"></apex:outputLabel>
+           <apex:actionRegion >
+           <apex:selectRadio value="{!curr_wrapper.isIndividualGift}">
+              <apex:actionSupport event="onchange" action="{!nilMethod}" rerender="MainForm" status="status2"/>
+              <apex:selectOption itemLabel="{!$ObjectType.Contact.Label}" itemValue="true"></apex:selectOption>
+              <apex:selectOption itemLabel="{!$ObjectType.Account.Label}" itemValue="false"></apex:selectOption>
+           </apex:selectRadio>
+          </apex:actionRegion>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >&nbsp; &nbsp;</apex:pageBlockSectionItem>
+      </apex:pageBlockSection>
+
+      <!-- Constituent -->
+      <apex:pageBlockSection title="{!$ObjectType.Contact.Label}" rendered="{!curr_wrapper.isIndividualGift}">
+          <apex:pageBlockSectionItem id="ContactLookUp">
+            <apex:outputLabel value="{!$ObjectType.Contact.fields.Constituent_ID__c.Label}" for="contactId"/>
+            <apex:actionRegion id="findContactRegion">
+               <apex:actionFunction name="findcontact" action="{!FindContact}" reRender="MainForm" status="status" oncomplete="packageAutoComplete();"/>
+               <c:lookupInputTextbox id="LookupContact" navigateUrl="/apex/{!CvNamespace}lookup?type=Constituent" title="{!ContactSearchText}" value="{!SelectedContactId}" onEnterKeyDown="findcontact" onChange="findcontact" tabindex="0" />
+            </apex:actionRegion>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem id="FirstNamePanel" rendered="{!NOT(curr_wrapper.presets.constituentFirstName.isHidden)}">
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.FirstName.label}"></apex:outputLabel>
+             <apex:outputPanel layout="none">
+               <apex:inputField value="{!curr_wrapper.constituent.Salutation}"/>
+               <apex:inputField value="{!curr_wrapper.constituent.FirstName}"/>
+               <apex:inputField style="width:15px;" value="{!curr_wrapper.constituent.Middle_Name__c}"/>
+             </apex:outputPanel>
+          </apex:pageBlockSectionItem>
+          <apex:inputField value="{!curr_wrapper.constituent.LastName}" required="{!curr_wrapper.presets.constituentLastName.isRequired}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.MailingStreet}" rendered="{!NOT(curr_wrapper.presets.constituentMailingStreet.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.MailingCity}" rendered="{!NOT(curr_wrapper.presets.constituentMailingCity.readOnly) && NOT(curr_wrapper.presets.constituentMailingCity.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.MailingCity}" rendered="{!curr_wrapper.presets.constituentMailingCity.readOnly && NOT(curr_wrapper.presets.constituentMailingCity.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.MailingState}" rendered="{!NOT(curr_wrapper.presets.constituentMailingState.readOnly) && NOT(curr_wrapper.presets.constituentMailingState.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.MailingState}" rendered="{!curr_wrapper.presets.constituentMailingState.readOnly && NOT(curr_wrapper.presets.constituentMailingState.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.MailingPostalCode}" rendered="{!NOT(curr_wrapper.presets.constituentMailingPostalCode.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.MailingCountry}" rendered="{!NOT(curr_wrapper.presets.constituentMailingCountry.readOnly) && NOT(curr_wrapper.presets.constituentMailingCountry.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.MailingCountry}" rendered="{!curr_wrapper.presets.constituentMailingCountry.readOnly && NOT(curr_wrapper.presets.constituentMailingCountry.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Region__c}" rendered="{!NOT(curr_wrapper.presets.constituentRegion.readOnly) && NOT(curr_wrapper.presets.constituentRegion.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.Region__c}" rendered="{!curr_wrapper.presets.constituentRegion.readOnly && NOT(curr_wrapper.presets.constituentRegion.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Phone}" rendered="{!NOT(curr_wrapper.presets.constituentPhone.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Email}" rendered="{!NOT(curr_wrapper.presets.constituentEmail.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Primary_Addressee__c}" rendered="{!NOT(curr_wrapper.presets.constituentPrimaryAddressee.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Primary_Salutation__c}" rendered="{!NOT(curr_wrapper.presets.constituentPrimarySalutation.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Trade_Status__c}" rendered="{!NOT(curr_wrapper.presets.constituentTradeStatus.readOnly) && NOT(curr_wrapper.presets.constituentTradeStatus.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.Trade_Status__c}" rendered="{!curr_wrapper.presets.constituentTradeStatus.readOnly && NOT(curr_wrapper.presets.constituentTradeStatus.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Solicit_Codes__c}" rendered="{!NOT(curr_wrapper.presets.constituentSolicitCode.readOnly) && NOT(curr_wrapper.presets.constituentSolicitCode.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.Solicit_Codes__c}" rendered="{!curr_wrapper.presets.constituentSolicitCode.readOnly && NOT(curr_wrapper.presets.constituentSolicitCode.isHidden)}"/>
+          <apex:inputField value="{!curr_wrapper.constituent.Constituent_Codes__c}" rendered="{!NOT(curr_wrapper.presets.constituentCodes.readOnly) && NOT(curr_wrapper.presets.constituentCodes.isHidden)}"/>
+          <apex:outputField value="{!curr_wrapper.constituent.Constituent_Codes__c}" rendered="{!curr_wrapper.presets.constituentCodes.readOnly && NOT(curr_wrapper.presets.constituentCodes.isHidden)}"/>
+         <apex:inputField value="{!curr_wrapper.constituent.Household__c}" rendered="{!NOT(curr_wrapper.presets.constituentHousehold.isHidden)}"/>
+      </apex:pageBlockSection>
+
+      <apex:pageBlockSection id="accountSection" title="{!$ObjectType.Account.label}" rendered="{!NOT(curr_wrapper.isIndividualGift)}">
+           <apex:pageBlockSectionItem id="AccountLookUp">
+             <apex:outputLabel value="{!$ObjectType.Account.fields.Organization_ID__c.label}"/>
+             <apex:actionRegion >
+                <apex:actionFunction name="findAccount" action="{!FindAccount}" reRender="MainForm" status="status" oncomplete="packageAutoComplete();"/>
+                <c:lookupInputTextbox id="LookupAccount" navigateUrl="/apex/{!CvNamespace}lookup?type=Account" title="{!AccountSearchText}" value="{!SelectedAccountId}" onEnterKeyDown="findAccount" onChange="findAccount"/>
+             </apex:actionRegion>
+           </apex:pageBlockSectionItem>
+           <apex:inputField value="{!curr_wrapper.account.Name}"/>
+           <apex:inputField value="{!curr_wrapper.account.BillingStreet}" rendered="{!NOT(curr_wrapper.presets.orgBillingStreet.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.BillingCity}" rendered="{!NOT(curr_wrapper.presets.orgBillingCity.readOnly) && NOT(curr_wrapper.presets.orgBillingCity.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.BillingCity}" rendered="{!curr_wrapper.presets.orgBillingCity.readOnly && NOT(curr_wrapper.presets.orgBillingCity.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.BillingState}" rendered="{!NOT(curr_wrapper.presets.orgBillingState.readOnly) && NOT(curr_wrapper.presets.orgBillingState.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.BillingState}" rendered="{!curr_wrapper.presets.orgBillingState.readOnly && NOT(curr_wrapper.presets.orgBillingState.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.BillingPostalCode}" rendered="{!NOT(curr_wrapper.presets.orgBillingPostalCode.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.BillingCountry}" rendered="{!NOT(curr_wrapper.presets.orgBillingCountry.readOnly) && NOT(curr_wrapper.presets.orgBillingCountry.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.BillingCountry}" rendered="{!curr_wrapper.presets.orgBillingCountry.readOnly && NOT(curr_wrapper.presets.orgBillingCountry.isHidden)}"/>
+
+           <apex:inputField value="{!curr_wrapper.account.Region__c}" rendered="{!NOT(curr_wrapper.presets.orgRegion.readOnly) && NOT(curr_wrapper.presets.orgRegion.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.Region__c}" rendered="{!curr_wrapper.presets.orgRegion.readOnly && NOT(curr_wrapper.presets.orgRegion.isHidden)}"/>
+
+           <apex:inputField value="{!curr_wrapper.account.Phone}" rendered="{!NOT(curr_wrapper.presets.orgPhone.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.Fax}" rendered="{!NOT(curr_wrapper.presets.orgFax.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.Website}" rendered="{!NOT(curr_wrapper.presets.orgWebsite.isHidden)}"/>
+           <apex:inputField value="{!curr_wrapper.account.Email__c}" rendered="{!NOT(curr_wrapper.presets.orgEmail.isHidden)}"/>
+
+           <apex:inputField value="{!curr_wrapper.account.Type}" rendered="{!NOT(curr_wrapper.presets.orgType.readOnly) && NOT(curr_wrapper.presets.orgType.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.Type}" rendered="{!curr_wrapper.presets.orgType.readOnly && NOT(curr_wrapper.presets.orgType.isHidden)}"/>
+
+           <apex:inputField value="{!curr_wrapper.account.Trade_Status__c}" rendered="{!NOT(curr_wrapper.presets.orgTradeStatus.readOnly) && NOT(curr_wrapper.presets.orgTradeStatus.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.Trade_Status__c}" rendered="{!curr_wrapper.presets.orgTradeStatus.readOnly && NOT(curr_wrapper.presets.orgTradeStatus.isHidden)}"/>
+
+           <apex:inputField value="{!curr_wrapper.account.Solicit_Codes__c}" rendered="{!NOT(curr_wrapper.presets.orgSolicitCode.readOnly) && NOT(curr_wrapper.presets.orgSolicitCode.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.Solicit_Codes__c}" rendered="{!curr_wrapper.presets.orgSolicitCode.readOnly && NOT(curr_wrapper.presets.orgSolicitCode.isHidden)}"/>
+
+           <apex:inputField value="{!curr_wrapper.account.Constituent_Codes__c}" rendered="{!NOT(curr_wrapper.presets.orgConstituentCode.readOnly) && NOT(curr_wrapper.presets.orgConstituentCode.isHidden)}"/>
+           <apex:outputField value="{!curr_wrapper.account.Constituent_Codes__c}" rendered="{!curr_wrapper.presets.orgConstituentCode.readOnly && NOT(curr_wrapper.presets.orgConstituentCode.isHidden)}"/>
+
+      </apex:pageBlockSection>
+      <apex:pageBlockSection title="Organizational Contact" rendered="{!NOT(curr_wrapper.isIndividualGift)}">
+        <apex:pageBlockSectionItem id="KeyContactLookUp">
+            <apex:outputLabel value="{!$ObjectType.Contact.fields.Constituent_ID__c.Label}" for="contactId"/>
+            <apex:actionRegion id="findContactRegion2">
+               <apex:actionFunction name="findcontact" action="{!FindContact}" reRender="MainForm" status="status"/>
+               <c:lookupInputTextbox id="LookupContact2" navigateUrl="/apex/{!CvNamespace}lookup?type=Constituent&accountId={!curr_wrapper.account.Id}" title="{!ContactSearchText}" value="{!SelectedContactId}" onEnterKeyDown="findcontact" onChange="findcontact" tabindex="0" />
+            </apex:actionRegion>
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem id="FirstNamePanel2">
+             <apex:outputLabel value="{!$ObjectType.Contact.fields.FirstName.label}"></apex:outputLabel>
+             <apex:outputPanel layout="none">
+               <apex:inputField value="{!curr_wrapper.constituent.Salutation}"/>
+               <apex:inputField value="{!curr_wrapper.constituent.FirstName}" required="false"/>
+             </apex:outputPanel>
+          </apex:pageBlockSectionItem>
+          <apex:inputField value="{!curr_wrapper.constituent.LastName}" required="false"/>
+      </apex:pageBlockSection>
+
+      <!-- recurring details -->
+      <apex:pageBlockSection title="{!$ObjectType.Recurring_Donation__c.Label}" id="shareplanBlock">
+            <apex:pageBlockSectionItem rendered="{!NOT(curr_wrapper.presets.shareplanFrequency.readOnly) && NOT(curr_wrapper.presets.shareplanFrequency.isHidden)}">
+                <apex:outputLabel value="Frequency" />
+                    <apex:outputPanel layout="none">
+                        <apex:actionRegion >
+                            <apex:actionFunction name="updateFrequencySection" action="{!UpdateRecurringUI}" reRender="something,shareplanBlock,giftSection" status="status" oncomplete="packageAutoComplete();" />
+                            <apex:inputField id="frequency" value="{!curr_wrapper.recurringDonation.Frequency__c}" onchange="updateFrequencySection()"/>
+                            <script type="text/javascript">
+                                frequencyElemId = '{!$Component.frequency}';
+                            </script>
+                        </apex:actionRegion>
+                    </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:outputField value="{!curr_wrapper.recurringDonation.Frequency__c}" rendered="{!curr_wrapper.presets.shareplanFrequency.readOnly && NOT(curr_wrapper.presets.shareplanFrequency.isHidden)}"/>
+            <apex:inputField id="startDate" value="{!curr_wrapper.recurringDonation.Start_Date__c}" rendered="{!NOT(curr_wrapper.presets.shareplanStartDate.readOnly) && NOT(curr_wrapper.presets.shareplanStartDate.isHidden)}" required="{!curr_wrapper.recurringDonation.Frequency__c!=null}"/>
+            <apex:outputField value="{!curr_wrapper.recurringDonation.Start_Date__c}" rendered="{!curr_wrapper.presets.shareplanStartDate.readOnly && NOT(curr_wrapper.presets.shareplanStartDate.isHidden)}"/>
+
+            <apex:inputField value="{!curr_wrapper.recurringDonation.of_Payments__c}" rendered="{!NOT(curr_wrapper.presets.shareplanNumberOfPayments.readOnly) && NOT(curr_wrapper.presets.shareplanNumberOfPayments.isHidden)}"/>
+            <apex:outputField value="{!curr_wrapper.recurringDonation.of_Payments__c}" rendered="{!curr_wrapper.presets.shareplanNumberOfPayments.readOnly && NOT(curr_wrapper.presets.shareplanNumberOfPayments.isHidden)}"/>
+
+            <script type="text/javascript">
+              startDateElemId = '{!$Component.startDate}';
+            </script>
+      </apex:pageBlockSection>
+
+      <!-- gift details -->
+      <apex:pageBlockSection title="Gift" id="giftSection">
+         <!-- <apex:actionRegion >
+        <apex:actionFunction action="{!populateDate}" name="jsPopulateDate" reRender="paymentSection"/>
+        <apex:actionFunction action="{!populateAmount}" name="jsPopulateAmount" reRender="something"/>
+          </apex:actionRegion>     -->
+        <apex:inputField onchange="populateDates(this);" value="{!curr_wrapper.gift.Gift_Date__c}" required="true" rendered="{!NOT(curr_wrapper.presets.giftDate.readOnly) && NOT(curr_wrapper.presets.giftDate.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Gift_Date__c}" rendered="{!curr_wrapper.presets.giftDate.readOnly && NOT(curr_wrapper.presets.giftDate.isHidden)}"/>
+        <apex:inputField onchange="populateAmount(this);" value="{!curr_wrapper.payment.Amount__c}" required="true" rendered="{!NOT(curr_wrapper.isRecurring) && NOT(curr_wrapper.presets.giftAmount.readOnly) && NOT(curr_wrapper.presets.giftAmount.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.payment.Amount__c}" rendered="{!NOT(curr_wrapper.isRecurring) && curr_wrapper.presets.giftAmount.readOnly && NOT(curr_wrapper.presets.giftAmount.isHidden)}"/>
+        <apex:inputField onchange="populateAmount(this);" value="{!curr_wrapper.recurringDonation.Amount__c}" required="true" rendered="{!curr_wrapper.isRecurring && NOT(curr_wrapper.presets.giftAmount.readOnly) && NOT(curr_wrapper.presets.giftAmount.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.recurringDonation.Amount__c}" rendered="{!curr_wrapper.isRecurring && curr_wrapper.presets.giftAmount.readOnly && NOT(curr_wrapper.presets.giftAmount.isHidden)}"/>
+
+
+        <apex:inputField value="{!curr_wrapper.gift.Channel__c}" required="true" rendered="{!NOT(curr_wrapper.presets.giftChannel.readOnly) && NOT(curr_wrapper.presets.giftChannel.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Channel__c}" rendered="{!curr_wrapper.presets.giftChannel.readOnly && NOT(curr_wrapper.presets.giftChannel.isHidden)}"/>
+
+
+
+
+        <apex:inputField value="{!curr_wrapper.gift.Gift_Type__c}" required="true" rendered="{!NOT(curr_wrapper.presets.giftType.readOnly) && NOT(curr_wrapper.presets.giftType.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Gift_Type__c}" rendered="{!curr_wrapper.presets.giftType.readOnly && NOT(curr_wrapper.presets.giftType.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.gift.Anonymous__c}"/>
+
+        <!--
+        <apex:inputField value="{!curr_wrapper.gift.Foundation_Credit__c}" rendered="{!NOT(curr_wrapper.presets.giftFoundationCredit.readOnly) && NOT(curr_wrapper.presets.giftFoundationCredit.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Foundation_Credit__c}" rendered="{!curr_wrapper.presets.giftFoundationCredit.readOnly && NOT(curr_wrapper.presets.giftFoundationCredit.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.gift.Product__c}" rendered="{!NOT(curr_wrapper.presets.giftProduct.readOnly) && NOT(curr_wrapper.presets.giftProduct.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Product__c}" rendered="{!curr_wrapper.presets.giftProduct.readOnly && NOT(curr_wrapper.presets.giftProduct.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.gift.Membership__c}" rendered="{!NOT(curr_wrapper.presets.giftMembership.readOnly) && NOT(curr_wrapper.presets.giftMembership.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Membership__c}" rendered="{!curr_wrapper.presets.giftMembership.readOnly && NOT(curr_wrapper.presets.giftMembership.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.gift.Primary_Solicitor__c}" rendered="{!NOT(curr_wrapper.presets.giftPrimarySolicitor.readOnly) && NOT(curr_wrapper.presets.giftPrimarySolicitor.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Primary_Solicitor__c}" rendered="{!curr_wrapper.presets.giftPrimarySolicitor.readOnly && NOT(curr_wrapper.presets.giftPrimarySolicitor.isHidden)}"/>
+        -->
+        <apex:pageBlockSectionItem id="packageIn">
+            <apex:outputLabel value="Package" for="pckgIn" rendered="{!NOT(curr_wrapper.presets.giftDetailPackage.readOnly) && NOT(curr_wrapper.presets.giftDetailPackage.isHidden)}" />
+            <apex:inputText id="pckgIn" value="{!curr_wrapper.gift.Package_Name__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailPackage.readOnly) && NOT(curr_wrapper.presets.giftDetailPackage.isHidden)}" />
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem id="packageOut">
+            <apex:outputLabel value="Package" for="pckgOut" rendered="{!curr_wrapper.presets.giftDetailPackage.readOnly && NOT(curr_wrapper.presets.giftDetailPackage.isHidden)}"/>
+            <apex:outputText id="pckgOut" value="{!curr_wrapper.gift.Package_Name__c}" rendered="{!curr_wrapper.presets.giftDetailPackage.readOnly && NOT(curr_wrapper.presets.giftDetailPackage.isHidden)}"/>
+        </apex:pageBlockSectionItem>
+
+        <apex:inputField value="{!curr_wrapper.gift.Internal_Solicitor__c}" rendered="{!NOT(curr_wrapper.presets.giftInternalSolicitor.readOnly) && NOT(curr_wrapper.presets.giftInternalSolicitor.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Internal_Solicitor__c}" rendered="{!curr_wrapper.presets.giftInternalSolicitor.readOnly && NOT(curr_wrapper.presets.giftInternalSolicitor.isHidden)}"/>
+
+        <apex:pageBlockSectionItem rendered="{!NOT(curr_wrapper.presets.giftSubject.isHidden)}">
+          <apex:outputLabel value="Subject"></apex:outputLabel>
+          <apex:outputPanel layout="none">
+              <apex:inputText value="{!curr_wrapper.noteSubject}" rendered="{!NOT(curr_wrapper.presets.giftSubject.readOnly) && NOT(curr_wrapper.presets.giftSubject.isHidden)}"/>
+              <apex:outputText value="{!curr_wrapper.noteSubject}" rendered="{!curr_wrapper.presets.giftSubject.readOnly && NOT(curr_wrapper.presets.giftSubject.isHidden)}"/>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!NOT(curr_wrapper.presets.giftNotes.isHidden)}">
+          <apex:outputLabel value="Notes"></apex:outputLabel>
+          <apex:outputPanel layout="none">
+              <apex:inputTextarea value="{!curr_wrapper.noteBody}" rendered="{!NOT(curr_wrapper.presets.giftNotes.readOnly) && NOT(curr_wrapper.presets.giftNotes.isHidden)}"/>
+              <apex:outputText value="{!curr_wrapper.noteBody}" rendered="{!curr_wrapper.presets.giftNotes.readOnly && NOT(curr_wrapper.presets.giftNotes.isHidden)}"/>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+      </apex:pageBlockSection>
+
+       <!-- payment details -->
+      <apex:pageBlockSection title="{!$ObjectType.Payment__c.label}" id="paymentSection">
+
+        <apex:pageBlockSectionItem rendered="{!NOT(curr_wrapper.presets.paymentType.readOnly) && NOT(curr_wrapper.presets.paymentType.isHidden)}">
+          <apex:outputLabel value="{!$ObjectType.Payment__c.fields.Payment_Type__c.label}"></apex:outputLabel>
+          <apex:outputPanel layout="none">
+              <apex:actionRegion >
+                <apex:actionFunction name="updatePaymentSection" reRender="paymentSection" status="status" oncomplete="packageAutoComplete();" />
+                <apex:inputField id="paymentType" value="{!curr_wrapper.payment.Payment_Type__c}" required="true" onchange="updateFormStatus(); updatePaymentSection();"/>
+              </apex:actionRegion>
+              <script type="text/javascript">
+               paymentTypeElemId = '{!$Component.paymentType}';
+             </script>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:outputField value="{!curr_wrapper.payment.Payment_Type__c}" rendered="{!curr_wrapper.presets.paymentType.readOnly && NOT(curr_wrapper.presets.paymentType.isHidden)}"/>
+
+         <apex:pageBlockSectionItem rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card'}">
+          <apex:outputLabel value="Cardholder First Name"></apex:outputLabel>
+          <apex:outputPanel styleClass="requiredInput">
+             <div class="requiredBlock"/>
+             <apex:inputText value="{!curr_wrapper.cardholderFirstName}"/>
+         </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card'}">
+          <apex:outputLabel value="Cardholder Last Name"></apex:outputLabel>
+          <apex:outputPanel styleClass="requiredInput">
+             <div class="requiredBlock"/>
+             <apex:inputText value="{!curr_wrapper.cardholderLastName}"/>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+
+        <apex:inputField value="{!curr_wrapper.payment.Credit_Card_Type__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card' && NOT(curr_wrapper.presets.paymentCCType.readOnly) && NOT(curr_wrapper.presets.paymentCCType.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.payment.Credit_Card_Type__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card' && curr_wrapper.presets.paymentCCType.readOnly && NOT(curr_wrapper.presets.paymentCCType.isHidden)}"/>
+
+        <apex:pageBlockSectionItem rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card'}">
+          <apex:outputLabel value="Credit Card #"></apex:outputLabel>
+          <apex:outputPanel styleClass="requiredInput">
+             <div class="requiredBlock"/>
+            <apex:inputText value="{!curr_wrapper.CCNumber}"/>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card'}" helpText="Cardholder Verification Value (CVV): These three or four digit numbers help ensure that the physical card is in the cardholder’s possession. This helps to prevent unauthorized or fraudulent use.">
+          <apex:outputLabel value="Security Code"></apex:outputLabel>
+            <apex:inputText value="{!curr_wrapper.Cvv}"/>
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem helpText="format: mmyy" rendered="{!curr_wrapper.payment.Payment_Type__c='Credit Card'}">
+          <apex:outputLabel value="Expiry Date"></apex:outputLabel>
+          <apex:outputPanel styleClass="requiredInput">
+            <div class="requiredBlock"/>
+            <apex:inputText id="ExpirationDate" value="{!curr_wrapper.expirationDate}"/>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+
+        <apex:inputField value="{!curr_wrapper.payment.Cheque_Num__c}" rendered="{!curr_wrapper.payment.Payment_Type__c=='Check' && NOT(curr_wrapper.presets.paymentChequeNo.isHidden)}" required="true"/>
+
+        <apex:inputField id="cheque_date" value="{!curr_wrapper.payment.Cheque_Date__c}" rendered="{!curr_wrapper.payment.Payment_Type__c=='Check' && NOT(curr_wrapper.presets.paymentChequeDate.readOnly) && NOT(curr_wrapper.presets.paymentChequeDate.isHidden)}" required="true"/>
+        <apex:outputField value="{!curr_wrapper.payment.Cheque_Date__c}" rendered="{!curr_wrapper.payment.Payment_Type__c=='Check' && curr_wrapper.presets.paymentChequeDate.readOnly && NOT(curr_wrapper.presets.paymentChequeDate.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.payment.Date_Deposited__c}" rendered="{!curr_wrapper.payment.Payment_Type__c<>'Credit Card' && curr_wrapper.payment.Payment_Type__c<>'PAD' && NOT(curr_wrapper.presets.paymentDateDeposited.readOnly) && NOT(curr_wrapper.presets.paymentDateDeposited.isHidden)}" />
+        <apex:outputField value="{!curr_wrapper.payment.Date_Deposited__c}" rendered="{!curr_wrapper.payment.Payment_Type__c<>'Credit Card' && curr_wrapper.payment.Payment_Type__c<>'PAD' && curr_wrapper.presets.paymentDateDeposited.readOnly && NOT(curr_wrapper.presets.paymentDateDeposited.isHidden)}"/>
+
+        <apex:inputField id="payment_date" value="{!curr_wrapper.payment.Date__c}" required="true" rendered="{!NOT(curr_wrapper.presets.paymentDate.readOnly) && NOT(curr_wrapper.presets.paymentDate.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.payment.Date__c}" rendered="{!curr_wrapper.presets.paymentDate.readOnly && NOT(curr_wrapper.presets.paymentDate.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.recurringDonation.Bank_Name__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && NOT(curr_wrapper.presets.shareplanBankName.readOnly) && NOT(curr_wrapper.presets.shareplanBankName.isHidden)}" required="true"/>
+        <apex:outputField value="{!curr_wrapper.recurringDonation.Bank_Name__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && curr_wrapper.presets.shareplanBankName.readOnly && NOT(curr_wrapper.presets.shareplanBankName.isHidden)}" />
+
+        <apex:inputField value="{!curr_wrapper.recurringDonation.Bank_City__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && NOT(curr_wrapper.presets.shareplanBankCity.readOnly) && NOT(curr_wrapper.presets.shareplanBankCity.isHidden)}" required="true"/>
+        <apex:outputField value="{!curr_Wrapper.recurringDonation.Bank_City__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && curr_wrapper.presets.shareplanBankCity.readOnly && NOT(curr_wrapper.presets.shareplanBankCity.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.recurringDonation.Branch_Num__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && NOT(curr_wrapper.presets.shareplanBranchNo.isHidden)}" required="true"/>
+
+        <apex:inputField value="{!curr_wrapper.recurringDonation.Institution_Num__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && NOT(curr_wrapper.presets.shareplanInstitutionNo.isHidden)}" required="true"/>
+
+        <apex:inputField value="{!curr_wrapper.recurringDonation.Account__c}" rendered="{!curr_wrapper.payment.Payment_Type__c='PAD' && NOT(curr_wrapper.presets.shareplanAccountNo.isHidden)}" required="true"/>
+
+      </apex:pageBlockSection>
+
+      <!-- receipt -->
+      <apex:pageBlockSection title="{!$ObjectType.Receipt__c.label}" id="receiptSection" rendered="{!NOT(curr_wrapper.presets.receiptType.isHidden)}">
+        <apex:pageBlockSectionItem rendered="{!NOT(curr_wrapper.presets.receiptType.readOnly) && NOT(curr_wrapper.presets.receiptType.isHidden)}">
+          <apex:outputLabel value="{!$ObjectType.Gift__c.fields.Receipt_Type__c.label}"></apex:outputLabel>
+          <apex:outputPanel layout="none">
+              <apex:actionRegion >
+                <apex:inputField id="receiptType" value="{!curr_wrapper.gift.Receipt_Type__c}" required="true">
+                  <apex:actionSupport event="onchange" reRender="receiptSection" status="status2" oncomplete="packageAutoComplete();" />
+                </apex:inputField>
+              </apex:actionRegion>
+          </apex:outputPanel>
+        </apex:pageBlockSectionItem>
+        <apex:outputField value="{!curr_wrapper.gift.Receipt_Type__c}" rendered="{!curr_wrapper.presets.receiptType.readOnly && NOT(curr_wrapper.presets.receiptType.isHidden)}"/>
+
+        <apex:inputField id="receiptLetter" value="{!curr_wrapper.gift.Letter__c}" rendered="{!NOT(curr_wrapper.presets.giftLetter.readOnly) && NOT(curr_wrapper.presets.giftLetter.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Letter__c}" rendered="{!curr_wrapper.presets.giftLetter.readOnly && NOT(curr_wrapper.presets.giftLetter.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.gift.Receipt_Later__c}"/>
+
+        <apex:inputField value="{!curr_wrapper.gift.Reference__c}" rendered="{!NOT(curr_wrapper.presets.giftReference.readOnly) && NOT(curr_wrapper.presets.giftReference.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.gift.Reference__c}" rendered="{!curr_wrapper.presets.giftReference.readOnly && NOT(curr_wrapper.presets.giftReference.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.receipt.Notes__c}" rendered="{!NOT(curr_wrapper.presets.receiptNotes.readOnly) && NOT(curr_wrapper.presets.receiptNotes.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.receipt.Notes__c}" rendered="{!curr_wrapper.presets.receiptNotes.readOnly && NOT(curr_wrapper.presets.receiptNotes.isHidden)}"/>
+
+        <apex:inputField value="{!curr_wrapper.receipt.Amount_Not_Eligible__c}" rendered="{!NOT(curr_wrapper.presets.receiptAmountEligible.readOnly) && NOT(curr_wrapper.presets.receiptAmountEligible.isHidden)}"/>
+        <apex:outputField value="{!curr_wrapper.receipt.Amount_Not_Eligible__c}" rendered="{!curr_wrapper.presets.receiptAmountEligible.readOnly && NOT(curr_wrapper.presets.receiptAmountEligible.isHidden)}"/>
+      </apex:pageBlockSection>
+
+      <!-- giftd etails -->
+      <apex:outputPanel id="something">
+
+      <apex:pageBlockSection title="{!$ObjectType.Gift_Detail__c.LabelPlural}" rendered="{!NOT(curr_wrapper.isRecurring)}">
+      </apex:pageBlockSection>
+
+      <apex:actionFunction action="{!removeGiftDetail}" name="removeGiftDetail" immediate="true" rendered="{!NOT(curr_wrapper.isRecurring)}" reRender="something" status="status2" oncomplete="packageAutoComplete();">
+              <apex:param name="GiftDetailIndex" value=""/>
+              <apex:param name="second" value=""/>
+      </apex:actionFunction>
+
+      <apex:outputPanel id="repeatBlock" layout="none" rendered="{!NOT(curr_wrapper.isRecurring)}">
+      <apex:variable var="rowIndex" value="{!0}"/>
+      <apex:repeat value="{!curr_wrapper.giftDetails}" var="item">
+         <apex:variable var="rowIndex" value="{!rowIndex+1}"/>
+
+         <apex:outputPanel style="background-color:#EDDDDD;text-align:right;width:100%;color:Black;" styleClass="pbSubheader" layout="block" rendered="{!rowIndex>1}">
+           {!TEXT(rowIndex)} - <input type="button" class="btn" value="Remove" onclick="if (window.confirm('Are you sure?')) removeGiftDetail('{!rowIndex}','0');"/>
+         </apex:outputPanel>
+
+         <apex:pageBlockSection >
+            <apex:inputField id="allo_amount" value="{!item.Amount__c}" required="true" rendered="{!NOT(curr_wrapper.presets.giftDetailAmount.readOnly) && NOT(curr_wrapper.presets.giftDetailAmount.isHidden)}"/>
+            <apex:outputField value="{!item.Amount__c}" rendered="{!curr_wrapper.presets.giftDetailAmount.readOnly && NOT(curr_wrapper.presets.giftDetailAmount.isHidden)}"/>
+
+            <apex:inputField required="true" id="allocAppeal" value="{!item.New_Campaign__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailCampaign.readOnly) && NOT(curr_wrapper.presets.giftDetailCampaign.isHidden)}" onchange="applyAppealDefaults(this);"/>
+            <apex:outputField value="{!item.New_Campaign__c}" rendered="{!curr_wrapper.presets.giftDetailCampaign.readOnly && NOT(curr_wrapper.presets.giftDetailCampaign.isHidden)}"/>
+
+            <!--<apex:inputField value="{!item.Appeal__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailAppeal.readOnly) && NOT(curr_wrapper.presets.giftDetailAppeal.isHidden)}"/>
+            <apex:outputField value="{!item.Appeal__c}" rendered="{!curr_wrapper.presets.giftDetailAppeal.readOnly && NOT(curr_wrapper.presets.giftDetailAppeal.isHidden)}"/>-->
+
+            <apex:inputField value="{!item.Product__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailProduct.readOnly) && NOT(curr_wrapper.presets.giftDetailProduct.isHidden)}"/>
+            <apex:outputField value="{!item.Product__c}" rendered="{!curr_wrapper.presets.giftDetailProduct.readOnly && NOT(curr_wrapper.presets.giftDetailProduct.isHidden)}"/>
+
+            <apex:inputField value="{!item.Tribute__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailTribute.readOnly) && NOT(curr_wrapper.presets.giftDetailTribute.isHidden)}"/>
+            <apex:outputField value="{!item.Tribute__c}" rendered="{!curr_wrapper.presets.giftDetailTribute.readOnly && NOT(curr_wrapper.presets.giftDetailTribute.isHidden)}"/>
+
+            <!--  <apex:inputField value="{!item.Default_Fund__c}"/> -->
+
+            <apex:inputField required="true" id="allocFund" value="{!item.Fund__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailFund.readOnly) && NOT(curr_wrapper.presets.giftDetailFund.isHidden)}"/>
+            <apex:outputField value="{!item.Fund__c}" rendered="{!curr_wrapper.presets.giftDetailFund.readOnly && NOT(curr_wrapper.presets.giftDetailFund.isHidden)}"/>
+
+            <apex:inputField value="{!item.Description__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailDescription.readOnly) && NOT(curr_wrapper.presets.giftDetailDescription.isHidden)}"/>
+            <apex:outputField value="{!item.Description__c}" rendered="{!curr_wrapper.presets.giftDetailDescription.readOnly && NOT(curr_wrapper.presets.giftDetailDescription.isHidden)}"/>
+
+            <!--<apex:inputField value="{!item.Package__c}" />-->
+
+
+        </apex:pageBlockSection>
+      </apex:repeat>
+      </apex:outputPanel>
+      <apex:outputPanel styleClass="pbSubheader" style="background-color:#dcdcdc;text-align:left;" rendered="{!NOT(curr_wrapper.isRecurring)}" layout="block">
+        <apex:commandButton value="+ Add" action="{!addGiftDetail}" immediate="true" reRender="something" rendered="{!NOT(curr_wrapper.isRecurring)}" status="status" oncomplete="packageAutoComplete();"/>
+      </apex:outputPanel>
+
+      <!-- Recurring Donation Allocation -->
+      <apex:pageBlockSection title="Recurring Donation Allocation" rendered="{!curr_wrapper.isRecurring}">
+      </apex:pageBlockSection>
+
+      <apex:actionFunction action="{!removeRDGiftDetail}" name="removeRDGiftDetail" immediate="true" reRender="something" rendered="{!curr_wrapper.isRecurring}" status="status" oncomplete="packageAutoComplete();">
+        <apex:param name="RDGiftDetailIndex" value=""/>
+        <apex:param name="RDsecond" value=""/>
+      </apex:actionFunction>
+
+      <apex:outputPanel id="repeatRDBlock" layout="none" rendered="{!curr_wrapper.isRecurring}">
+        <apex:variable var="rowRDIndex" value="{!0}"/>
+        <apex:repeat value="{!curr_wrapper.rdGiftDetails}" var="rdItem">
+          <apex:variable var="rowRDIndex" value="{!TEXT(rowRDIndex+1)}"/>
+
+          <apex:outputPanel style="background-color:#EDDDDD;text-align:right;width:100%;color:Black;" styleClass="pbSubheader" layout="block" rendered="{!rowRDIndex>1}">
+            {!rowRDIndex} - <input type="button" class="btn" value="Remove" onclick="if (window.confirm('Are you sure?')) removeRDGiftDetail('{!rowRDIndex}','0');"/>
+          </apex:outputPanel>
+          <apex:pageBlockSection >
+            <apex:inputField id="rd_allo_amount" value="{!rdItem.Amount__c}" required="true" rendered="{!NOT(curr_wrapper.presets.giftDetailAmount.readOnly) && NOT(curr_wrapper.presets.giftDetailAmount.isHidden)}"/>
+            <apex:outputField value="{!rdItem.Amount__c}" rendered="{!curr_wrapper.presets.giftDetailAmount.readOnly && NOT(curr_wrapper.presets.giftDetailAmount.isHidden)}"/>
+
+            <apex:inputField id="allocAppeal" required="true" value="{!rdItem.New_Campaign__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailCampaign.readOnly) && NOT(curr_wrapper.presets.giftDetailCampaign.isHidden)}"  onchange="applyAppealDefaults(this);"/>
+            <apex:outputField value="{!rdItem.New_Campaign__c}" rendered="{!curr_wrapper.presets.giftDetailCampaign.readOnly && NOT(curr_wrapper.presets.giftDetailCampaign.isHidden)}"/>
+
+            <apex:inputField id="allocFund" value="{!rdItem.Fund__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailFund.readOnly) && NOT(curr_wrapper.presets.giftDetailFund.isHidden)}"/>
+            <apex:outputField value="{!rdItem.Fund__c}" rendered="{!curr_wrapper.presets.giftDetailFund.readOnly && NOT(curr_wrapper.presets.giftDetailFund.isHidden)}"/>
+
+
+            <!--<apex:inputField value="{!rdItem.Appeal__c}" rendered="{!NOT(curr_wrapper.presets.giftDetailAppeal.readOnly) && NOT(curr_wrapper.presets.giftDetailAppeal.isHidden)}"/>
+            <apex:outputField value="{!rdItem.Appeal__c}" rendered="{!curr_wrapper.presets.giftDetailAppeal.readOnly && NOT(curr_wrapper.presets.giftDetailAppeal.isHidden)}"/>-->
+          </apex:pageBlockSection>
+        </apex:repeat>
+      </apex:outputPanel>
+      <apex:outputPanel styleClass="pbSubheader" style="background-color:#dcdcdc;text-align:left;" rendered="{!curr_wrapper.isRecurring}" layout="block">
+        <apex:commandButton value="+ Add" action="{!addRDGiftDetail}" immediate="true" reRender="something" rendered="{!curr_wrapper.isRecurring}" status="status" oncomplete="packageAutoComplete();"/>
+      </apex:outputPanel>
+   </apex:outputPanel>
+
+  </apex:pageBlock>
+  <apex:actionStatus id="status2" startText="Working..." stopText="" startStyleClass="actionStatus2" onstart="jShowBusy()" onstop="jHideBusy()"/>
+  <apex:actionStatus id="status3" startText="" stopText=""/>
+   <script type="text/javascript">
+      window.onbeforeunload = confirmBrowseAway;
+      function confirmBrowseAway() {
+          if (document.all) return;
+          if ({!isBatchClosed} == false && !loadingEdit ) {
+            return "Are you sure you want to leave this page " +
+            "now, your work will NOT be saved!";
+          }
+          loadingEdit = false;
+      }
+   </script>
+  </apex:form>
+</apex:page>
